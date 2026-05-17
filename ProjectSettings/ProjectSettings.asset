@@ -900,7 +900,13 @@ PlayerSettings:
   XboxOneOverrideIdentityName: 
   XboxOneOverrideIdentityPublisher: 
   vrEditorSettings: {}
-  cloudServicesEnabled: {}
+  cloudServicesEnabled:
+    Build: 0
+    Game Performance: 0
+    Legacy Analytics: 0
+    Purchasing: 0
+    UDP: 0
+    Unity Ads: 0
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 
@@ -922,11 +928,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
-  cloudProjectId: 15b27e42-7e18-4231-9bf8-94f48439283c
+  cloudProjectId: e8706573-c925-4f5e-a18f-ff3ceeecad7b
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: MonopolyGame
-  organizationId: niemampomyslu67
+  organizationId: tmp_name_67
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
