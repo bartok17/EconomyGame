@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.Services.Authentication;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
 using Unity.Services.Core;
@@ -19,6 +21,8 @@ namespace MonopolyGame.Multiplayer
         private const string RelayConnectionType = "dtls";
         private const int DefaultMaxPlayers = 4;
         private const float RelayJoinCodeTimeoutSeconds = 30f;
+        private static readonly Regex UsernamePattern = new Regex(@"^[a-z0-9]+$", RegexOptions.Compiled);
+        private static readonly Regex PasswordPattern = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z]).{8,}$", RegexOptions.Compiled);
 
         private readonly AuthClient _authClient = new AuthClient();
         private readonly LobbyClient _lobbyClient = new LobbyClient();
@@ -29,6 +33,7 @@ namespace MonopolyGame.Multiplayer
         private UnityTransport _transport;
 
         public MultiplayerStatus Status { get; private set; } = MultiplayerStatus.Idle;
+        public MultiplayerError LastError { get; private set; }
 
         public string LocalPlayerId => _authClient.PlayerId;
         public string LocalDisplayName => _authClient.DisplayName;
@@ -46,6 +51,8 @@ namespace MonopolyGame.Multiplayer
 
         public async Task InitializeAsync()
         {
+            ClearLastError();
+
             if (Status != MultiplayerStatus.Idle)
             {
                 return;
@@ -67,7 +74,14 @@ namespace MonopolyGame.Multiplayer
 
         public async Task SignUpAsync(string username, string password, string displayName)
         {
-            UpdateStatus(MultiplayerStatus.SigningIn);
+            var validationError = ValidateSignUpInputs(username, password);
+            if (validationError != null)
+            {
+                RaiseError(validationError.Code, validationError.Message, null);
+                return;
+            }
+
+            BeginWorkflowStep(MultiplayerStatus.SigningIn);
 
             try
             {
@@ -77,13 +91,20 @@ namespace MonopolyGame.Multiplayer
             }
             catch (Exception ex)
             {
-                RaiseError("signup_failed", "Sign-up failed.", ex);
+                RaiseError("signup_failed", BuildAuthErrorMessage(ex, isSignUp: true), ex);
             }
         }
 
         public async Task SignInAsync(string username, string password)
         {
-            UpdateStatus(MultiplayerStatus.SigningIn);
+            var validationError = ValidateSignInInputs(username, password);
+            if (validationError != null)
+            {
+                RaiseError(validationError.Code, validationError.Message, null);
+                return;
+            }
+
+            BeginWorkflowStep(MultiplayerStatus.SigningIn);
 
             try
             {
@@ -93,12 +114,14 @@ namespace MonopolyGame.Multiplayer
             }
             catch (Exception ex)
             {
-                RaiseError("signin_failed", "Sign-in failed.", ex);
+                RaiseError("signin_failed", BuildAuthErrorMessage(ex, isSignUp: false), ex);
             }
         }
 
         public async Task SetDisplayNameAsync(string displayName)
         {
+            ClearLastError();
+
             try
             {
                 await _authClient.SetDisplayNameAsync(displayName);
@@ -115,13 +138,14 @@ namespace MonopolyGame.Multiplayer
 
         public void SignOut()
         {
+            ClearLastError();
             _authClient.SignOut();
             UpdateStatus(MultiplayerStatus.SignedOut);
         }
 
         public async Task QueryLobbiesAsync(int maxResults = 25)
         {
-            UpdateStatus(MultiplayerStatus.LobbyQuerying);
+            BeginWorkflowStep(MultiplayerStatus.LobbyQuerying);
 
             try
             {
@@ -137,7 +161,7 @@ namespace MonopolyGame.Multiplayer
 
         public async Task CreateLobbyAsHostAsync(string lobbyName, int maxPlayers = DefaultMaxPlayers, bool isPrivate = false)
         {
-            UpdateStatus(MultiplayerStatus.LobbyJoining);
+            BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
 
             try
             {
@@ -156,7 +180,7 @@ namespace MonopolyGame.Multiplayer
 
         public async Task JoinLobbyByCodeAsync(string lobbyCode)
         {
-            UpdateStatus(MultiplayerStatus.LobbyJoining);
+            BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
 
             try
             {
@@ -174,6 +198,8 @@ namespace MonopolyGame.Multiplayer
 
         public async Task LeaveLobbyAsync()
         {
+            ClearLastError();
+
             try
             {
                 _waitRelayCts?.Cancel();
@@ -188,6 +214,7 @@ namespace MonopolyGame.Multiplayer
 
         public async Task StartHostFlowAsync(string lobbyName, int maxPlayers = DefaultMaxPlayers, bool isPrivate = false)
         {
+            ClearLastError();
             await CreateLobbyAsHostAsync(lobbyName, maxPlayers, isPrivate);
 
             try
@@ -222,6 +249,7 @@ namespace MonopolyGame.Multiplayer
 
         public async Task StartClientFlowAsync(string lobbyCode)
         {
+            ClearLastError();
             await JoinLobbyByCodeAsync(lobbyCode);
 
             try
@@ -372,8 +400,48 @@ namespace MonopolyGame.Multiplayer
 
         private void RaiseError(string code, string message, Exception exception)
         {
-            UpdateStatus(MultiplayerStatus.Error);
-            ErrorOccurred?.Invoke(new MultiplayerError(code, message, exception));
+            LastError = new MultiplayerError(code, message, exception);
+            RecoverStatusAfterError();
+            ErrorOccurred?.Invoke(LastError);
+        }
+
+        private void BeginWorkflowStep(MultiplayerStatus nextStatus)
+        {
+            ClearLastError();
+            UpdateStatus(nextStatus);
+        }
+
+        private void ClearLastError()
+        {
+            LastError = null;
+        }
+
+        private void RecoverStatusAfterError()
+        {
+            switch (Status)
+            {
+                case MultiplayerStatus.Initializing:
+                    UpdateStatus(MultiplayerStatus.Idle);
+                    break;
+                case MultiplayerStatus.SigningIn:
+                    UpdateStatus(MultiplayerStatus.SignedOut);
+                    break;
+                case MultiplayerStatus.LobbyQuerying:
+                    UpdateStatus(MultiplayerStatus.SignedIn);
+                    break;
+                case MultiplayerStatus.LobbyJoining:
+                    UpdateStatus(MultiplayerStatus.SignedIn);
+                    break;
+                case MultiplayerStatus.RelayAllocating:
+                    UpdateStatus(MultiplayerStatus.LobbyJoined);
+                    break;
+                case MultiplayerStatus.RelayJoining:
+                    UpdateStatus(MultiplayerStatus.LobbyJoined);
+                    break;
+                case MultiplayerStatus.NetworkStarting:
+                    UpdateStatus(MultiplayerStatus.LobbyJoined);
+                    break;
+            }
         }
 
         private static LobbySummary ToSummary(Lobby lobby)
@@ -427,6 +495,94 @@ namespace MonopolyGame.Multiplayer
             }
 
             return data.ToDictionary(pair => pair.Key, pair => pair.Value.Value);
+        }
+
+        private static MultiplayerError ValidateSignUpInputs(string username, string password)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return new MultiplayerError("signup_username_blank", "Username cannot be blank.");
+            }
+
+            if (!UsernamePattern.IsMatch(username))
+            {
+                return new MultiplayerError(
+                    "signup_username_format",
+                    "Username can only contain lowercase a-z and numbers. No spaces or special characters are allowed.");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return new MultiplayerError("signup_password_blank", "Password cannot be blank.");
+            }
+
+            if (!PasswordPattern.IsMatch(password))
+            {
+                return new MultiplayerError(
+                    "signup_password_format",
+                    "Password must be at least 8 characters and include uppercase, lowercase, and a special symbol.");
+            }
+
+            return null;
+        }
+
+        private static MultiplayerError ValidateSignInInputs(string username, string password)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return new MultiplayerError("signin_username_blank", "Username cannot be blank.");
+            }
+
+            if (!UsernamePattern.IsMatch(username))
+            {
+                return new MultiplayerError(
+                    "signin_username_format",
+                    "Username can only contain lowercase a-z and numbers. No spaces or special characters are allowed.");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return new MultiplayerError("signin_password_blank", "Password cannot be blank.");
+            }
+
+            return null;
+        }
+
+        private static string BuildAuthErrorMessage(Exception exception, bool isSignUp)
+        {
+            if (exception is AuthenticationException authException)
+            {
+                var detail = authException.Message ?? string.Empty;
+                var detailLower = detail.ToLowerInvariant();
+
+                if (isSignUp && (detailLower.Contains("already") || detailLower.Contains("exists") || detailLower.Contains("taken")))
+                {
+                    return "Username already exists.";
+                }
+
+                if (!isSignUp && (detailLower.Contains("invalid username") || detailLower.Contains("invalid password") || detailLower.Contains("invalid credentials") || detailLower.Contains("invalid username or password") || detailLower.Contains("unauthorized")))
+                {
+                    return "Invalid username or password.";
+                }
+
+                if (isSignUp && detailLower.Contains("username"))
+                {
+                    return "Username can only contain lowercase a-z and numbers. Password must be at least 8 characters and include uppercase, lowercase, and a special symbol.";
+                }
+
+                if (isSignUp && detailLower.Contains("password"))
+                {
+                    return "Password must be at least 8 characters and include uppercase, lowercase, and a special symbol.";
+                }
+            }
+
+            var message = exception?.Message;
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                return message;
+            }
+
+            return isSignUp ? "Sign-up failed." : "Sign-in failed.";
         }
     }
 }
