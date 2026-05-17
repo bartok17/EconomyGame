@@ -28,6 +28,9 @@ namespace MonopolyGame.Multiplayer
     public sealed class ErrorEvent : UnityEvent<MultiplayerError> { }
 
     [Serializable]
+    public sealed class StringEvent : UnityEvent<string> { }
+
+    [Serializable]
     public sealed class LobbySummaryList
     {
         public LobbySummary[] Items;
@@ -51,12 +54,13 @@ namespace MonopolyGame.Multiplayer
         public RoleEvent NetworkStarted = new RoleEvent();
         public RoleEvent ReadyToEnterGame = new RoleEvent();
         public ErrorEvent ErrorOccurred = new ErrorEvent();
+        public StringEvent ErrorMessage = new StringEvent();
 
         private void OnEnable()
         {
             if (coordinator == null)
             {
-                coordinator = FindObjectOfType<MultiplayerFlowCoordinator>();
+                coordinator = FindAnyObjectByType<MultiplayerFlowCoordinator>();
             }
 
             if (coordinator == null)
@@ -138,6 +142,18 @@ namespace MonopolyGame.Multiplayer
         private void HandleErrorOccurred(MultiplayerError error)
         {
             ErrorOccurred.Invoke(error);
+
+            if (error == null)
+            {
+                ErrorMessage.Invoke("Unknown multiplayer error.");
+                return;
+            }
+
+            var message = string.IsNullOrWhiteSpace(error.Message)
+                ? error.Code
+                : error.Message;
+
+            ErrorMessage.Invoke(message);
         }
     }
 }
