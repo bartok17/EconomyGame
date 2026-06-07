@@ -40,7 +40,7 @@ namespace MonopolyGame.Multiplayer
         {
             if (coordinator == null)
             {
-                coordinator = FindObjectOfType<MultiplayerFlowCoordinator>();
+                coordinator = FindAnyObjectByType<MultiplayerFlowCoordinator>();
             }
 
             if (coordinator == null)
@@ -67,7 +67,6 @@ namespace MonopolyGame.Multiplayer
             }
         }
 
-        // --- UI Setters (wire these to InputField/TMP_InputField onValueChanged)
         public void SetUsername(string value) => username = value;
         public void SetPassword(string value) => password = value;
         public void SetDisplayName(string value) => displayName = value;
@@ -82,9 +81,13 @@ namespace MonopolyGame.Multiplayer
             }
         }
 
+        public void SetMaxPlayers(int value)
+        {
+            maxPlayers = Mathf.Clamp(value, 2, 16);
+        }
+
         public void SetIsPrivate(bool value) => isPrivate = value;
 
-        // --- UI Commands (wire these to Buttons)
         public void Initialize() => Run(coordinator.InitializeAsync);
 
         public void SignIn() => Run(() => coordinator.SignInAsync(username, password));
@@ -100,6 +103,20 @@ namespace MonopolyGame.Multiplayer
         public void Host() => Run(() => coordinator.StartHostFlowAsync(lobbyName, maxPlayers, isPrivate));
 
         public void Join() => Run(() => coordinator.StartClientFlowAsync(lobbyCode));
+
+        /// <summary>
+        /// Join by lobby ID (from browser list) or join code.
+        /// If joinCodeOrId looks like a code (alphanumeric), use as code.
+        /// Otherwise, treat as lobby ID.
+        /// </summary>
+        public void Join(string joinCodeOrId)
+        {
+            if (string.IsNullOrWhiteSpace(joinCodeOrId))
+                return;
+
+            lobbyCode = joinCodeOrId;
+            Join();
+        }
 
         public void LeaveLobby() => Run(coordinator.LeaveLobbyAsync);
 
@@ -127,7 +144,7 @@ namespace MonopolyGame.Multiplayer
 
         private static void Run(Func<Task> action)
         {
-            // Intentionally async void: this is the Unity UI callback boundary.
+            // Fire-and-forget is intentional here: Unity UI event handlers cannot await.
             _ = RunAsync(action);
         }
 

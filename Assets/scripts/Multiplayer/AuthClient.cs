@@ -8,7 +8,7 @@ namespace MonopolyGame.Multiplayer
     {
         public bool IsSignedIn => AuthenticationService.Instance.IsSignedIn;
         public string PlayerId => AuthenticationService.Instance.PlayerId;
-        public string DisplayName => AuthenticationService.Instance.PlayerName;
+        public string DisplayName => GetEffectiveDisplayName();
 
         public async Task SignUpAsync(string username, string password, string displayName)
         {
@@ -37,6 +37,24 @@ namespace MonopolyGame.Multiplayer
         public void SignOut()
         {
             AuthenticationService.Instance.SignOut();
+        }
+
+        private string GetEffectiveDisplayName()
+        {
+            var playerName = AuthenticationService.Instance.PlayerName;
+            if (!string.IsNullOrWhiteSpace(playerName))
+            {
+                return playerName;
+            }
+
+            var playerId = AuthenticationService.Instance.PlayerId;
+            if (!string.IsNullOrWhiteSpace(playerId))
+            {
+                var suffixLength = Math.Min(6, playerId.Length);
+                return $"Player-{playerId.Substring(0, suffixLength)}";
+            }
+
+            return "Player";
         }
     }
 }
