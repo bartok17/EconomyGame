@@ -80,7 +80,12 @@ namespace MonopolyGame.Multiplayer
         {
             if (CurrentLobby == null)
             {
-                return;
+                throw new InvalidOperationException("Cannot update lobby data because no current lobby is set.");
+            }
+
+            if (data == null || data.Count == 0)
+            {
+                throw new ArgumentException("Lobby data update payload cannot be empty.", nameof(data));
             }
 
             var options = new UpdateLobbyOptions
@@ -90,6 +95,18 @@ namespace MonopolyGame.Multiplayer
 
             CurrentLobby = await LobbyService.Instance.UpdateLobbyAsync(CurrentLobby.Id, options);
             LobbyUpdated?.Invoke(CurrentLobby);
+        }
+
+        public async Task<Lobby> RefreshCurrentLobbyAsync()
+        {
+            if (CurrentLobby == null)
+            {
+                throw new InvalidOperationException("Cannot refresh lobby because no current lobby is set.");
+            }
+
+            CurrentLobby = await LobbyService.Instance.GetLobbyAsync(CurrentLobby.Id);
+            LobbyUpdated?.Invoke(CurrentLobby);
+            return CurrentLobby;
         }
 
         public void StartHeartbeatLoop()

@@ -31,6 +31,11 @@ namespace MonopolyGame.Multiplayer
                 networkObject.AddComponent<UnityTransport>();
             }
 
+            if (networkManager.NetworkConfig == null)
+            {
+                networkManager.NetworkConfig = new NetworkConfig();
+            }
+
             flowCoordinator.AssignNetworkManager(networkManager);
         }
     }
