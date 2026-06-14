@@ -215,6 +215,7 @@ namespace MonopolyGame.Multiplayer
         public async Task StartHostFlowAsync(string lobbyName, int maxPlayers = DefaultMaxPlayers, bool isPrivate = false)
         {
             ClearLastError();
+            EnsureNetworkDependencies();
             await CreateLobbyAsHostAsync(lobbyName, maxPlayers, isPrivate);
 
             try
@@ -222,7 +223,18 @@ namespace MonopolyGame.Multiplayer
                 UpdateStatus(MultiplayerStatus.RelayAllocating);
 
                 var allocation = await _relayClient.CreateAllocationAsync(maxPlayers - 1);
+
+                if (allocation == null)
+                {
+                    throw new InvalidOperationException("Relay allocation returned null.");
+                }
+
                 var joinCode = await _relayClient.GetJoinCodeAsync(allocation);
+
+                if (string.IsNullOrWhiteSpace(joinCode))
+                {
+                    throw new InvalidOperationException("Relay join code was empty.");
+                }
 
                 await PublishRelayJoinCodeAsync(joinCode);
                 ConfigureTransportForHost(allocation);
@@ -243,13 +255,14 @@ namespace MonopolyGame.Multiplayer
             }
             catch (Exception ex)
             {
-                RaiseError("host_flow_failed", "Host flow failed.", ex);
+                RaiseError("host_flow_failed", $"Host flow failed: {ex.Message}", ex);
             }
         }
 
         public async Task StartClientFlowAsync(string lobbyCode)
         {
             ClearLastError();
+            EnsureNetworkDependencies();
             await JoinLobbyByCodeAsync(lobbyCode);
 
             try
@@ -277,7 +290,7 @@ namespace MonopolyGame.Multiplayer
             }
             catch (Exception ex)
             {
-                RaiseError("client_flow_failed", "Client flow failed.", ex);
+                RaiseError("client_flow_failed", $"Client flow failed: {ex.Message}", ex);
             }
         }
 
@@ -285,6 +298,11 @@ namespace MonopolyGame.Multiplayer
         {
             _networkManager = manager;
             _transport = manager != null ? manager.GetComponent<UnityTransport>() : null;
+
+            if (_networkManager != null && _transport != null)
+            {
+                _networkManager.NetworkConfig.NetworkTransport = _transport;
+            }
         }
 
         private void HookLobbyEvents()
@@ -325,11 +343,18 @@ namespace MonopolyGame.Multiplayer
 
         private async Task PublishRelayJoinCodeAsync(string joinCode)
         {
+            if (_lobbyClient.CurrentLobby == null)
+            {
+                throw new InvalidOperationException("Cannot publish relay join code because the current lobby is missing.");
+            }
+
+            await _lobbyClient.RefreshCurrentLobbyAsync();
+
             var data = new Dictionary<string, DataObject>
             {
                 {
                     MultiplayerKeys.LobbyDataRelayJoinCodeKey,
-                    new DataObject(DataObject.VisibilityOptions.Member, joinCode)
+                    new DataObject(DataObject.VisibilityOptions.Public, joinCode)
                 }
             };
 
@@ -378,7 +403,15 @@ namespace MonopolyGame.Multiplayer
 
             if (_networkManager == null)
             {
-                throw new InvalidOperationException("NetworkManager is missing in the scene.");
+                var networkObject = new GameObject("NetworkManager");
+                DontDestroyOnLoad(networkObject);
+                _networkManager = networkObject.AddComponent<NetworkManager>();
+                _transport = networkObject.AddComponent<UnityTransport>();
+            }
+
+            if (_networkManager.NetworkConfig == null)
+            {
+                _networkManager.NetworkConfig = new NetworkConfig();
             }
 
             if (_transport == null)
@@ -388,8 +421,10 @@ namespace MonopolyGame.Multiplayer
 
             if (_transport == null)
             {
-                throw new InvalidOperationException("UnityTransport is missing on NetworkManager.");
+                _transport = _networkManager.gameObject.AddComponent<UnityTransport>();
             }
+
+            _networkManager.NetworkConfig.NetworkTransport = _transport;
         }
 
         private void UpdateStatus(MultiplayerStatus status)
