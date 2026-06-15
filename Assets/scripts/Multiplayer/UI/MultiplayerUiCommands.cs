@@ -100,9 +100,15 @@ namespace MonopolyGame.Multiplayer
 
         public void RefreshLobbies() => Run(() => coordinator.QueryLobbiesAsync());
 
-        public void Host() => Run(() => coordinator.StartHostFlowAsync(lobbyName, maxPlayers, isPrivate));
+        public void Host()
+        {
+            Run(() => coordinator.StartHostFlowAsync(lobbyName, maxPlayers, isPrivate));
+        }
 
-        public void Join() => Run(() => coordinator.StartClientFlowAsync(lobbyCode));
+        public void Join()
+        {
+            Run(() => coordinator.StartClientFlowAsync(lobbyCode));
+        }
 
         /// <summary>
         /// Join by lobby ID (from browser list) or join code.
@@ -115,7 +121,14 @@ namespace MonopolyGame.Multiplayer
                 return;
 
             lobbyCode = joinCodeOrId;
-            Join();
+
+            if (joinCodeOrId.Length == 6)
+            {
+                Join();
+                return;
+            }
+
+            Run(() => coordinator.JoinLobbyByIdAsync(joinCodeOrId));
         }
 
         public void LeaveLobby() => Run(coordinator.LeaveLobbyAsync);

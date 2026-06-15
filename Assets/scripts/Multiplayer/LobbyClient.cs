@@ -48,12 +48,28 @@ namespace MonopolyGame.Multiplayer
 
         public async Task<Lobby> JoinLobbyByCodeAsync(string lobbyCode, string displayName)
         {
+            Debug.Log($"[LobbyClient] Joining lobby by code: {lobbyCode}");
             var joinOptions = new JoinLobbyByCodeOptions
             {
                 Player = BuildPlayer(displayName)
             };
 
             CurrentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinOptions);
+            Debug.Log($"[LobbyClient] Joined lobby: id={CurrentLobby.Id}, code={CurrentLobby.LobbyCode}, name={CurrentLobby.Name}, players={CurrentLobby.Players?.Count ?? 0}/{CurrentLobby.MaxPlayers}");
+            LobbyUpdated?.Invoke(CurrentLobby);
+            return CurrentLobby;
+        }
+
+        public async Task<Lobby> JoinLobbyByIdAsync(string lobbyId, string displayName)
+        {
+            Debug.Log($"[LobbyClient] Joining lobby by id: {lobbyId}");
+            var joinOptions = new JoinLobbyByIdOptions
+            {
+                Player = BuildPlayer(displayName)
+            };
+
+            CurrentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinOptions);
+            Debug.Log($"[LobbyClient] Joined lobby: id={CurrentLobby.Id}, code={CurrentLobby.LobbyCode}, name={CurrentLobby.Name}, players={CurrentLobby.Players?.Count ?? 0}/{CurrentLobby.MaxPlayers}");
             LobbyUpdated?.Invoke(CurrentLobby);
             return CurrentLobby;
         }
@@ -104,7 +120,9 @@ namespace MonopolyGame.Multiplayer
                 throw new InvalidOperationException("Cannot refresh lobby because no current lobby is set.");
             }
 
+            Debug.Log($"[LobbyClient] Refreshing current lobby: id={CurrentLobby.Id}, code={CurrentLobby.LobbyCode}");
             CurrentLobby = await LobbyService.Instance.GetLobbyAsync(CurrentLobby.Id);
+            Debug.Log($"[LobbyClient] Refreshed lobby: id={CurrentLobby.Id}, code={CurrentLobby.LobbyCode}, dataKeys={(CurrentLobby.Data != null ? string.Join(",", CurrentLobby.Data.Keys) : "<none>")}");
             LobbyUpdated?.Invoke(CurrentLobby);
             return CurrentLobby;
         }
@@ -178,6 +196,7 @@ namespace MonopolyGame.Multiplayer
                     try
                     {
                         CurrentLobby = await LobbyService.Instance.GetLobbyAsync(CurrentLobby.Id);
+                        Debug.Log($"[LobbyClient] Poll update: id={CurrentLobby.Id}, code={CurrentLobby.LobbyCode}, dataKeys={(CurrentLobby.Data != null ? string.Join(",", CurrentLobby.Data.Keys) : "<none>")}");
                         LobbyUpdated?.Invoke(CurrentLobby);
                     }
                     catch (LobbyServiceException ex)
