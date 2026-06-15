@@ -92,8 +92,6 @@ namespace MonopolyGame.Multiplayer.UI
                 return;
             }
 
-            Debug.Log($"[JoinByCode] Joining with code: {code}");
-
             if (uiCommands != null)
             {
                 uiCommands.Join(code);
