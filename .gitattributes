@@ -7,8 +7,8 @@
 *.shader text
 
 # Unity text files (Enforce LF to prevent false modifications)
-*.unity text eol=lf
-*.prefab text eol=lf
+*.unity text merge=unityyamlmerge eol=lf
+*.prefab text merge=unityyamlmerge eol=lf
 *.mat text eol=lf
 *.anim text eol=lf
 *.physicsMaterial2D text eol=lf
