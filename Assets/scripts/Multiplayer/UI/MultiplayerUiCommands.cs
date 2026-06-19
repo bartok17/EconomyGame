@@ -102,12 +102,17 @@ namespace MonopolyGame.Multiplayer
 
         public void Host()
         {
-            Run(() => coordinator.StartHostFlowAsync(lobbyName, maxPlayers, isPrivate));
+            Run(() => coordinator.CreateLobbyAsHostAsync(lobbyName, maxPlayers, isPrivate));
         }
 
         public void Join()
         {
-            Run(() => coordinator.StartClientFlowAsync(lobbyCode));
+            Run(() => coordinator.JoinLobbyByCodeAsync(lobbyCode));
+        }
+
+        public void StartGame()
+        {
+            Run(coordinator.StartGameAsHostAsync);
         }
 
         /// <summary>

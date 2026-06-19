@@ -72,8 +72,16 @@ namespace MonopolyGame.Multiplayer.UI
         private void OnLobbyUpdated(LobbySnapshot lobbySnapshot)
         {
             _currentLobby = lobbySnapshot;
+
+            if (coordinator != null)
+            {
+                _playerRole = coordinator.IsLocalPlayerHost ? MultiplayerRole.Host : MultiplayerRole.Client;
+            }
+            
             DisplayLobbyInfo(lobbySnapshot);
             UpdatePlayerList(lobbySnapshot);
+            UpdateRoleBadge();
+            UpdateControlsForRole();
         }
 
         private void OnError(MultiplayerError error)
@@ -210,7 +218,7 @@ namespace MonopolyGame.Multiplayer.UI
             if (uiCommands != null)
             {
                 // Reuse the host flow to ensure relay/network startup is triggered from one path.
-                uiCommands.Host();
+                uiCommands.StartGame();
             }
         }
 
