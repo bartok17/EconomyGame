@@ -32,11 +32,18 @@ namespace MonopolyGame.Multiplayer
         private NetworkManager _networkManager;
         private UnityTransport _transport;
 
+        private string _currentLobbyHostPlayerId;
+        private bool _networkStartRequested;
+
         public MultiplayerStatus Status { get; private set; } = MultiplayerStatus.Idle;
         public MultiplayerError LastError { get; private set; }
 
         public string LocalPlayerId => _authClient.PlayerId;
         public string LocalDisplayName => _authClient.DisplayName;
+        
+        public bool IsLocalPlayerHost =>
+            !string.IsNullOrWhiteSpace(_currentLobbyHostPlayerId) && _currentLobbyHostPlayerId == LocalPlayerId;
+        
         public LobbySnapshot CurrentLobbySnapshot { get; private set; }
 
         public event Action<MultiplayerStatus> StatusChanged;
@@ -166,6 +173,7 @@ namespace MonopolyGame.Multiplayer
             try
             {
                 var lobby = await _lobbyClient.CreateLobbyAsync(lobbyName, maxPlayers, isPrivate, _authClient.DisplayName);
+                _currentLobbyHostPlayerId = lobby.HostId;
                 CurrentLobbySnapshot = ToSnapshot(lobby);
                 _lobbyClient.StartHeartbeatLoop();
                 _lobbyClient.StartPollingLoop();
@@ -185,6 +193,7 @@ namespace MonopolyGame.Multiplayer
             try
             {
                 var lobby = await _lobbyClient.JoinLobbyByCodeAsync(lobbyCode, _authClient.DisplayName);
+                _currentLobbyHostPlayerId = lobby.HostId;
                 CurrentLobbySnapshot = ToSnapshot(lobby);
                 _lobbyClient.StartPollingLoop();
                 UpdateStatus(MultiplayerStatus.LobbyJoined);
@@ -203,6 +212,7 @@ namespace MonopolyGame.Multiplayer
             try
             {
                 var lobby = await _lobbyClient.JoinLobbyByIdAsync(lobbyId, _authClient.DisplayName);
+                _currentLobbyHostPlayerId = lobby.HostId;
                 CurrentLobbySnapshot = ToSnapshot(lobby);
                 _lobbyClient.StartPollingLoop();
                 UpdateStatus(MultiplayerStatus.LobbyJoined);
@@ -232,34 +242,66 @@ namespace MonopolyGame.Multiplayer
 
         public async Task StartHostFlowAsync(string lobbyName, int maxPlayers = DefaultMaxPlayers, bool isPrivate = false)
         {
-            ClearLastError();
-            EnsureNetworkDependencies();
-            Debug.Log($"[MultiplayerFlow] StartHostFlowAsync begin. lobbyName='{lobbyName}', maxPlayers={maxPlayers}, isPrivate={isPrivate}, status={Status}");
             await CreateLobbyAsHostAsync(lobbyName, maxPlayers, isPrivate);
+        }
+
+        public async Task StartClientFlowAsync(string lobbyCode)
+        {
+            await JoinLobbyByCodeAsync(lobbyCode);
+        }
+
+        public async Task StartGameAsHostAsync()
+        {
+            ClearLastError();
+            
+            if (_lobbyClient.CurrentLobby == null || CurrentLobbySnapshot == null)
+            {
+                RaiseError("start_game_no_lobby", "Cannot start game because no lobby is active.", null);
+                return;
+            }
+
+            if (!IsLocalPlayerHost)
+            {
+                RaiseError("start_game_not_host", "Only the lobby host can start the game.", null);
+                return;
+            }
+            
+            if (CurrentLobbySnapshot.PlayerCount < 2)
+            {
+                RaiseError("start_game_not_enough_players", "At least 2 players are required to start.", null);
+                return;
+            }
+
+            if (_networkStartRequested)
+            {
+                return;
+            }
+
+            _networkStartRequested = true;
 
             try
             {
+                EnsureNetworkDependencies();
                 UpdateStatus(MultiplayerStatus.RelayAllocating);
-                Debug.Log("[MultiplayerFlow] Allocating relay for host.");
+                Debug.Log("[MultiplayerFlow] Allocating relay for game start.");
 
-                var allocation = await _relayClient.CreateAllocationAsync(maxPlayers - 1);
-
+                var allocation = await _relayClient.CreateAllocationAsync(CurrentLobbySnapshot.MaxPlayers - 1);
+                
                 if (allocation == null)
                 {
                     throw new InvalidOperationException("Relay allocation returned null.");
                 }
-
                 var joinCode = await _relayClient.GetJoinCodeAsync(allocation);
-
+                
                 if (string.IsNullOrWhiteSpace(joinCode))
                 {
                     throw new InvalidOperationException("Relay join code was empty.");
                 }
-
+                
                 Debug.Log($"[MultiplayerFlow] Host relay join code created. code={joinCode}, region={allocation.Region}, allocationId={allocation.AllocationId}");
 
-                await PublishRelayJoinCodeAsync(joinCode);
-                Debug.Log("[MultiplayerFlow] Relay join code published to lobby data.");
+                await PublishGameStartDataAsync(joinCode);
+                Debug.Log("[MultiplayerFlow] Game start data published to lobby.");
                 ConfigureTransportForHost(allocation);
 
                 UpdateStatus(MultiplayerStatus.NetworkStarting);
@@ -276,36 +318,41 @@ namespace MonopolyGame.Multiplayer
                 NetworkStarted?.Invoke(MultiplayerRole.Host);
                 ReadyToEnterGame?.Invoke(MultiplayerRole.Host);
             }
+
             catch (Exception ex)
             {
-                RaiseError("host_flow_failed", $"Host flow failed: {ex.Message}", ex);
+                _networkStartRequested = false;
+                RaiseError("start_game_failed", $"Start game failed: {ex.Message}", ex);
             }
         }
 
-        public async Task StartClientFlowAsync(string lobbyCode)
+        private async Task StartClientFromCurrentLobbyAsync()
         {
-            ClearLastError();
-            EnsureNetworkDependencies();
-            Debug.Log($"[MultiplayerFlow] StartClientFlowAsync begin. lobbyCode={lobbyCode}, status={Status}, currentLobby={(CurrentLobbySnapshot != null ? CurrentLobbySnapshot.Name : "<none>")}");
-            await JoinLobbyByCodeAsync(lobbyCode);
+            if (CurrentLobbySnapshot == null || string.IsNullOrWhiteSpace(CurrentLobbySnapshot.RelayJoinCode))
+            {
+                return;
+            }
+            
+            _networkStartRequested = true;
 
             try
             {
-                Debug.Log($"[MultiplayerFlow] Joined lobby. snapshot={(CurrentLobbySnapshot != null ? CurrentLobbySnapshot.Name : "<null>")}, relayCode={(CurrentLobbySnapshot != null && !string.IsNullOrWhiteSpace(CurrentLobbySnapshot.RelayJoinCode) ? "present" : "missing")}");
+                EnsureNetworkDependencies();
+                Debug.Log($"[MultiplayerFlow] Starting client from current lobby. snapshot={(CurrentLobbySnapshot != null ? CurrentLobbySnapshot.Name : "<null>")}, relayCode={(CurrentLobbySnapshot != null && !string.IsNullOrWhiteSpace(CurrentLobbySnapshot.RelayJoinCode) ? "present" : "missing")}");
                 UpdateStatus(MultiplayerStatus.RelayJoining);
-                Debug.Log("[MultiplayerFlow] Waiting for relay join code from lobby updates.");
-
+                
                 var joinCode = await WaitForRelayJoinCodeAsync(TimeSpan.FromSeconds(RelayJoinCodeTimeoutSeconds));
                 Debug.Log($"[MultiplayerFlow] Relay join code received. length={joinCode?.Length ?? 0}");
+
                 var joinAllocation = await _relayClient.JoinAllocationAsync(joinCode);
                 Debug.Log($"[MultiplayerFlow] Relay allocation joined. region={joinAllocation.Region}, allocationId={joinAllocation.AllocationId}");
 
                 ConfigureTransportForClient(joinAllocation);
-
+                
                 UpdateStatus(MultiplayerStatus.NetworkStarting);
                 Debug.Log("[MultiplayerFlow] Starting NetworkManager client.");
                 _networkManager.StartClient();
-
+                
                 var summary = new RelayConnectionSummary(
                     joinAllocation.AllocationId.ToString(),
                     joinCode,
@@ -320,9 +367,35 @@ namespace MonopolyGame.Multiplayer
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[MultiplayerFlow] Client flow failed: {ex.Message}\n{ex}");
-                RaiseError("client_flow_failed", $"Client flow failed: {ex.Message}", ex);
+                _networkStartRequested = false;
+                RaiseError("client_start_failed", $"Client start failed: {ex.Message}", ex);
             }
+        }
+
+        private async Task PublishGameStartDataAsync(string joinCode)
+        {
+            await _lobbyClient.RefreshCurrentLobbyAsync();
+
+            var data = new Dictionary<string, DataObject>
+            {
+                {
+                    MultiplayerKeys.LobbyDataRelayJoinCodeKey,
+                    new DataObject(DataObject.VisibilityOptions.Public, joinCode)
+                },
+                {
+                    MultiplayerKeys.LobbyDataGameStartedKey,
+                    new DataObject(DataObject.VisibilityOptions.Public, "true")
+                }
+            };
+
+            await _lobbyClient.UpdateLobbyDataAsync(data);
+        }
+
+        private static bool IsGameStarted(LobbySnapshot snapshot)
+        {
+            return snapshot?.Data != null &&
+                   snapshot.Data.TryGetValue(MultiplayerKeys.LobbyDataGameStartedKey, out var value) && 
+                   string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         public void AssignNetworkManager(NetworkManager manager)
@@ -346,9 +419,15 @@ namespace MonopolyGame.Multiplayer
 
         private void HandleLobbyUpdated(Lobby lobby)
         {
+            _currentLobbyHostPlayerId = lobby.HostId;
             CurrentLobbySnapshot = ToSnapshot(lobby);
             Debug.Log($"[MultiplayerFlow] Lobby updated: name={CurrentLobbySnapshot.Name}, players={CurrentLobbySnapshot.PlayerCount}/{CurrentLobbySnapshot.MaxPlayers}, relayCode={(string.IsNullOrWhiteSpace(CurrentLobbySnapshot.RelayJoinCode) ? "missing" : "present")}");
             LobbyJoined?.Invoke(CurrentLobbySnapshot);
+
+            if (!IsLocalPlayerHost && IsGameStarted(CurrentLobbySnapshot) && !_networkStartRequested)
+            {
+                _ = StartClientFromCurrentLobbyAsync();
+            }
         }
 
         private void HandleLobbyLeft()
