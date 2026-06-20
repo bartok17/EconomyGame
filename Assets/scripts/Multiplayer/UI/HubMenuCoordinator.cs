@@ -24,6 +24,17 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void OnEnable()
         {
+            if (coordinator == null)
+            {
+                coordinator = FindAnyObjectByType<MultiplayerFlowCoordinator>();
+            }
+
+            if (coordinator == null)
+            {
+                Debug.LogWarning("[HubMenuCoordinator] MultiplayerFlowCoordinator not found. Panel transitions will not react to lobby events.");
+                return;
+            }
+
             if (coordinator != null)
             {
                 coordinator.StatusChanged += OnStatusChanged;
@@ -97,8 +108,6 @@ namespace MonopolyGame.Multiplayer.UI
         /// </summary>
         private void OnStatusChanged(MultiplayerStatus status)
         {
-            Debug.Log($"[HubMenuCoordinator] Status changed to: {status}");
-
             if (status == MultiplayerStatus.SignedOut || status == MultiplayerStatus.SigningIn)
             {
                 ShowPanel("auth");
@@ -125,7 +134,6 @@ namespace MonopolyGame.Multiplayer.UI
         /// </summary>
         private void OnLobbyJoined(LobbySnapshot lobbySnapshot)
         {
-            Debug.Log($"[HubMenuCoordinator] Joined lobby: {lobbySnapshot.Name}");
             ShowPanel("waiting");
         }
 

@@ -10,6 +10,12 @@ namespace MonopolyGame.Multiplayer
 
         private void Awake()
         {
+            if (!Application.isEditor)
+            {
+                QualitySettings.vSyncCount = 1;
+                Application.targetFrameRate = -1;
+            }
+
             DontDestroyOnLoad(gameObject);
 
             if (flowCoordinator == null)
