@@ -96,6 +96,86 @@ namespace MonopolyGame.Board
             view.index = index;
             view.displayName = label;
             view.type = type;
+            
+            AssignSpaceData(view);
+        }
+
+        private void AssignSpaceData(BoardSpaceView view)
+        {
+            if (view.type == BoardSpaceType.Tax)
+            {
+                view.price = (view.index == 4) ? 200 : 100;
+            }
+            else if (view.type == BoardSpaceType.Property)
+            {
+                switch (view.index)
+                {
+                    case 1:
+                        view.price = 60;
+                        view.baseRent = 2;
+                        view.houseCost = 50;
+                        break;
+                    case 3:
+                        view.price = 60;
+                        view.baseRent = 4;
+                        view.houseCost = 50;
+                        break;
+
+                    case 6:
+                        view.price = 100;
+                        view.baseRent = 6;
+                        view.houseCost = 50;
+                        break;
+                    case 8:
+                        view.price = 100;
+                        view.baseRent = 6;
+                        view.houseCost = 50;
+                        break;
+                    case 9:
+                        view.price = 120;
+                        view.baseRent = 8;
+                        view.houseCost = 50;
+                        break;
+
+                    case 11:
+                        view.price = 140;
+                        view.baseRent = 10;
+                        view.houseCost = 100;
+                        break;
+                    case 13:
+                        view.price = 140;
+                        view.baseRent = 10;
+                        view.houseCost = 100;
+                        break;
+                    case 14:
+                        view.price = 160;
+                        view.baseRent = 12;
+                        view.houseCost = 100;
+                        break;
+
+                    case 16:
+                        view.price = 200;
+                        view.baseRent = 25;
+                        view.houseCost = 0;
+                        break;
+                    case 18:
+                        view.price = 200;
+                        view.baseRent = 25;
+                        view.houseCost = 0;
+                        break;
+                    case 19:
+                        view.price = 200;
+                        view.baseRent = 25;
+                        view.houseCost = 0;
+                        break;
+
+                    default:
+                        view.price = 200;
+                        view.baseRent = 15;
+                        view.houseCost = 100;
+                        break;
+                }
+            }
         }
 
         private GameObject MakeCube(string name, Transform parent, Vector3 position, Vector3 scale, Color color, float yRotation = 0f)
