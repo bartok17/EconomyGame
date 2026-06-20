@@ -118,13 +118,9 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void UpdatePlayerList(LobbySnapshot lobby)
         {
-            foreach (var slot in _playerSlots.Values)
-            {
-                SafeDestroy(slot);
-            }
-            _playerSlots.Clear();
+            ClearPlayerSlots();
 
-            int totalSlots = lobby.MaxPlayers;
+            int totalSlots = Mathf.Min(lobby.MaxPlayers, maxDisplaySlots);
 
             for (int i = 0; i < totalSlots; i++)
             {
@@ -145,6 +141,21 @@ namespace MonopolyGame.Multiplayer.UI
                         slotUI.SetEmpty();
                     }
                 }
+            }
+        }
+        
+        private void ClearPlayerSlots()
+        {
+            _playerSlots.Clear();
+
+            if (playerSlotContainer == null)
+            {
+                return;
+            }
+
+            for (int i = playerSlotContainer.childCount - 1; i >= 0; i--)
+            {
+                SafeDestroy(playerSlotContainer.GetChild(i).gameObject);
             }
         }
 
