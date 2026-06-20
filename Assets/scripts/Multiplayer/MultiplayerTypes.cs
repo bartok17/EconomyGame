@@ -30,6 +30,7 @@ namespace MonopolyGame.Multiplayer
     public static class MultiplayerKeys
     {
         public const string LobbyDataRelayJoinCodeKey = "relayJoinCode";
+        public const string LobbyDataGameStartedKey = "gameStarted";
         public const string LobbyDataGameVersionKey = "gameVersion";
         public const string PlayerDataDisplayNameKey = "displayName";
     }

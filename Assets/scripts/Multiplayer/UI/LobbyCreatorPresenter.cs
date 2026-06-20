@@ -164,14 +164,16 @@ namespace MonopolyGame.Multiplayer.UI
                 return;
             }
 
-            Debug.Log($"[LobbyCreator] Creating lobby: {config}");
-
             if (uiCommands != null)
             {
                 uiCommands.SetLobbyName(gameName);
                 uiCommands.SetMaxPlayers(maxPlayers);
                 uiCommands.SetIsPrivate(isPrivate);
                 uiCommands.Host();
+            }
+            else
+            {
+                Debug.LogWarning("[LobbyCreator] uiCommands is null; host flow will not start.");
             }
         }
 

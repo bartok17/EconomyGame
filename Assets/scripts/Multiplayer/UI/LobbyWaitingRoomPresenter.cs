@@ -72,8 +72,16 @@ namespace MonopolyGame.Multiplayer.UI
         private void OnLobbyUpdated(LobbySnapshot lobbySnapshot)
         {
             _currentLobby = lobbySnapshot;
+
+            if (coordinator != null)
+            {
+                _playerRole = coordinator.IsLocalPlayerHost ? MultiplayerRole.Host : MultiplayerRole.Client;
+            }
+            
             DisplayLobbyInfo(lobbySnapshot);
             UpdatePlayerList(lobbySnapshot);
+            UpdateRoleBadge();
+            UpdateControlsForRole();
         }
 
         private void OnError(MultiplayerError error)
@@ -110,13 +118,9 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void UpdatePlayerList(LobbySnapshot lobby)
         {
-            foreach (var slot in _playerSlots.Values)
-            {
-                SafeDestroy(slot);
-            }
-            _playerSlots.Clear();
+            ClearPlayerSlots();
 
-            int totalSlots = lobby.MaxPlayers;
+            int totalSlots = Mathf.Min(lobby.MaxPlayers, maxDisplaySlots);
 
             for (int i = 0; i < totalSlots; i++)
             {
@@ -137,6 +141,21 @@ namespace MonopolyGame.Multiplayer.UI
                         slotUI.SetEmpty();
                     }
                 }
+            }
+        }
+        
+        private void ClearPlayerSlots()
+        {
+            _playerSlots.Clear();
+
+            if (playerSlotContainer == null)
+            {
+                return;
+            }
+
+            for (int i = playerSlotContainer.childCount - 1; i >= 0; i--)
+            {
+                SafeDestroy(playerSlotContainer.GetChild(i).gameObject);
             }
         }
 
@@ -210,7 +229,7 @@ namespace MonopolyGame.Multiplayer.UI
             if (uiCommands != null)
             {
                 // Reuse the host flow to ensure relay/network startup is triggered from one path.
-                uiCommands.Host();
+                uiCommands.StartGame();
             }
         }
 

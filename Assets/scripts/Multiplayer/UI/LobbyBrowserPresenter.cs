@@ -140,7 +140,7 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void OnLobbyJoinClicked(string lobbyId)
         {
-            Debug.Log($"[LobbyBrowser] Join clicked for lobby: {lobbyId}");
+            Debug.Log($"[LobbyBrowser] Join clicked for lobby target: {lobbyId}");
             if (uiCommands != null)
                 uiCommands.Join(lobbyId);
         }
