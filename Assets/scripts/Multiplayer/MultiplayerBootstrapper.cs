@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
+using MonopolyGame.Pawns;
 
 namespace MonopolyGame.Multiplayer
 {
@@ -43,6 +44,12 @@ namespace MonopolyGame.Multiplayer
             }
 
             flowCoordinator.AssignNetworkManager(networkManager);
+
+            PlayerPawnSpawner pawnSpawner = FindAnyObjectByType<PlayerPawnSpawner>();
+            if (pawnSpawner != null)
+            {
+                pawnSpawner.RegisterNetworkPrefab(networkManager);
+            }
         }
     }
 }

@@ -1,5 +1,8 @@
-﻿using MonopolyGame.Board;
+﻿using System.Collections.Generic;
+using MonopolyGame.Board;
 using MonopolyGame.Multiplayer;
+using MonopolyGame.Multiplayer.Gameplay;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace MonopolyGame.Pawns
@@ -9,14 +12,18 @@ namespace MonopolyGame.Pawns
         [Header("Dependencies")]
         [SerializeField] private BoardManager boardManager;
         [SerializeField] private Transform pawnRoot;
+        [SerializeField] private GameObject pawnPrefab;
 
         [Header("Fallback Test Data")]
         [SerializeField] private int fallbackPawnCount = 2;
         [SerializeField] private int startSpaceIndex = 0;
+        [SerializeField] private bool autoSpawnOnStart = false;
 
         [Header("Visuals")]
         [SerializeField] private float pawnHeight = 0.8f;
         [SerializeField] private float pawnRadius = 0.28f;
+
+        private readonly List<PlayerPawnNetworkSync> spawnedPawnSyncs = new List<PlayerPawnNetworkSync>();
 
         private static readonly Color[] PawnColors =
         {
@@ -28,11 +35,24 @@ namespace MonopolyGame.Pawns
 
         private void Start()
         {
-            SpawnInitialPawns();
+            if (autoSpawnOnStart)
+            {
+                SpawnInitialPawns();
+            }
+        }
+
+        public void RegisterNetworkPrefab(NetworkManager networkManager)
+        {
+            if (networkManager == null || pawnPrefab == null)
+            {
+                return;
+            }
+
+            networkManager.AddNetworkPrefab(pawnPrefab);
         }
 
         [ContextMenu("Spawn Initial Pawns")]
-        public void SpawnInitialPawns()
+        public IReadOnlyList<PlayerPawnNetworkSync> SpawnInitialPawns()
         {
             ResolveDependencies();
             ClearPawnRoot();
@@ -49,6 +69,35 @@ namespace MonopolyGame.Pawns
             {
                 SpawnPawn(i, GetDisplayName(i));
             }
+
+            return spawnedPawnSyncs;
+        }
+
+        public IReadOnlyList<PlayerPawnNetworkSync> SpawnPawns(IReadOnlyList<string> displayNames, int spawnStartSpaceIndex = -1)
+        {
+            ResolveDependencies();
+            ClearPawnRoot();
+
+            int pawnCount = displayNames != null ? displayNames.Count : 0;
+            if (pawnCount <= 0)
+            {
+                pawnCount = fallbackPawnCount;
+            }
+
+            pawnCount = Mathf.Clamp(pawnCount, 1, 4);
+
+            int effectiveStartSpace = spawnStartSpaceIndex >= 0 ? spawnStartSpaceIndex : startSpaceIndex;
+
+            for (int i = 0; i < pawnCount; i++)
+            {
+                string displayName = displayNames != null && i < displayNames.Count
+                    ? displayNames[i]
+                    : GetDisplayName(i);
+
+                SpawnPawn(i, displayName, effectiveStartSpace);
+            }
+
+            return spawnedPawnSyncs;
         }
 
         private void ResolveDependencies()
@@ -87,30 +136,53 @@ namespace MonopolyGame.Pawns
             return $"Player {index + 1}";
         }
 
-        private void SpawnPawn(int pawnSlot, string displayName)
+        private void SpawnPawn(int pawnSlot, string displayName, int spawnSpaceIndex = -1)
         {
-            GameObject pawnObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            pawnObject.name = $"PlayerPawn_{pawnSlot + 1}_{displayName}";
-            pawnObject.transform.SetParent(pawnRoot, false);
-            pawnObject.transform.localScale = new Vector3(pawnRadius, pawnHeight / 2f, pawnRadius);
-
-            Renderer renderer = pawnObject.GetComponent<Renderer>();
-            if (renderer != null)
+            if (pawnPrefab == null)
             {
-                renderer.sharedMaterial = CreateMaterial(PawnColors[pawnSlot % PawnColors.Length]);
+                Debug.LogError($"[{nameof(PlayerPawnSpawner)}] Cannot spawn pawns because no pawn prefab is assigned.");
+                return;
             }
 
-            PlayerPawn pawn = pawnObject.AddComponent<PlayerPawn>();
+            GameObject pawnObject = Instantiate(pawnPrefab, pawnRoot);
+            pawnObject.name = $"PlayerPawn_{pawnSlot + 1}_{displayName}";
+            pawnObject.transform.localScale = new Vector3(pawnRadius, pawnHeight / 2f, pawnRadius);
+
+            ApplyPawnColor(pawnObject, PawnColors[pawnSlot % PawnColors.Length]);
+
+            PlayerPawn pawn = pawnObject.GetComponent<PlayerPawn>();
+            if (pawn == null)
+            {
+                pawn = pawnObject.AddComponent<PlayerPawn>();
+            }
+
             pawn.Initialize(
                 $"player-{pawnSlot + 1}",
                 displayName,
                 pawnSlot,
-                startSpaceIndex,
+                spawnSpaceIndex >= 0 ? spawnSpaceIndex : startSpaceIndex,
                 boardManager);
+
+            PlayerPawnNetworkSync pawnSync = pawnObject.GetComponent<PlayerPawnNetworkSync>();
+            if (pawnSync == null)
+            {
+                pawnSync = pawnObject.AddComponent<PlayerPawnNetworkSync>();
+            }
+
+            pawnSync.Initialize(pawn, boardManager);
+            spawnedPawnSyncs.Add(pawnSync);
+
+            NetworkObject networkObject = pawnObject.GetComponent<NetworkObject>();
+            if (networkObject != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            {
+                networkObject.Spawn();
+            }
         }
 
         private void ClearPawnRoot()
         {
+            spawnedPawnSyncs.Clear();
+
             if (pawnRoot == null)
             {
                 return;
@@ -122,11 +194,31 @@ namespace MonopolyGame.Pawns
             }
         }
 
+        public IReadOnlyList<PlayerPawnNetworkSync> GetSpawnedPawnSyncs()
+        {
+            return spawnedPawnSyncs;
+        }
+
         private static Material CreateMaterial(Color color)
         {
             Material material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             material.color = color;
             return material;
+        }
+
+        private void ApplyPawnColor(GameObject pawnObject, Color color)
+        {
+            Renderer[] renderers = pawnObject.GetComponentsInChildren<Renderer>(true);
+            Material material = CreateMaterial(color);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer renderer = renderers[i];
+                if (renderer != null)
+                {
+                    renderer.sharedMaterial = material;
+                }
+            }
         }
     }
 }

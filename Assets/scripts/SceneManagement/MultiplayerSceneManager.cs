@@ -1,7 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Unity.Netcode;
 using MonopolyGame.Multiplayer;
+using MonopolyGame.Multiplayer.Gameplay;
 
 namespace MonopolyGame.Multiplayer.SceneManagement
 {
@@ -81,13 +83,29 @@ namespace MonopolyGame.Multiplayer.SceneManagement
                 yield return StartCoroutine(FadeCanvasGroup(loadingScreenCanvasGroup, 0, 1, fadeDuration));
             }
 
-            // Load game scene asynchronously
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(gameSceneName, LoadSceneMode.Single);
+            NetworkManager networkManager = NetworkManager.Singleton;
+            bool useNetworkSceneManagement = networkManager != null && networkManager.IsListening;
 
-            while (!asyncLoad.isDone)
+            if (useNetworkSceneManagement && networkManager.IsServer)
+            {
+                networkManager.SceneManager.LoadScene(gameSceneName, LoadSceneMode.Single);
+            }
+            else if (!useNetworkSceneManagement)
+            {
+                AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(gameSceneName, LoadSceneMode.Single);
+
+                while (!asyncLoad.isDone)
+                {
+                    yield return null;
+                }
+            }
+
+            while (SceneManager.GetActiveScene().name != gameSceneName)
             {
                 yield return null;
             }
+
+            EnsureGameplaySessionExists();
 
             // Fade out loading screen
             if (loadingScreenCanvasGroup != null)
@@ -97,6 +115,18 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             }
 
             isLoadingGame = false;
+        }
+
+        private void EnsureGameplaySessionExists()
+        {
+            MultiplayerGameSessionController session = FindAnyObjectByType<MultiplayerGameSessionController>();
+            if (session != null)
+            {
+                session.BindFromScene();
+                return;
+            }
+
+            Debug.LogWarning("[MultiplayerSceneManager] MultiplayerGameSessionController was not found in the Game scene. Add a scene object with NetworkObject + MultiplayerGameSessionController for host/client RPC flow.");
         }
 
         private IEnumerator FadeCanvasGroup(CanvasGroup canvasGroup, float start, float end, float duration)
