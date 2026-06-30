@@ -8,20 +8,24 @@ namespace MonopolyGame.Multiplayer.UI
     /// </summary>
     public sealed class HubMenuPresenter : MonoBehaviour
     {
+        [SerializeField] private bool allowAutoDisableWhenUnwired = true;
         [SerializeField] private HubMenuCoordinator hub;
         [SerializeField] private MultiplayerUiCommands uiCommands;
         [SerializeField] private JoinByCodePresenter joinByCodePresenter;
 
         private void OnEnable()
         {
-            if (hub == null)
-                hub = FindAnyObjectByType<HubMenuCoordinator>();
+            if (hub == null || uiCommands == null || joinByCodePresenter == null)
+            {
+                Debug.LogWarning("[HubMenuPresenter] Unwired references detected. Assign HubMenuCoordinator, MultiplayerUiCommands, and JoinByCodePresenter in the inspector.");
 
-            if (uiCommands == null)
-                uiCommands = FindAnyObjectByType<MultiplayerUiCommands>();
+                if (allowAutoDisableWhenUnwired)
+                {
+                    enabled = false;
+                }
 
-            if (joinByCodePresenter == null)
-                joinByCodePresenter = FindAnyObjectByType<JoinByCodePresenter>();
+                return;
+            }
         }
 
         public void OpenBrowser()

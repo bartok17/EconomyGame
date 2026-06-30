@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MonopolyGame.Multiplayer.Gameplay;
+using UnityEngine;
 
 namespace MonopolyGame.Board
 {
@@ -32,9 +33,14 @@ namespace MonopolyGame.Board
             return transform.position + offsets[slot] + Vector3.up * 0.45f;
         }
         
-        public void OnPlayerLanded(string playerId)
+        public void OnPlayerLanded(BoardLandingResult landingResult)
         {
-            Debug.Log($"Player {playerId} landed on {displayName}. (Owner: {ownerId}, Rent: {baseRent})");
+            if (landingResult == null)
+            {
+                return;
+            }
+
+            Debug.Log(landingResult.Message);
         }
     }
 }

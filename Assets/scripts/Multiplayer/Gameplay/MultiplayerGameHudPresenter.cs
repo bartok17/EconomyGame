@@ -1,6 +1,6 @@
 using System.Collections;
-using MonopolyGame.Multiplayer.Gameplay;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -15,6 +15,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [Header("Auto Layout")]
         [SerializeField] private bool buildDefaultLayout = true;
 
+        [Header("Optional Scene UI")]
+        [SerializeField] private Canvas rootCanvas;
+        [SerializeField] private EventSystem eventSystem;
+
         [Header("UI")]
         [SerializeField] private TextMeshProUGUI titleText;
         [SerializeField] private TextMeshProUGUI turnText;
@@ -23,8 +27,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private TextMeshProUGUI hostHintText;
         [SerializeField] private Button rollButton;
         [SerializeField] private Button endTurnButton;
-
-        private Canvas rootCanvas;
 
         private void OnEnable()
         {
@@ -40,7 +42,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             while (session == null)
             {
-                session = FindAnyObjectByType<MultiplayerGameSessionController>();
                 yield return null;
             }
 
@@ -51,6 +52,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             BindSession();
             RefreshFromSession();
+        }
+
+        public void BindSession(MultiplayerGameSessionController sessionController)
+        {
+            session = sessionController;
         }
 
         private void BindSession()
@@ -99,11 +105,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             if (rootCanvas == null)
             {
-                rootCanvas = FindAnyObjectByType<Canvas>();
-            }
-
-            if (rootCanvas == null)
-            {
                 GameObject canvasObject = new GameObject("GameHudCanvas");
                 rootCanvas = canvasObject.AddComponent<Canvas>();
                 rootCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -112,10 +113,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 canvasObject.AddComponent<GraphicRaycaster>();
             }
 
-            if (FindAnyObjectByType<EventSystem>() == null)
+            if (eventSystem == null)
             {
                 GameObject eventSystemObject = new GameObject("EventSystem");
-                eventSystemObject.AddComponent<EventSystem>();
+                eventSystem = eventSystemObject.AddComponent<EventSystem>();
                 eventSystemObject.AddComponent<StandaloneInputModule>();
             }
 
@@ -233,7 +234,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        private void HandlePhaseChanged(MultiplayerGameSessionController.TurnPhase phase)
+        private void HandlePhaseChanged(TurnPhase phase)
         {
             if (phaseText != null)
             {
@@ -282,27 +283,35 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         private void UpdateControls()
         {
-            bool canInteract = session != null && session.IsHostAuthority && session.IsInitialized;
-            bool canRoll = canInteract && session.CurrentPhase == MultiplayerGameSessionController.TurnPhase.AwaitingRoll;
-            bool canEnd = canInteract && session.CurrentPhase == MultiplayerGameSessionController.TurnPhase.WaitingForEndTurn;
+            if (session == null)
+            {
+                if (rollButton != null) rollButton.interactable = false;
+                if (endTurnButton != null) endTurnButton.interactable = false;
+                return;
+            }
+
+            ulong localClientId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : ulong.MaxValue;
+            bool isMyTurn = session.IsInitialized && session.ActiveClientId == localClientId;
+            bool canRoll = isMyTurn && session.CurrentPhase == TurnPhase.AwaitingRoll;
+            bool canEnd = isMyTurn && session.CurrentPhase == TurnPhase.WaitingForEndTurn;
 
             if (rollButton != null)
             {
-                rollButton.gameObject.SetActive(session != null);
+                rollButton.gameObject.SetActive(true);
                 rollButton.interactable = canRoll;
             }
 
             if (endTurnButton != null)
             {
-                endTurnButton.gameObject.SetActive(session != null);
+                endTurnButton.gameObject.SetActive(true);
                 endTurnButton.interactable = canEnd;
             }
 
             if (hostHintText != null)
             {
-                hostHintText.text = session != null && session.IsHostAuthority
-                    ? "Host controls turn flow on this session."
-                    : "Client view only. Waiting for host turn updates.";
+                hostHintText.text = isMyTurn
+                    ? "Your turn!"
+                    : $"Waiting for {session.ActivePlayerName}...";
             }
         }
     }

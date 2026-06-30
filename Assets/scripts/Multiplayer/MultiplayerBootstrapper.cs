@@ -1,16 +1,30 @@
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using UnityEngine;
-using MonopolyGame.Pawns;
 
 namespace MonopolyGame.Multiplayer
 {
     public sealed class MultiplayerBootstrapper : MonoBehaviour
     {
+        private static MultiplayerBootstrapper _instance;
+
         [SerializeField] private MultiplayerFlowCoordinator flowCoordinator;
+
+        [Header("Network")]
+        [Tooltip("Assign the NetworkManager that is already in this scene. Never leave this empty — the bootstrapper will NOT create a new one.")]
+        [SerializeField] private NetworkManager networkManager;
 
         private void Awake()
         {
+            // Singleton: if we return to the auth scene a second time, destroy the
+            // freshly-loaded duplicate so the original DDOL instance keeps running.
+            if (_instance != null && _instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            _instance = this;
+
             if (!Application.isEditor)
             {
                 QualitySettings.vSyncCount = 1;
@@ -29,27 +43,30 @@ namespace MonopolyGame.Multiplayer
                 flowCoordinator = gameObject.AddComponent<MultiplayerFlowCoordinator>();
             }
 
-            var networkManager = NetworkManager.Singleton;
+            // Resolve NetworkManager: prefer inspector field, then singleton, then scene search.
+            // NEVER create a new one — the scene's NetworkManager holds all prefab registrations.
             if (networkManager == null)
             {
-                var networkObject = new GameObject("NetworkManager");
-                DontDestroyOnLoad(networkObject);
-                networkManager = networkObject.AddComponent<NetworkManager>();
-                networkObject.AddComponent<UnityTransport>();
+                networkManager = NetworkManager.Singleton;
             }
 
-            if (networkManager.NetworkConfig == null)
+            if (networkManager == null)
             {
-                networkManager.NetworkConfig = new NetworkConfig();
+                networkManager = FindAnyObjectByType<NetworkManager>();
             }
+
+            if (networkManager == null)
+            {
+                Debug.LogError("[MultiplayerBootstrapper] No NetworkManager found in the scene. " +
+                               "Add a NetworkManager to the Auth scene, configure its prefab list, " +
+                               "and assign it to the 'Network Manager' field on this component.");
+                return;
+            }
+
+            // Keep the scene's NetworkManager alive across scene loads.
+            DontDestroyOnLoad(networkManager.gameObject);
 
             flowCoordinator.AssignNetworkManager(networkManager);
-
-            PlayerPawnSpawner pawnSpawner = FindAnyObjectByType<PlayerPawnSpawner>();
-            if (pawnSpawner != null)
-            {
-                pawnSpawner.RegisterNetworkPrefab(networkManager);
-            }
         }
     }
 }

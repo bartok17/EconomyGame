@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using MonopolyGame.Board;
 using MonopolyGame.Multiplayer;
 using MonopolyGame.Pawns;
@@ -11,18 +10,16 @@ using UnityEngine;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
+    /// <summary>
+    /// Server-authoritative game session coordinator.
+    /// Owns the NetworkVariables, bootstraps the session, and orchestrates turn flow.
+    /// Pawn tracking → <see cref="GameSessionPawnRegistry"/>.
+    /// Turn logic     → <see cref="TurnStateMachine"/>.
+    /// Board rules    → <see cref="BoardRuleResolver"/>.
+    /// </summary>
     [RequireComponent(typeof(NetworkObject))]
     public sealed class MultiplayerGameSessionController : NetworkBehaviour
     {
-        public enum TurnPhase
-        {
-            WaitingForSetup,
-            AwaitingRoll,
-            MovingPawn,
-            ResolvingSpace,
-            WaitingForEndTurn
-        }
-
         [Header("Dependencies")]
         [SerializeField] private MultiplayerFlowCoordinator coordinator;
         [SerializeField] private BoardManager boardManager;
@@ -34,41 +31,34 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private float resolveDelay = 0.35f;
         [SerializeField] private bool autoAdvanceTurns;
 
-        private readonly List<PlayerPawnNetworkSync> spawnedPawnSyncs = new List<PlayerPawnNetworkSync>();
-        private readonly List<ulong> seatedClientIds = new List<ulong>();
+        private GameSessionPawnRegistry pawnRegistry;
+        private readonly TurnStateMachine turnStateMachine = new TurnStateMachine();
+        private readonly BoardRuleResolver boardRuleResolver = new BoardRuleResolver();
 
         private Coroutine bootstrapCoroutine;
         private Coroutine turnCoroutine;
 
+        // ── NetworkVariables ────────────────────────────────────────────────────────
+
         private readonly NetworkVariable<int> currentTurnIndexNet = new NetworkVariable<int>(
-            0,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server);
+            0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
         private readonly NetworkVariable<int> currentPhaseNet = new NetworkVariable<int>(
-            (int)TurnPhase.WaitingForSetup,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server);
+            (int)TurnPhase.WaitingForSetup, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
         private readonly NetworkVariable<int> lastDiceRollNet = new NetworkVariable<int>(
-            0,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server);
+            0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
         private readonly NetworkVariable<FixedString64Bytes> activePlayerNameNet = new NetworkVariable<FixedString64Bytes>(
-            default,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server);
+            default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
         private readonly NetworkVariable<ulong> activeClientIdNet = new NetworkVariable<ulong>(
-            0,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server);
+            0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
         private readonly NetworkVariable<bool> initializedNet = new NetworkVariable<bool>(
-            false,
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server);
+            false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+        // ── Public state ────────────────────────────────────────────────────────────
 
         public TurnPhase CurrentPhase { get; private set; } = TurnPhase.WaitingForSetup;
         public int CurrentTurnIndex { get; private set; }
@@ -82,6 +72,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public event Action<int, string> TurnChanged;
         public event Action<int> DiceRolled;
         public event Action<PlayerPawn, int> PawnMoved;
+
+        // ── NGO lifecycle ───────────────────────────────────────────────────────────
 
         public override void OnNetworkSpawn()
         {
@@ -110,77 +102,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
             initializedNet.OnValueChanged -= HandleInitializedChanged;
         }
 
-        public void BindFromScene()
-        {
-            ResolveDependencies();
+        // ── Dependency wiring ───────────────────────────────────────────────────────
 
-            if (bootstrapCoroutine == null && isActiveAndEnabled)
-            {
-                bootstrapCoroutine = StartCoroutine(BootstrapWhenReady());
-            }
+        public void BindDependencies(MultiplayerFlowCoordinator coordinator, BoardManager boardManager, PlayerPawnSpawner pawnSpawner)
+        {
+            this.coordinator = coordinator;
+            this.boardManager = boardManager;
+            this.pawnSpawner = pawnSpawner;
+            pawnRegistry = new GameSessionPawnRegistry(pawnSpawner);
         }
 
-        private IEnumerator BootstrapWhenReady()
-        {
-            while (!ResolveDependencies() || coordinator == null || boardManager == null || pawnSpawner == null)
-            {
-                yield return null;
-            }
-
-            while (coordinator.CurrentLobbySnapshot == null)
-            {
-                yield return null;
-            }
-
-            InitializeFromLobbySnapshot(coordinator.CurrentLobbySnapshot);
-        }
-
-        private bool ResolveDependencies()
-        {
-            if (coordinator == null)
-            {
-                coordinator = FindAnyObjectByType<MultiplayerFlowCoordinator>();
-            }
-
-            if (boardManager == null)
-            {
-                boardManager = FindAnyObjectByType<BoardManager>();
-            }
-
-            if (pawnSpawner == null)
-            {
-                pawnSpawner = FindAnyObjectByType<PlayerPawnSpawner>();
-            }
-
-            return coordinator != null && boardManager != null && pawnSpawner != null;
-        }
-
-        private void InitializeFromLobbySnapshot(LobbySnapshot snapshot)
-        {
-            if (snapshot == null || IsInitialized)
-            {
-                return;
-            }
-
-            if (IsServer)
-            {
-                spawnedPawnSyncs.Clear();
-                spawnedPawnSyncs.AddRange(pawnSpawner.SpawnPawns(snapshot.PlayerDisplayNames, startSpaceIndex));
-                RefreshSeatedClientIds();
-                SetServerState(0, TurnPhase.AwaitingRoll, 0, GetActivePlayerName(0), GetActiveClientId(0), true);
-            }
-            else
-            {
-                RefreshSpawnedPawnCacheFromScene();
-                CurrentTurnIndex = currentTurnIndexNet.Value;
-                CurrentPhase = (TurnPhase)currentPhaseNet.Value;
-                LastDiceRoll = lastDiceRollNet.Value;
-                ActivePlayerName = activePlayerNameNet.Value.ToString();
-                ActiveClientId = activeClientIdNet.Value;
-                IsInitialized = initializedNet.Value;
-                PublishTurnState();
-            }
-        }
+        // ── Public API ──────────────────────────────────────────────────────────────
 
         public void RequestRoll()
         {
@@ -204,157 +136,177 @@ namespace MonopolyGame.Multiplayer.Gameplay
             RequestEndTurnServerRpc();
         }
 
-        public IReadOnlyList<PlayerPawn> GetSpawnedPawns()
-        {
-            RefreshSpawnedPawnCacheFromScene();
-            return spawnedPawnSyncs.Select(sync => sync != null ? sync.GetComponent<PlayerPawn>() : null).Where(pawn => pawn != null).ToList();
-        }
+        public IReadOnlyList<PlayerPawn> GetSpawnedPawns() => Registry.GetAllPawns();
 
         public string GetPhaseLabel()
         {
             return CurrentPhase switch
             {
-                TurnPhase.WaitingForSetup => "Setting up",
-                TurnPhase.AwaitingRoll => "Awaiting roll",
-                TurnPhase.MovingPawn => "Moving pawn",
-                TurnPhase.ResolvingSpace => "Resolving space",
+                TurnPhase.WaitingForSetup   => "Setting up",
+                TurnPhase.AwaitingRoll      => "Awaiting roll",
+                TurnPhase.MovingPawn        => "Moving pawn",
+                TurnPhase.ResolvingSpace    => "Resolving space",
                 TurnPhase.WaitingForEndTurn => "Waiting for end turn",
-                _ => "Unknown"
+                _                           => "Unknown"
             };
         }
+
+        // ── RPCs ────────────────────────────────────────────────────────────────────
 
         [ServerRpc(RequireOwnership = false)]
         private void RequestRollServerRpc(ServerRpcParams serverRpcParams = default)
         {
-            if (!IsServer)
-            {
-                return;
-            }
-
             HandleRollOnServer(serverRpcParams.Receive.SenderClientId);
         }
 
         [ServerRpc(RequireOwnership = false)]
         private void RequestEndTurnServerRpc(ServerRpcParams serverRpcParams = default)
         {
-            if (!IsServer)
-            {
-                return;
-            }
-
             HandleEndTurnOnServer(serverRpcParams.Receive.SenderClientId);
         }
 
         [ClientRpc]
-        private void MovePawnClientRpc(int pawnSlot, int targetSpaceIndex, float duration)
+        private void MovePawnClientRpc(int pawnSlot, int targetSpaceIndex, float duration, ClientRpcParams clientRpcParams = default)
         {
-            PlayerPawnNetworkSync pawnSync = FindPawnSyncBySlot(pawnSlot);
-            if (pawnSync == null)
+            PlayerPawnNetworkSync pawnSync = Registry.FindBySlot(pawnSlot);
+            pawnSync?.PlayAuthoritativeMove(targetSpaceIndex, duration);
+        }
+
+        // ── Bootstrap ───────────────────────────────────────────────────────────────
+
+        private IEnumerator BootstrapWhenReady()
+        {
+            while (coordinator == null || boardManager == null || pawnSpawner == null)
             {
-                return;
+                yield return null;
             }
 
-            pawnSync.PlayAuthoritativeMove(targetSpaceIndex, duration);
+            while (coordinator.CurrentLobbySnapshot == null)
+            {
+                yield return null;
+            }
+
+            if (IsServer)
+            {
+                int expectedPlayers = coordinator.CurrentLobbySnapshot.PlayerCount;
+                while (NetworkManager.Singleton.ConnectedClientsIds.Count < expectedPlayers)
+                {
+                    yield return null;
+                }
+            }
+
+            InitializeFromLobbySnapshot(coordinator.CurrentLobbySnapshot);
         }
+
+        private void InitializeFromLobbySnapshot(LobbySnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            if (IsServer && IsInitialized) return;
+
+            if (IsServer)
+            {
+                Registry.Populate(pawnSpawner.SpawnPawns(snapshot.PlayerDisplayNames, startSpaceIndex));
+                Registry.AssignOwnerships();
+                turnStateMachine.SetParticipants(Registry.BuildParticipants());
+                turnStateMachine.StartGame(0);
+                SetServerState(turnStateMachine.State);
+            }
+            else
+            {
+                Registry.Refresh();
+                CurrentTurnIndex = currentTurnIndexNet.Value;
+                CurrentPhase     = (TurnPhase)currentPhaseNet.Value;
+                LastDiceRoll     = lastDiceRollNet.Value;
+                ActivePlayerName = activePlayerNameNet.Value.ToString();
+                ActiveClientId   = activeClientIdNet.Value;
+                IsInitialized    = initializedNet.Value;
+                turnStateMachine.SetState(new TurnState(CurrentTurnIndex, CurrentPhase, LastDiceRoll, ActivePlayerName, ActiveClientId, IsInitialized));
+                PublishTurnState();
+            }
+        }
+
+        // ── Turn execution (server only) ─────────────────────────────────────────────
 
         private void HandleRollOnServer(ulong senderClientId)
         {
-            if (!EnsureReadyForTurn())
-            {
-                return;
-            }
+            if (!EnsureReadyForTurn()) return;
+            if (CurrentPhase != TurnPhase.AwaitingRoll) return;
+            if (!turnStateMachine.IsAuthorizedTurnRequest(senderClientId)) return;
 
-            if (CurrentPhase != TurnPhase.AwaitingRoll)
-            {
-                return;
-            }
-
-            if (!IsAuthorizedTurnRequest(senderClientId))
-            {
-                return;
-            }
-
-            PlayerPawnNetworkSync activePawnSync = GetActivePawnSync();
-            if (activePawnSync == null)
-            {
-                return;
-            }
+            PlayerPawnNetworkSync activePawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
+            if (activePawn == null) return;
 
             int dice = UnityEngine.Random.Range(1, 7);
-            int targetSpaceIndex = boardManager.NormalizeIndex(activePawnSync.CurrentSpaceIndex + dice);
-            string activePlayerName = activePawnSync.DisplayName;
-            ulong activeClientId = GetActiveClientId();
+            int targetSpaceIndex = boardManager.NormalizeIndex(activePawn.CurrentSpaceIndex + dice);
+            ulong activeClientId = turnStateMachine.GetParticipantClientId(CurrentTurnIndex);
 
-            SetServerState(CurrentTurnIndex, TurnPhase.MovingPawn, dice, activePlayerName, activeClientId, true);
+            turnStateMachine.BeginRoll(dice);
+            SetServerState(turnStateMachine.State);
             DiceRolled?.Invoke(dice);
-            MovePawnClientRpc(activePawnSync.PawnSlot, targetSpaceIndex, pawnMoveDuration);
 
-            if (turnCoroutine != null)
-            {
-                StopCoroutine(turnCoroutine);
-            }
+            MovePawnClientRpc(activePawn.PawnSlot, targetSpaceIndex, pawnMoveDuration,
+                new ClientRpcParams { Send = new ClientRpcSendParams { TargetClientIds = new[] { activeClientId } } });
 
-            turnCoroutine = StartCoroutine(ResolveAfterMoveRoutine(activePawnSync, targetSpaceIndex));
+            if (turnCoroutine != null) StopCoroutine(turnCoroutine);
+            turnCoroutine = StartCoroutine(ResolveAfterMoveRoutine(activePawn, targetSpaceIndex));
         }
 
         private void HandleEndTurnOnServer(ulong senderClientId)
         {
-            if (!EnsureReadyForTurn())
-            {
-                return;
-            }
-
-            if (CurrentPhase != TurnPhase.WaitingForEndTurn)
-            {
-                return;
-            }
-
-            if (!IsAuthorizedTurnRequest(senderClientId))
-            {
-                return;
-            }
+            if (!EnsureReadyForTurn()) return;
+            if (CurrentPhase != TurnPhase.WaitingForEndTurn) return;
+            if (!turnStateMachine.IsAuthorizedTurnRequest(senderClientId)) return;
 
             AdvanceTurnServer();
         }
 
-        private IEnumerator ResolveAfterMoveRoutine(PlayerPawnNetworkSync activePawnSync, int targetSpaceIndex)
+        private IEnumerator ResolveAfterMoveRoutine(PlayerPawnNetworkSync activePawn, int targetSpaceIndex)
         {
             yield return new WaitForSeconds(pawnMoveDuration);
 
-            SetServerState(CurrentTurnIndex, TurnPhase.ResolvingSpace, LastDiceRoll, ActivePlayerName, ActiveClientId, true);
-            boardManager.GetSpace(targetSpaceIndex).OnPlayerLanded(activePawnSync.PlayerId);
+            if (activePawn != null && !activePawn.NetworkObject.IsOwner)
+            {
+                activePawn.ForceSpaceIndex(targetSpaceIndex);
+            }
+
+            turnStateMachine.BeginResolve();
+            SetServerState(turnStateMachine.State);
+
+            BoardState boardState = boardManager != null ? boardManager.CaptureBoardState() : null;
+            BoardLandingResult result = boardRuleResolver.Resolve(boardState, targetSpaceIndex, activePawn.PlayerId);
+            boardManager.GetSpace(targetSpaceIndex).OnPlayerLanded(result);
 
             yield return new WaitForSeconds(resolveDelay);
 
-            SetServerState(CurrentTurnIndex, TurnPhase.WaitingForEndTurn, LastDiceRoll, ActivePlayerName, ActiveClientId, true);
+            turnStateMachine.BeginWaitingForEndTurn();
+            SetServerState(turnStateMachine.State);
 
-            if (autoAdvanceTurns)
-            {
-                AdvanceTurnServer();
-            }
+            if (autoAdvanceTurns) AdvanceTurnServer();
 
             turnCoroutine = null;
         }
 
         private void AdvanceTurnServer()
         {
-            if (!IsInitialized || spawnedPawnSyncs.Count == 0)
-            {
-                return;
-            }
+            if (!IsInitialized || Registry.Count == 0) return;
 
-            int nextTurnIndex = (CurrentTurnIndex + 1) % spawnedPawnSyncs.Count;
-            SetServerState(nextTurnIndex, TurnPhase.AwaitingRoll, 0, GetActivePlayerName(nextTurnIndex), GetActiveClientId(nextTurnIndex), true);
+            turnStateMachine.SetParticipants(Registry.BuildParticipants());
+            turnStateMachine.AdvanceTurn();
+            SetServerState(turnStateMachine.State);
         }
 
-        private void SetServerState(int turnIndex, TurnPhase phase, int diceRoll, string activePlayerName, ulong activeClientId, bool isInitialized)
+        // ── Network state sync ──────────────────────────────────────────────────────
+
+        private void SetServerState(TurnState state)
         {
-            currentTurnIndexNet.Value = turnIndex;
-            currentPhaseNet.Value = (int)phase;
-            lastDiceRollNet.Value = diceRoll;
-            activePlayerNameNet.Value = new FixedString64Bytes(activePlayerName ?? string.Empty);
-            activeClientIdNet.Value = activeClientId;
-            initializedNet.Value = isInitialized;
+            if (state == null) return;
+
+            currentTurnIndexNet.Value = state.TurnIndex;
+            currentPhaseNet.Value     = (int)state.Phase;
+            lastDiceRollNet.Value     = state.DiceRoll;
+            activePlayerNameNet.Value = new FixedString64Bytes(state.ActivePlayerName ?? string.Empty);
+            activeClientIdNet.Value   = state.ActiveClientId;
+            initializedNet.Value      = state.IsInitialized;
 
             SyncLocalStateFromNetwork();
         }
@@ -362,177 +314,55 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private void SyncLocalStateFromNetwork()
         {
             CurrentTurnIndex = currentTurnIndexNet.Value;
-            CurrentPhase = (TurnPhase)currentPhaseNet.Value;
-            LastDiceRoll = lastDiceRollNet.Value;
+            CurrentPhase     = (TurnPhase)currentPhaseNet.Value;
+            LastDiceRoll     = lastDiceRollNet.Value;
             ActivePlayerName = activePlayerNameNet.Value.ToString();
-            ActiveClientId = activeClientIdNet.Value;
-            IsInitialized = initializedNet.Value;
+            ActiveClientId   = activeClientIdNet.Value;
+            IsInitialized    = initializedNet.Value;
+            turnStateMachine.SetState(new TurnState(CurrentTurnIndex, CurrentPhase, LastDiceRoll, ActivePlayerName, ActiveClientId, IsInitialized));
 
             PublishTurnState();
         }
 
-        private void HandleTurnIndexChanged(int previousValue, int newValue)
-        {
-            CurrentTurnIndex = newValue;
-            PublishTurnState();
-        }
-
-        private void HandlePhaseChanged(int previousValue, int newValue)
-        {
-            CurrentPhase = (TurnPhase)newValue;
-            PhaseChanged?.Invoke(CurrentPhase);
-        }
-
-        private void HandleDiceRollChanged(int previousValue, int newValue)
-        {
-            LastDiceRoll = newValue;
-            DiceRolled?.Invoke(newValue);
-        }
-
-        private void HandleActivePlayerChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
-        {
-            ActivePlayerName = newValue.ToString();
-            PublishTurnState();
-        }
-
-        private void HandleActiveClientChanged(ulong previousValue, ulong newValue)
-        {
-            ActiveClientId = newValue;
-        }
-
-        private void HandleInitializedChanged(bool previousValue, bool newValue)
-        {
-            IsInitialized = newValue;
-        }
+        private void HandleTurnIndexChanged(int _, int newValue)    { CurrentTurnIndex = newValue; PublishTurnState(); }
+        private void HandlePhaseChanged(int _, int newValue)        { CurrentPhase = (TurnPhase)newValue; PhaseChanged?.Invoke(CurrentPhase); }
+        private void HandleDiceRollChanged(int _, int newValue)     { LastDiceRoll = newValue; DiceRolled?.Invoke(newValue); }
+        private void HandleActivePlayerChanged(FixedString64Bytes _, FixedString64Bytes newValue) { ActivePlayerName = newValue.ToString(); PublishTurnState(); }
+        private void HandleActiveClientChanged(ulong _, ulong newValue) { ActiveClientId = newValue; PublishTurnState(); }
+        private void HandleInitializedChanged(bool _, bool newValue) { IsInitialized = newValue; }
 
         private void PublishTurnState()
         {
-            string activeName = string.IsNullOrWhiteSpace(ActivePlayerName)
-                ? GetActivePlayerName(CurrentTurnIndex)
+            string name = string.IsNullOrWhiteSpace(ActivePlayerName)
+                ? turnStateMachine.GetParticipantName(CurrentTurnIndex)
                 : ActivePlayerName;
 
-            TurnChanged?.Invoke(CurrentTurnIndex, activeName);
+            TurnChanged?.Invoke(CurrentTurnIndex, name);
             PhaseChanged?.Invoke(CurrentPhase);
         }
 
+        // ── Helpers ─────────────────────────────────────────────────────────────────
+
         private bool EnsureReadyForTurn()
         {
-            if (!ResolveDependencies())
-            {
-                return false;
-            }
+            if (coordinator == null || boardManager == null || pawnSpawner == null) return false;
 
             if (!IsInitialized)
             {
-                LobbySnapshot snapshot = coordinator != null ? coordinator.CurrentLobbySnapshot : null;
-                if (snapshot != null)
-                {
-                    InitializeFromLobbySnapshot(snapshot);
-                }
+                LobbySnapshot snapshot = coordinator.CurrentLobbySnapshot;
+                if (snapshot != null) InitializeFromLobbySnapshot(snapshot);
             }
 
-            return spawnedPawnSyncs.Count > 0 && boardManager != null;
+            return Registry.Count > 0 && boardManager != null;
         }
 
-        private PlayerPawnNetworkSync GetActivePawnSync()
+        private GameSessionPawnRegistry Registry
         {
-            RefreshSpawnedPawnCacheFromScene();
-
-            if (spawnedPawnSyncs.Count == 0)
+            get
             {
-                return null;
+                if (pawnRegistry == null) pawnRegistry = new GameSessionPawnRegistry(pawnSpawner);
+                return pawnRegistry;
             }
-
-            int slot = CurrentTurnIndex % spawnedPawnSyncs.Count;
-            return spawnedPawnSyncs[slot];
-        }
-
-        private PlayerPawnNetworkSync FindPawnSyncBySlot(int pawnSlot)
-        {
-            RefreshSpawnedPawnCacheFromScene();
-
-            for (int i = 0; i < spawnedPawnSyncs.Count; i++)
-            {
-                PlayerPawnNetworkSync pawnSync = spawnedPawnSyncs[i];
-                if (pawnSync != null && pawnSync.PawnSlot == pawnSlot)
-                {
-                    return pawnSync;
-                }
-            }
-
-            return null;
-        }
-
-        private void RefreshSeatedClientIds()
-        {
-            seatedClientIds.Clear();
-
-            if (NetworkManager.Singleton == null)
-            {
-                return;
-            }
-
-            seatedClientIds.AddRange(NetworkManager.Singleton.ConnectedClientsIds);
-        }
-
-        private void RefreshSpawnedPawnCacheFromScene()
-        {
-            PlayerPawnNetworkSync[] foundSyncs = FindObjectsByType<PlayerPawnNetworkSync>(FindObjectsInactive.Exclude);
-
-            if (foundSyncs == null || foundSyncs.Length == 0)
-            {
-                return;
-            }
-
-            spawnedPawnSyncs.Clear();
-            spawnedPawnSyncs.AddRange(foundSyncs.OrderBy(sync => sync.PawnSlot));
-        }
-
-        private ulong GetActiveClientId(int? turnIndexOverride = null)
-        {
-            if (seatedClientIds.Count == 0)
-            {
-                RefreshSeatedClientIds();
-            }
-
-            if (seatedClientIds.Count == 0)
-            {
-                return NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
-            }
-
-            int turnIndex = turnIndexOverride ?? CurrentTurnIndex;
-            int slot = Mathf.Abs(turnIndex) % seatedClientIds.Count;
-            return seatedClientIds[slot];
-        }
-
-        private bool IsAuthorizedTurnRequest(ulong senderClientId)
-        {
-            ulong expectedClientId = GetActiveClientId();
-
-            if (expectedClientId == 0)
-            {
-                return true;
-            }
-
-            if (senderClientId != expectedClientId)
-            {
-                Debug.LogWarning($"[MultiplayerGameSession] Rejected turn request from client {senderClientId}. Expected {expectedClientId}.");
-                return false;
-            }
-
-            return true;
-        }
-
-        private string GetActivePlayerName(int turnIndex)
-        {
-            if (spawnedPawnSyncs.Count == 0)
-            {
-                return $"Player {turnIndex + 1}";
-            }
-
-            int index = Mathf.Abs(turnIndex) % spawnedPawnSyncs.Count;
-            PlayerPawnNetworkSync pawnSync = spawnedPawnSyncs[index];
-            return pawnSync != null ? pawnSync.DisplayName : $"Player {index + 1}";
         }
     }
 }

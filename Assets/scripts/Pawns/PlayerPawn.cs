@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using MonopolyGame.Board;
+using MonopolyGame.Multiplayer.Gameplay;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace MonopolyGame.Pawns
@@ -115,6 +117,99 @@ namespace MonopolyGame.Pawns
             if (visualRoot != null)
             {
                 visualRoot.localRotation = Quaternion.identity;
+            }
+        }
+    }
+
+    public static class PawnFactory
+    {
+        public static PlayerPawnNetworkSync CreatePawn(
+            GameObject pawnPrefab,
+            Transform pawnRoot,
+            int pawnSlot,
+            string displayName,
+            int startSpaceIndex,
+            BoardManager boardManager,
+            PawnVisualConfig visualConfig)
+        {
+            if (pawnPrefab == null || pawnRoot == null || boardManager == null)
+            {
+                return null;
+            }
+
+            GameObject pawnObject = Object.Instantiate(pawnPrefab, pawnRoot);
+            pawnObject.name = $"PlayerPawn_{pawnSlot + 1}_{displayName}";
+
+            ApplyVisualStyle(pawnObject, pawnSlot, visualConfig);
+
+            PlayerPawn pawn = pawnObject.GetComponent<PlayerPawn>();
+            if (pawn == null)
+            {
+                Debug.LogError(
+                    $"[PawnFactory] Pawn prefab '{pawnPrefab.name}' is missing a PlayerPawn component. " +
+                    "Open the prefab in the inspector and add PlayerPawn manually.");
+                Object.Destroy(pawnObject);
+                return null;
+            }
+
+            pawn.Initialize(
+                $"player-{pawnSlot + 1}",
+                displayName,
+                pawnSlot,
+                startSpaceIndex,
+                boardManager);
+
+            PlayerPawnNetworkSync pawnSync = pawnObject.GetComponent<PlayerPawnNetworkSync>();
+            if (pawnSync == null)
+            {
+                // PlayerPawnNetworkSync MUST be a pre-added component on the prefab.
+                // Dynamically adding a NetworkBehaviour at runtime only affects the server
+                // instance; clients instantiate the registered prefab asset which lacks the
+                // component, so OnNetworkSpawn never fires for them and pawns are invisible.
+                Debug.LogError(
+                    $"[PawnFactory] Pawn prefab '{pawnPrefab.name}' is missing a " +
+                    $"PlayerPawnNetworkSync component. Open the prefab in the inspector, add " +
+                    $"PlayerPawnNetworkSync (and PlayerPawn) manually, then re-register it in " +
+                    $"the NetworkManager prefab list.");
+                Object.Destroy(pawnObject);
+                return null;
+            }
+
+            pawnSync.Initialize(
+                pawn,
+                boardManager,
+                pawnSlot,
+                $"player-{pawnSlot + 1}",
+                displayName);
+
+            NetworkObject networkObject = pawnObject.GetComponent<NetworkObject>();
+            if (networkObject != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            {
+                networkObject.Spawn();
+            }
+
+            return pawnSync;
+        }
+
+        private static void ApplyVisualStyle(GameObject pawnObject, int pawnSlot, PawnVisualConfig visualConfig)
+        {
+            float pawnHeight = visualConfig != null ? visualConfig.PawnHeight : 0.8f;
+            float pawnRadius = visualConfig != null ? visualConfig.PawnRadius : 0.28f;
+
+            pawnObject.transform.localScale = new Vector3(pawnRadius, pawnHeight / 2f, pawnRadius);
+
+            Color color = visualConfig != null ? visualConfig.GetPawnColor(pawnSlot) : Color.white;
+            Renderer[] renderers = pawnObject.GetComponentsInChildren<Renderer>(true);
+            Material material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            material.color = color;
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer renderer = renderers[i];
+                if (renderer != null)
+                {
+                    renderer.sharedMaterial = material;
+                }
             }
         }
     }

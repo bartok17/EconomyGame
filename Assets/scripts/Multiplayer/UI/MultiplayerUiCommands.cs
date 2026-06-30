@@ -40,12 +40,7 @@ namespace MonopolyGame.Multiplayer
         {
             if (coordinator == null)
             {
-                coordinator = FindAnyObjectByType<MultiplayerFlowCoordinator>();
-            }
-
-            if (coordinator == null)
-            {
-                Debug.LogError("MultiplayerFlowCoordinator not found. Assign it in the inspector or add it to the scene.");
+                Debug.LogError("[MultiplayerUiCommands] MultiplayerFlowCoordinator not assigned. Wire it in the inspector.");
                 enabled = false;
                 return;
             }

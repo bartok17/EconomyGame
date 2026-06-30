@@ -4688,106 +4688,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 928407306}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &929375123
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 929375127}
-  - component: {fileID: 929375126}
-  - component: {fileID: 929375124}
-  - component: {fileID: 929375125}
-  m_Layer: 0
-  m_Name: GameSessionController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &929375124
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 929375123}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3241748058
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 0
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
---- !u!114 &929375125
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 929375123}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ec3f7f32101b49b2b5a1b5edb04d22f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MonopolyGame.Multiplayer.Gameplay.MultiplayerGameSessionController
-  ShowTopMostFoldoutHeaderGroup: 1
-  coordinator: {fileID: 0}
-  boardManager: {fileID: 0}
-  pawnSpawner: {fileID: 0}
-  startSpaceIndex: 0
-  pawnMoveDuration: 0.45
-  resolveDelay: 0.35
-  autoAdvanceTurns: 0
---- !u!114 &929375126
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 929375123}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb4b706db044d46398c465d5a1569387, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MonopolyGame.Multiplayer.Gameplay.MultiplayerGameHudPresenter
-  session: {fileID: 929375125}
-  buildDefaultLayout: 1
-  titleText: {fileID: 0}
-  turnText: {fileID: 0}
-  phaseText: {fileID: 0}
-  diceText: {fileID: 0}
-  hostHintText: {fileID: 0}
-  rollButton: {fileID: 0}
-  endTurnButton: {fileID: 0}
---- !u!4 &929375127
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 929375123}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.30026, y: 0.06, z: 6.83097}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &933585292
 Material:
   serializedVersion: 8
@@ -9055,13 +8955,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonopolyGame.Pawns.PlayerPawnSpawner
   boardManager: {fileID: 1881610960}
+  coordinator: {fileID: 0}
   pawnRoot: {fileID: 0}
   pawnPrefab: {fileID: 4390429929196875458, guid: 82ca28269161c45219831572ad78a719, type: 3}
+  pawnVisualConfig: {fileID: 11400000, guid: 0d424665a134a410393efaf4f78cc8b5, type: 2}
   fallbackPawnCount: 2
   startSpaceIndex: 0
   autoSpawnOnStart: 0
-  pawnHeight: 0.8
-  pawnRadius: 0.28
 --- !u!4 &1485807581
 Transform:
   m_ObjectHideFlags: 0
@@ -12396,6 +12296,95 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!1001 &1941726233275368983
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -5989799859918288946, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: pawnSpawner
+      value: 
+      objectReference: {fileID: 1485807580}
+    - target: {fileID: -5989799859918288946, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: boardManager
+      value: 
+      objectReference: {fileID: 1881610960}
+    - target: {fileID: 127109172804398071, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 89657588
+      objectReference: {fileID: 0}
+    - target: {fileID: 127109172804398071, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1579097702
+      objectReference: {fileID: 0}
+    - target: {fileID: 2142190109402589789, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: rootCanvas
+      value: 
+      objectReference: {fileID: 1781657315}
+    - target: {fileID: 2142190109402589789, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: eventSystem
+      value: 
+      objectReference: {fileID: 1447106271}
+    - target: {fileID: 6224139880210663676, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: pawnSpawner
+      value: 
+      objectReference: {fileID: 1485807580}
+    - target: {fileID: 6224139880210663676, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: boardManager
+      value: 
+      objectReference: {fileID: 1881610960}
+    - target: {fileID: 7132333650056584807, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_Name
+      value: GameSessionController
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.30026
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 6.83097
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8531624862864905337, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -12406,4 +12395,4 @@ SceneRoots:
   - {fileID: 1447106272}
   - {fileID: 1881610958}
   - {fileID: 1485807581}
-  - {fileID: 929375127}
+  - {fileID: 1941726233275368983}
