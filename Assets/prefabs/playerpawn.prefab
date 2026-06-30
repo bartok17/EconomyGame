@@ -146,7 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1810409803
+  GlobalObjectIdHash: 2087603644
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -172,5 +172,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonopolyGame.Multiplayer.Gameplay.PlayerPawnNetworkSync
   ShowTopMostFoldoutHeaderGroup: 1
-  pawn: {fileID: 0}
+  pawn: {fileID: 4268352099039844695}
   boardManager: {fileID: 0}
+  pawnVisualConfig: {fileID: 11400000, guid: 0d424665a134a410393efaf4f78cc8b5, type: 2}

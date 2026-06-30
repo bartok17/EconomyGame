@@ -20,6 +20,7 @@ namespace MonopolyGame.Multiplayer.SceneManagement
         [SerializeField] private float fadeDuration = 0.3f;
         [SerializeField] private MultiplayerFlowCoordinator coordinator;
 
+        private MonoBehaviour gameSceneInstaller;
         private bool isLoadingGame = false;
 
         private void Awake()
@@ -47,6 +48,19 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             if (coordinator != null)
             {
                 coordinator.ReadyToEnterGame -= OnReadyToEnterGame;
+            }
+        }
+
+        public void RegisterGameSceneInstaller(MonoBehaviour installer)
+        {
+            gameSceneInstaller = installer;
+        }
+
+        public void UnregisterGameSceneInstaller(MonoBehaviour installer)
+        {
+            if (gameSceneInstaller == installer)
+            {
+                gameSceneInstaller = null;
             }
         }
 
@@ -105,7 +119,7 @@ namespace MonopolyGame.Multiplayer.SceneManagement
                 yield return null;
             }
 
-            EnsureGameplaySessionExists();
+            BindGameSceneInstaller();
 
             // Fade out loading screen
             if (loadingScreenCanvasGroup != null)
@@ -117,16 +131,15 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             isLoadingGame = false;
         }
 
-        private void EnsureGameplaySessionExists()
+        private void BindGameSceneInstaller()
         {
-            MultiplayerGameSessionController session = FindAnyObjectByType<MultiplayerGameSessionController>();
-            if (session != null)
+            if (gameSceneInstaller != null)
             {
-                session.BindFromScene();
+                gameSceneInstaller.SendMessage("Configure", coordinator, SendMessageOptions.DontRequireReceiver);
                 return;
             }
 
-            Debug.LogWarning("[MultiplayerSceneManager] MultiplayerGameSessionController was not found in the Game scene. Add a scene object with NetworkObject + MultiplayerGameSessionController for host/client RPC flow.");
+            Debug.LogWarning("[MultiplayerSceneManager] GameSceneInstaller was not found in the Game scene. Add the installer component to wire gameplay dependencies from the editor.");
         }
 
         private IEnumerator FadeCanvasGroup(CanvasGroup canvasGroup, float start, float end, float duration)
