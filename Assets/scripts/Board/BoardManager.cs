@@ -62,6 +62,12 @@ namespace MonopolyGame.Board
         {
             return GetSpace(spaceIndex).GetPawnWorldPosition(pawnSlot);
         }
+        
+        public void SetSpaceOwner(int index, string ownerId)
+        {
+            BoardSpaceView space = GetSpace(index);
+            space.ownerId = ownerId ?? string.Empty;
+        }
 
         public BoardState CaptureBoardState()
         {
