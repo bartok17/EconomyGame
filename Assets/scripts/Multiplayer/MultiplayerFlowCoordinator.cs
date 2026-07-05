@@ -518,15 +518,13 @@ namespace MonopolyGame.Multiplayer
 
             if (_networkManager == null)
             {
-                var networkObject = new GameObject("NetworkManager");
-                DontDestroyOnLoad(networkObject);
-                _networkManager = networkObject.AddComponent<NetworkManager>();
-                _transport = networkObject.AddComponent<UnityTransport>();
+                _networkManager = FindAnyObjectByType<NetworkManager>();
             }
 
-            if (_networkManager.NetworkConfig == null)
+            if (_networkManager == null)
             {
-                _networkManager.NetworkConfig = new NetworkConfig();
+                throw new InvalidOperationException(
+                    "NetworkManager was not found. Add NetworkManager to the lobby scene and assign it in MultiplayerBootstrapper.");
             }
 
             if (_transport == null)
@@ -536,7 +534,14 @@ namespace MonopolyGame.Multiplayer
 
             if (_transport == null)
             {
-                _transport = _networkManager.gameObject.AddComponent<UnityTransport>();
+                throw new InvalidOperationException(
+                    "UnityTransport was not found on NetworkManager. Add UnityTransport to the NetworkManager object.");
+            }
+
+            if (_networkManager.NetworkConfig == null)
+            {
+                throw new InvalidOperationException(
+                    "NetworkManager has no NetworkConfig. Configure NetworkManager in the scene instead of creating it at runtime.");
             }
 
             _networkManager.NetworkConfig.NetworkTransport = _transport;

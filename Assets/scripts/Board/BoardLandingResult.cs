@@ -8,6 +8,7 @@ namespace MonopolyGame.Board
             BoardSpaceType spaceType,
             string playerId,
             string ownerId,
+            int price,
             int baseRent,
             string message)
         {
@@ -16,6 +17,7 @@ namespace MonopolyGame.Board
             SpaceType = spaceType;
             PlayerId = playerId ?? string.Empty;
             OwnerId = ownerId ?? string.Empty;
+            Price = price;
             BaseRent = baseRent;
             Message = message ?? string.Empty;
         }
@@ -25,6 +27,7 @@ namespace MonopolyGame.Board
         public BoardSpaceType SpaceType { get; }
         public string PlayerId { get; }
         public string OwnerId { get; }
+        public int Price { get; }
         public int BaseRent { get; }
         public string Message { get; }
     }

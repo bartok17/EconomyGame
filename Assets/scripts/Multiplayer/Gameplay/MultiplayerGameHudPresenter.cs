@@ -24,9 +24,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private TextMeshProUGUI turnText;
         [SerializeField] private TextMeshProUGUI phaseText;
         [SerializeField] private TextMeshProUGUI diceText;
+        [SerializeField] private TextMeshProUGUI balanceText;
+        [SerializeField] private TextMeshProUGUI propertyText;
+        [SerializeField] private TextMeshProUGUI ownerText;
+        [SerializeField] private TextMeshProUGUI economyMessageText;
         [SerializeField] private TextMeshProUGUI hostHintText;
         [SerializeField] private Button rollButton;
         [SerializeField] private Button endTurnButton;
+        [SerializeField] private Button buyButton;
 
         private void OnEnable()
         {
@@ -69,6 +74,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             session.PhaseChanged += HandlePhaseChanged;
             session.TurnChanged += HandleTurnChanged;
             session.DiceRolled += HandleDiceRolled;
+            session.EconomyChanged += HandleEconomyChanged;
 
             if (rollButton != null)
             {
@@ -79,6 +85,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 endTurnButton.onClick.AddListener(HandleEndTurnClicked);
             }
+            
+            if (buyButton != null)
+            {
+                buyButton.onClick.AddListener(HandleBuyClicked);
+            }
         }
 
         private void UnbindSession()
@@ -88,6 +99,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 session.PhaseChanged -= HandlePhaseChanged;
                 session.TurnChanged -= HandleTurnChanged;
                 session.DiceRolled -= HandleDiceRolled;
+                session.EconomyChanged -= HandleEconomyChanged;
             }
 
             if (rollButton != null)
@@ -98,6 +110,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             if (endTurnButton != null)
             {
                 endTurnButton.onClick.RemoveListener(HandleEndTurnClicked);
+            }
+            
+            if (buyButton != null)
+            {
+                buyButton.onClick.RemoveListener(HandleBuyClicked);
             }
         }
 
@@ -120,7 +137,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 eventSystemObject.AddComponent<StandaloneInputModule>();
             }
 
-            if (titleText == null || turnText == null || phaseText == null || diceText == null || hostHintText == null || rollButton == null || endTurnButton == null)
+            if (titleText == null || turnText == null || phaseText == null || diceText == null || balanceText == null || propertyText == null || ownerText == null || economyMessageText == null || hostHintText == null || rollButton == null || endTurnButton == null || buyButton == null)
             {
                 BuildDefaultHud(rootCanvas.transform);
             }
@@ -156,6 +173,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
             turnText = CreateText(panel.transform, "Turn: -", 20, Color.white);
             phaseText = CreateText(panel.transform, "Phase: -", 18, new Color(0.80f, 0.88f, 1f));
             diceText = CreateText(panel.transform, "Dice: -", 18, new Color(0.90f, 0.92f, 0.78f));
+            balanceText = CreateText(panel.transform, "Balance: -", 18, new Color(0.76f, 1f, 0.76f));
+            propertyText = CreateText(panel.transform, "Property: -", 18, new Color(0.90f, 0.86f, 0.72f));
+            ownerText = CreateText(panel.transform, "Owner: -", 18, new Color(0.80f, 0.88f, 1f));
+            economyMessageText = CreateText(panel.transform, "No economy action yet.", 16, new Color(1f, 0.86f, 0.58f));
             hostHintText = CreateText(panel.transform, "Host controls turn flow until client ownership is wired.", 16, new Color(0.82f, 0.82f, 0.82f));
 
             GameObject actionsRow = new GameObject("ActionsRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
@@ -169,6 +190,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             rollButton = CreateButton(actionsRow.transform, "Roll", new Color(0.22f, 0.52f, 0.92f));
             endTurnButton = CreateButton(actionsRow.transform, "End Turn", new Color(0.88f, 0.46f, 0.15f));
+            buyButton = CreateButton(actionsRow.transform, "Buy", new Color(0.20f, 0.65f, 0.32f));
         }
 
         private TextMeshProUGUI CreateText(Transform parent, string value, int size, Color color)
@@ -241,6 +263,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 phaseText.text = $"Phase: {session.GetPhaseLabel()}";
             }
 
+            RefreshEconomyTexts();
             UpdateControls();
         }
 
@@ -251,6 +274,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 turnText.text = $"Turn: {turnIndex + 1} - {activePlayerName}";
             }
 
+            RefreshEconomyTexts();
             UpdateControls();
         }
 
@@ -260,6 +284,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 diceText.text = $"Dice: {diceValue}";
             }
+        }
+        
+        private void HandleEconomyChanged()
+        {
+            RefreshEconomyTexts();
+            UpdateControls();
         }
 
         private void RefreshFromSession()
@@ -272,6 +302,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             HandleTurnChanged(session.CurrentTurnIndex, string.IsNullOrWhiteSpace(session.ActivePlayerName) ? "-" : session.ActivePlayerName);
             HandlePhaseChanged(session.CurrentPhase);
             HandleDiceRolled(session.LastDiceRoll);
+            RefreshEconomyTexts();
 
             if (hostHintText != null)
             {
@@ -312,6 +343,54 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 hostHintText.text = isMyTurn
                     ? "Your turn!"
                     : $"Waiting for {session.ActivePlayerName}...";
+            }
+            
+            if (buyButton != null)
+            {
+                buyButton.gameObject.SetActive(true);
+                buyButton.interactable = session.CanBuyCurrentProperty();
+                
+                TextMeshProUGUI buyLabel = buyButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (buyLabel != null)
+                {
+                    buyLabel.text = session.GetBuyButtonLabel();
+                }
+            }
+        }
+        
+        private void HandleBuyClicked()
+        {
+            if (session != null)
+            {
+                session.RequestBuyCurrentProperty();
+            }
+        }
+        
+        private void RefreshEconomyTexts()
+        {
+            if (session == null)
+            {
+                return;
+            }
+
+            if (balanceText != null)
+            {
+                balanceText.text = $"Balance: {session.GetLocalPlayerBalance()}";
+            }
+
+            if (propertyText != null)
+            {
+                propertyText.text = $"Property: {session.GetCurrentPropertyLabel()}";
+            }
+
+            if (ownerText != null)
+            {
+                ownerText.text = session.GetCurrentPropertyOwnerLabel();
+            }
+            
+            if (economyMessageText != null)
+            {
+                economyMessageText.text = session.GetLastEconomyMessage();
             }
         }
     }
