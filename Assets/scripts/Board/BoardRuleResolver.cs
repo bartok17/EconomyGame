@@ -6,7 +6,15 @@ namespace MonopolyGame.Board
         {
             if (boardState == null)
             {
-                return new BoardLandingResult(0, string.Empty, BoardSpaceType.Special, playerId, string.Empty, 0, string.Empty);
+                return new BoardLandingResult(
+                    0,
+                    string.Empty, 
+                    BoardSpaceType.Special, 
+                    playerId, 
+                    string.Empty,
+                    0,
+                    0, 
+                    string.Empty);
             }
 
             BoardSpaceSnapshot space = boardState.GetSpace(spaceIndex);
@@ -20,6 +28,7 @@ namespace MonopolyGame.Board
                     playerId,
                     string.Empty,
                     0,
+                    0,
                     string.Empty);
             }
 
@@ -31,6 +40,7 @@ namespace MonopolyGame.Board
                 space.SpaceType,
                 playerId,
                 space.OwnerId,
+                space.Price,
                 space.BaseRent,
                 message);
         }
