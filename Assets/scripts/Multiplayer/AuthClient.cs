@@ -4,7 +4,7 @@ using Unity.Services.Authentication;
 
 namespace MonopolyGame.Multiplayer
 {
-    public sealed class AuthClient
+    public sealed class AuthClient : IAuthClient
     {
         public bool IsSignedIn => AuthenticationService.Instance.IsSignedIn;
         public string PlayerId => AuthenticationService.Instance.PlayerId;

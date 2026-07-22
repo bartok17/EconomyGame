@@ -1,0 +1,17 @@
+{
+    "name": "MonopolyGame.UI",
+    "rootNamespace": "MonopolyGame.Multiplayer.UI",
+    "references": [
+        "MonopolyGame.Core",
+        "MonopolyGame.Multiplayer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
