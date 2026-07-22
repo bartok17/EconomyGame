@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 namespace MonopolyGame.Multiplayer
 {
@@ -22,7 +21,7 @@ namespace MonopolyGame.Multiplayer
         public LobbyConfig(string gameName, int maxPlayers = 4, string gameVariant = "Classic", bool isPrivate = false, string password = "")
         {
             GameName = gameName;
-            MaxPlayers = Mathf.Clamp(maxPlayers, 2, 4);
+            MaxPlayers = Math.Clamp(maxPlayers, 2, 4);
             GameVariant = gameVariant;
             IsPrivate = isPrivate;
             Password = password;

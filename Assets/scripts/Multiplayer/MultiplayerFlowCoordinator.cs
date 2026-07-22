@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
-using Unity.Services.Authentication;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
 using Unity.Services.Core;
@@ -21,12 +19,12 @@ namespace MonopolyGame.Multiplayer
         private const string RelayConnectionType = "dtls";
         private const int DefaultMaxPlayers = 4;
         private const float RelayJoinCodeTimeoutSeconds = 30f;
-        private static readonly Regex UsernamePattern = new Regex(@"^[a-z0-9]+$", RegexOptions.Compiled);
-        private static readonly Regex PasswordPattern = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z]).{8,}$", RegexOptions.Compiled);
 
-        private readonly AuthClient _authClient = new AuthClient();
-        private readonly LobbyClient _lobbyClient = new LobbyClient();
-        private readonly RelayClient _relayClient = new RelayClient();
+        private readonly MultiplayerStatusStateMachine _statusStateMachine = new MultiplayerStatusStateMachine();
+
+        private IAuthClient _authClient;
+        private ILobbyClient _lobbyClient;
+        private IRelayClient _relayClient;
 
         private CancellationTokenSource _waitRelayCts;
         private NetworkManager _networkManager;
@@ -35,8 +33,8 @@ namespace MonopolyGame.Multiplayer
         private string _currentLobbyHostPlayerId;
         private bool _networkStartRequested;
 
-        public MultiplayerStatus Status { get; private set; } = MultiplayerStatus.Idle;
-        public MultiplayerError LastError { get; private set; }
+        public MultiplayerStatus Status => _statusStateMachine.Status;
+        public MultiplayerError LastError => _statusStateMachine.LastError;
 
         public string LocalPlayerId => _authClient.PlayerId;
         public string LocalDisplayName => _authClient.DisplayName;
@@ -56,21 +54,38 @@ namespace MonopolyGame.Multiplayer
         public event Action<MultiplayerRole> ReadyToEnterGame;
         public event Action<MultiplayerError> ErrorOccurred;
 
+        private void Awake()
+        {
+            _statusStateMachine.StatusChanged += status => StatusChanged?.Invoke(status);
+        }
+
+        private void OnDestroy()
+        {
+            _statusStateMachine.StatusChanged -= status => StatusChanged?.Invoke(status);
+        }
+
+        public void InjectDependencies(IAuthClient authClient, ILobbyClient lobbyClient, IRelayClient relayClient)
+        {
+            _authClient = authClient ?? throw new ArgumentNullException(nameof(authClient));
+            _lobbyClient = lobbyClient ?? throw new ArgumentNullException(nameof(lobbyClient));
+            _relayClient = relayClient ?? throw new ArgumentNullException(nameof(relayClient));
+        }
+
         public async Task InitializeAsync()
         {
-            ClearLastError();
+            _statusStateMachine.ClearLastError();
 
             if (Status != MultiplayerStatus.Idle)
             {
                 return;
             }
 
-            UpdateStatus(MultiplayerStatus.Initializing);
+            _statusStateMachine.TransitionTo(MultiplayerStatus.Initializing);
 
             try
             {
                 await UnityServices.InitializeAsync();
-                UpdateStatus(_authClient.IsSignedIn ? MultiplayerStatus.SignedIn : MultiplayerStatus.SignedOut);
+                _statusStateMachine.TransitionTo(_authClient.IsSignedIn ? MultiplayerStatus.SignedIn : MultiplayerStatus.SignedOut);
                 HookLobbyEvents();
             }
             catch (Exception ex)
@@ -81,53 +96,53 @@ namespace MonopolyGame.Multiplayer
 
         public async Task SignUpAsync(string username, string password, string displayName)
         {
-            var validationError = ValidateSignUpInputs(username, password);
+            var validationError = InputValidator.ValidateSignUp(username, password);
             if (validationError != null)
             {
                 RaiseError(validationError.Code, validationError.Message, null);
                 return;
             }
 
-            BeginWorkflowStep(MultiplayerStatus.SigningIn);
+            _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.SigningIn);
 
             try
             {
                 await _authClient.SignUpAsync(username, password, displayName);
-                UpdateStatus(MultiplayerStatus.SignedIn);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.SignedIn);
                 SignedIn?.Invoke(_authClient.PlayerId, _authClient.DisplayName);
             }
             catch (Exception ex)
             {
-                RaiseError("signup_failed", BuildAuthErrorMessage(ex, isSignUp: true), ex);
+                RaiseError("signup_failed", LobbySnapshotMapper.BuildAuthErrorMessage(ex, isSignUp: true), ex);
             }
         }
 
         public async Task SignInAsync(string username, string password)
         {
-            var validationError = ValidateSignInInputs(username, password);
+            var validationError = InputValidator.ValidateSignIn(username, password);
             if (validationError != null)
             {
                 RaiseError(validationError.Code, validationError.Message, null);
                 return;
             }
 
-            BeginWorkflowStep(MultiplayerStatus.SigningIn);
+            _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.SigningIn);
 
             try
             {
                 await _authClient.SignInAsync(username, password);
-                UpdateStatus(MultiplayerStatus.SignedIn);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.SignedIn);
                 SignedIn?.Invoke(_authClient.PlayerId, _authClient.DisplayName);
             }
             catch (Exception ex)
             {
-                RaiseError("signin_failed", BuildAuthErrorMessage(ex, isSignUp: false), ex);
+                RaiseError("signin_failed", LobbySnapshotMapper.BuildAuthErrorMessage(ex, isSignUp: false), ex);
             }
         }
 
         public async Task SetDisplayNameAsync(string displayName)
         {
-            ClearLastError();
+            _statusStateMachine.ClearLastError();
 
             try
             {
@@ -145,20 +160,20 @@ namespace MonopolyGame.Multiplayer
 
         public void SignOut()
         {
-            ClearLastError();
+            _statusStateMachine.ClearLastError();
             _authClient.SignOut();
-            UpdateStatus(MultiplayerStatus.SignedOut);
+            _statusStateMachine.TransitionTo(MultiplayerStatus.SignedOut);
         }
 
         public async Task QueryLobbiesAsync(int maxResults = 25)
         {
-            BeginWorkflowStep(MultiplayerStatus.LobbyQuerying);
+            _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.LobbyQuerying);
 
             try
             {
                 var lobbies = await _lobbyClient.QueryLobbiesAsync(maxResults);
-                LobbyListUpdated?.Invoke(lobbies.Select(ToSummary).ToList());
-                UpdateStatus(MultiplayerStatus.SignedIn);
+                LobbyListUpdated?.Invoke(lobbies.Select(LobbySnapshotMapper.ToSummary).ToList());
+                _statusStateMachine.TransitionTo(MultiplayerStatus.SignedIn);
             }
             catch (Exception ex)
             {
@@ -168,16 +183,16 @@ namespace MonopolyGame.Multiplayer
 
         public async Task CreateLobbyAsHostAsync(string lobbyName, int maxPlayers = DefaultMaxPlayers, bool isPrivate = false)
         {
-            BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
+            _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
 
             try
             {
                 var lobby = await _lobbyClient.CreateLobbyAsync(lobbyName, maxPlayers, isPrivate, _authClient.DisplayName);
                 _currentLobbyHostPlayerId = lobby.HostId;
-                CurrentLobbySnapshot = ToSnapshot(lobby);
+                CurrentLobbySnapshot = LobbySnapshotMapper.ToSnapshot(lobby);
                 _lobbyClient.StartHeartbeatLoop();
                 _lobbyClient.StartPollingLoop();
-                UpdateStatus(MultiplayerStatus.LobbyJoined);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.LobbyJoined);
                 LobbyJoined?.Invoke(CurrentLobbySnapshot);
             }
             catch (Exception ex)
@@ -188,15 +203,15 @@ namespace MonopolyGame.Multiplayer
 
         public async Task JoinLobbyByCodeAsync(string lobbyCode)
         {
-            BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
+            _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
 
             try
             {
                 var lobby = await _lobbyClient.JoinLobbyByCodeAsync(lobbyCode, _authClient.DisplayName);
                 _currentLobbyHostPlayerId = lobby.HostId;
-                CurrentLobbySnapshot = ToSnapshot(lobby);
+                CurrentLobbySnapshot = LobbySnapshotMapper.ToSnapshot(lobby);
                 _lobbyClient.StartPollingLoop();
-                UpdateStatus(MultiplayerStatus.LobbyJoined);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.LobbyJoined);
                 LobbyJoined?.Invoke(CurrentLobbySnapshot);
             }
             catch (Exception ex)
@@ -207,15 +222,15 @@ namespace MonopolyGame.Multiplayer
 
         public async Task JoinLobbyByIdAsync(string lobbyId)
         {
-            BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
+            _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
 
             try
             {
                 var lobby = await _lobbyClient.JoinLobbyByIdAsync(lobbyId, _authClient.DisplayName);
                 _currentLobbyHostPlayerId = lobby.HostId;
-                CurrentLobbySnapshot = ToSnapshot(lobby);
+                CurrentLobbySnapshot = LobbySnapshotMapper.ToSnapshot(lobby);
                 _lobbyClient.StartPollingLoop();
-                UpdateStatus(MultiplayerStatus.LobbyJoined);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.LobbyJoined);
                 LobbyJoined?.Invoke(CurrentLobbySnapshot);
             }
             catch (Exception ex)
@@ -226,7 +241,7 @@ namespace MonopolyGame.Multiplayer
 
         public async Task LeaveLobbyAsync()
         {
-            ClearLastError();
+            _statusStateMachine.ClearLastError();
 
             try
             {
@@ -252,7 +267,7 @@ namespace MonopolyGame.Multiplayer
 
         public async Task StartGameAsHostAsync()
         {
-            ClearLastError();
+            _statusStateMachine.ClearLastError();
             
             if (_lobbyClient.CurrentLobby == null || CurrentLobbySnapshot == null)
             {
@@ -282,7 +297,7 @@ namespace MonopolyGame.Multiplayer
             try
             {
                 EnsureNetworkDependencies();
-                UpdateStatus(MultiplayerStatus.RelayAllocating);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.RelayAllocating);
                 Debug.Log("[MultiplayerFlow] Allocating relay for game start.");
 
                 var allocation = await _relayClient.CreateAllocationAsync(CurrentLobbySnapshot.MaxPlayers - 1);
@@ -304,7 +319,7 @@ namespace MonopolyGame.Multiplayer
                 Debug.Log("[MultiplayerFlow] Game start data published to lobby.");
                 ConfigureTransportForHost(allocation);
 
-                UpdateStatus(MultiplayerStatus.NetworkStarting);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.NetworkStarting);
                 _networkManager.StartHost();
 
                 var summary = new RelayConnectionSummary(
@@ -314,7 +329,7 @@ namespace MonopolyGame.Multiplayer
                     RelayConnectionType);
 
                 RelayReady?.Invoke(summary);
-                UpdateStatus(MultiplayerStatus.NetworkStarted);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.NetworkStarted);
                 NetworkStarted?.Invoke(MultiplayerRole.Host);
                 ReadyToEnterGame?.Invoke(MultiplayerRole.Host);
             }
@@ -339,7 +354,7 @@ namespace MonopolyGame.Multiplayer
             {
                 EnsureNetworkDependencies();
                 Debug.Log($"[MultiplayerFlow] Starting client from current lobby. snapshot={(CurrentLobbySnapshot != null ? CurrentLobbySnapshot.Name : "<null>")}, relayCode={(CurrentLobbySnapshot != null && !string.IsNullOrWhiteSpace(CurrentLobbySnapshot.RelayJoinCode) ? "present" : "missing")}");
-                UpdateStatus(MultiplayerStatus.RelayJoining);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.RelayJoining);
                 
                 var joinCode = await WaitForRelayJoinCodeAsync(TimeSpan.FromSeconds(RelayJoinCodeTimeoutSeconds));
                 Debug.Log($"[MultiplayerFlow] Relay join code received. length={joinCode?.Length ?? 0}");
@@ -349,7 +364,7 @@ namespace MonopolyGame.Multiplayer
 
                 ConfigureTransportForClient(joinAllocation);
                 
-                UpdateStatus(MultiplayerStatus.NetworkStarting);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.NetworkStarting);
                 Debug.Log("[MultiplayerFlow] Starting NetworkManager client.");
                 _networkManager.StartClient();
                 
@@ -360,7 +375,7 @@ namespace MonopolyGame.Multiplayer
                     RelayConnectionType);
 
                 RelayReady?.Invoke(summary);
-                UpdateStatus(MultiplayerStatus.NetworkStarted);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.NetworkStarted);
                 NetworkStarted?.Invoke(MultiplayerRole.Client);
                 ReadyToEnterGame?.Invoke(MultiplayerRole.Client);
                 Debug.Log("[MultiplayerFlow] Client relay/network startup completed.");
@@ -391,13 +406,6 @@ namespace MonopolyGame.Multiplayer
             await _lobbyClient.UpdateLobbyDataAsync(data);
         }
 
-        private static bool IsGameStarted(LobbySnapshot snapshot)
-        {
-            return snapshot?.Data != null &&
-                   snapshot.Data.TryGetValue(MultiplayerKeys.LobbyDataGameStartedKey, out var value) && 
-                   string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
-        }
-
         public void AssignNetworkManager(NetworkManager manager)
         {
             _networkManager = manager;
@@ -420,11 +428,11 @@ namespace MonopolyGame.Multiplayer
         private void HandleLobbyUpdated(Lobby lobby)
         {
             _currentLobbyHostPlayerId = lobby.HostId;
-            CurrentLobbySnapshot = ToSnapshot(lobby);
+            CurrentLobbySnapshot = LobbySnapshotMapper.ToSnapshot(lobby);
             Debug.Log($"[MultiplayerFlow] Lobby updated: name={CurrentLobbySnapshot.Name}, players={CurrentLobbySnapshot.PlayerCount}/{CurrentLobbySnapshot.MaxPlayers}, relayCode={(string.IsNullOrWhiteSpace(CurrentLobbySnapshot.RelayJoinCode) ? "missing" : "present")}");
             LobbyJoined?.Invoke(CurrentLobbySnapshot);
 
-            if (!IsLocalPlayerHost && IsGameStarted(CurrentLobbySnapshot) && !_networkStartRequested)
+            if (!IsLocalPlayerHost && LobbySnapshotMapper.IsGameStarted(CurrentLobbySnapshot) && !_networkStartRequested)
             {
                 _ = StartClientFromCurrentLobbyAsync();
             }
@@ -547,197 +555,10 @@ namespace MonopolyGame.Multiplayer
             _networkManager.NetworkConfig.NetworkTransport = _transport;
         }
 
-        private void UpdateStatus(MultiplayerStatus status)
-        {
-            Status = status;
-            StatusChanged?.Invoke(status);
-        }
-
         private void RaiseError(string code, string message, Exception exception)
         {
-            LastError = new MultiplayerError(code, message, exception);
-            RecoverStatusAfterError();
-            ErrorOccurred?.Invoke(LastError);
-        }
-
-        private void BeginWorkflowStep(MultiplayerStatus nextStatus)
-        {
-            ClearLastError();
-            UpdateStatus(nextStatus);
-        }
-
-        private void ClearLastError()
-        {
-            LastError = null;
-        }
-
-        private void RecoverStatusAfterError()
-        {
-            switch (Status)
-            {
-                case MultiplayerStatus.Initializing:
-                    UpdateStatus(MultiplayerStatus.Idle);
-                    break;
-                case MultiplayerStatus.SigningIn:
-                    UpdateStatus(MultiplayerStatus.SignedOut);
-                    break;
-                case MultiplayerStatus.LobbyQuerying:
-                    UpdateStatus(MultiplayerStatus.SignedIn);
-                    break;
-                case MultiplayerStatus.LobbyJoining:
-                    UpdateStatus(MultiplayerStatus.SignedIn);
-                    break;
-                case MultiplayerStatus.RelayAllocating:
-                    UpdateStatus(MultiplayerStatus.LobbyJoined);
-                    break;
-                case MultiplayerStatus.RelayJoining:
-                    UpdateStatus(MultiplayerStatus.LobbyJoined);
-                    break;
-                case MultiplayerStatus.NetworkStarting:
-                    UpdateStatus(MultiplayerStatus.LobbyJoined);
-                    break;
-            }
-        }
-
-        private static LobbySummary ToSummary(Lobby lobby)
-        {
-            return new LobbySummary(
-                lobby.Id,
-                lobby.LobbyCode,
-                lobby.Name,
-                lobby.MaxPlayers,
-                lobby.Players?.Count ?? 0,
-                lobby.IsPrivate,
-                ToData(lobby.Data));
-        }
-
-        private static LobbySnapshot ToSnapshot(Lobby lobby)
-        {
-            var relayJoinCode = lobby.Data != null && lobby.Data.TryGetValue(MultiplayerKeys.LobbyDataRelayJoinCodeKey, out var obj)
-                ? obj.Value
-                : null;
-
-            var playerNames = lobby.Players == null
-                ? new List<string>()
-                : lobby.Players.Select(player =>
-                {
-                    if (player.Data != null &&
-                        player.Data.TryGetValue(MultiplayerKeys.PlayerDataDisplayNameKey, out var displayName))
-                    {
-                        return displayName.Value;
-                    }
-
-                    return "Player";
-                }).ToList();
-
-            return new LobbySnapshot(
-                lobby.Id,
-                lobby.LobbyCode,
-                lobby.Name,
-                lobby.MaxPlayers,
-                lobby.Players?.Count ?? 0,
-                lobby.IsPrivate,
-                relayJoinCode,
-                playerNames,
-                ToData(lobby.Data));
-        }
-
-        private static IReadOnlyDictionary<string, string> ToData(Dictionary<string, DataObject> data)
-        {
-            if (data == null)
-            {
-                return new Dictionary<string, string>();
-            }
-
-            return data.ToDictionary(pair => pair.Key, pair => pair.Value.Value);
-        }
-
-        private static MultiplayerError ValidateSignUpInputs(string username, string password)
-        {
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                return new MultiplayerError("signup_username_blank", "Username cannot be blank.");
-            }
-
-            if (!UsernamePattern.IsMatch(username))
-            {
-                return new MultiplayerError(
-                    "signup_username_format",
-                    "Username can only contain lowercase a-z and numbers. No spaces or special characters are allowed.");
-            }
-
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                return new MultiplayerError("signup_password_blank", "Password cannot be blank.");
-            }
-
-            if (!PasswordPattern.IsMatch(password))
-            {
-                return new MultiplayerError(
-                    "signup_password_format",
-                    "Password must be at least 8 characters and include uppercase, lowercase, and a special symbol.");
-            }
-
-            return null;
-        }
-
-        private static MultiplayerError ValidateSignInInputs(string username, string password)
-        {
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                return new MultiplayerError("signin_username_blank", "Username cannot be blank.");
-            }
-
-            if (!UsernamePattern.IsMatch(username))
-            {
-                return new MultiplayerError(
-                    "signin_username_format",
-                    "Username can only contain lowercase a-z and numbers. No spaces or special characters are allowed.");
-            }
-
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                return new MultiplayerError("signin_password_blank", "Password cannot be blank.");
-            }
-
-            return null;
-        }
-
-        private static string BuildAuthErrorMessage(Exception exception, bool isSignUp)
-        {
-            if (exception is AuthenticationException authException)
-            {
-                var detail = authException.Message ?? string.Empty;
-                var detailLower = detail.ToLowerInvariant();
-
-                if (isSignUp && (detailLower.Contains("already") || detailLower.Contains("exists") || detailLower.Contains("taken")))
-                {
-                    return "Username already exists.";
-                }
-
-                if (!isSignUp && (detailLower.Contains("invalid username") || detailLower.Contains("invalid password") || detailLower.Contains("invalid credentials") || detailLower.Contains("invalid username or password") || detailLower.Contains("unauthorized")))
-                {
-                    return "Invalid username or password.";
-                }
-
-                if (isSignUp && detailLower.Contains("username"))
-                {
-                    return "Username can only contain lowercase a-z and numbers. Password must be at least 8 characters and include uppercase, lowercase, and a special symbol.";
-                }
-
-                if (isSignUp && detailLower.Contains("password"))
-                {
-                    return "Password must be at least 8 characters and include uppercase, lowercase, and a special symbol.";
-                }
-            }
-
-            var message = exception?.Message;
-            if (!string.IsNullOrWhiteSpace(message))
-            {
-                return message;
-            }
-
-            return isSignUp ? "Sign-up failed." : "Sign-in failed.";
+            _statusStateMachine.RaiseError(code, message, exception);
+            ErrorOccurred?.Invoke(_statusStateMachine.LastError);
         }
     }
 }
