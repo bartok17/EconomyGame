@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MonopolyGame.Multiplayer
+namespace MonopolyGame.Multiplayer.UI
 {
     public sealed class MultiplayerUiCommands : MonoBehaviour
     {

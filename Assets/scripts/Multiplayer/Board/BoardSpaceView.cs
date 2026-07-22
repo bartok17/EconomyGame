@@ -1,5 +1,4 @@
-﻿using MonopolyGame.Multiplayer.Gameplay;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace MonopolyGame.Board
 {
