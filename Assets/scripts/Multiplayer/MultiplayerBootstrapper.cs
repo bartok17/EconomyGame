@@ -66,7 +66,12 @@ namespace MonopolyGame.Multiplayer
             // Keep the scene's NetworkManager alive across scene loads.
             DontDestroyOnLoad(networkManager.gameObject);
 
-            flowCoordinator.InjectDependencies(new AuthClient(), new LobbyClient(), new RelayClient());
+            var relayClient = new RelayClient();
+            flowCoordinator.InjectDependencies(
+                new AuthClient(),
+                new LobbyClient(),
+                relayClient,
+                new RelayTransportService(relayClient));
             flowCoordinator.AssignNetworkManager(networkManager);
         }
     }

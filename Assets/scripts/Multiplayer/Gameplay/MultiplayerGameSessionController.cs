@@ -37,6 +37,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private GameSessionPawnRegistry pawnRegistry;
         private readonly TurnStateMachine turnStateMachine = new TurnStateMachine();
         private readonly BoardRuleResolver boardRuleResolver = new BoardRuleResolver();
+        private IPlayerEconomyService _economyService;
 
         private Coroutine bootstrapCoroutine;
         private Coroutine turnCoroutine;
@@ -102,6 +103,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             playerEconomyNet = new NetworkList<PlayerEconomyState>();
             propertyOwnershipNet = new NetworkList<PropertyOwnershipState>();
+            _economyService = new PlayerEconomyService(playerEconomyNet, propertyOwnershipNet);
         }
 
         public override void OnNetworkSpawn()
@@ -203,8 +205,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return 0;
             }
 
-            int economyIndex = FindPlayerEconomyIndex(pawnSlot);
-            return economyIndex >= 0 ? playerEconomyNet[economyIndex].Balance : 0;
+            return _economyService.GetBalance(pawnSlot);
         }
 
         public bool CanBuyCurrentProperty()
@@ -305,19 +306,13 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return "Owner: not a property";
             }
 
-            int propertyIndex = FindPropertyIndex(spaceIndex);
-            if (propertyIndex < 0)
-            {
-                return "Owner: -";
-            }
-
-            PropertyOwnershipState property = propertyOwnershipNet[propertyIndex];
-            if (property.OwnerPawnSlot < 0)
+            int ownerSlot = _economyService.GetPropertyOwnerPawnSlot(spaceIndex);
+            if (ownerSlot < 0)
             {
                 return "Owner: none";
             }
 
-            return $"Owner: {property.OwnerName}";
+            return $"Owner: {_economyService.GetPropertyOwnerName(spaceIndex)}";
         }
 
         public string GetPhaseLabel()
@@ -586,22 +581,21 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            playerEconomyNet.Clear();
-            propertyOwnershipNet.Clear();
+            _economyService.Clear();
 
             for (int i = 0; i < Registry.Count; i++)
             {
                 PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(i);
                 if (pawn != null)
                 {
-                    playerEconomyNet.Add(new PlayerEconomyState(pawn.PawnSlot, pawn.PlayerId, pawn.DisplayName, startingBalance));
+                    _economyService.AddPlayerState(new PlayerEconomyState(pawn.PawnSlot, pawn.PlayerId, pawn.DisplayName, startingBalance));
                 }
             }
 
             int spaceCount = boardManager != null ? boardManager.SpaceCount : 0;
             for (int i = 0; i < spaceCount; i++)
             {
-                propertyOwnershipNet.Add(new PropertyOwnershipState(i, -1, string.Empty, string.Empty));
+                _economyService.AddPropertyState(new PropertyOwnershipState(i, -1, string.Empty, string.Empty));
             }
 
             pendingPurchaseSpaceIndexNet.Value = -1;
@@ -621,19 +615,16 @@ namespace MonopolyGame.Multiplayer.Gameplay
             if (space == null || space.SpaceType != BoardSpaceType.Property) return;
 
             int propertyIndex = FindPropertyIndex(spaceIndex);
-            if (propertyIndex < 0 || propertyOwnershipNet[propertyIndex].OwnerPawnSlot >= 0) return;
+            if (propertyIndex < 0 || _economyService.GetPropertyOwnerPawnSlot(spaceIndex) >= 0) return;
 
             PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
             if (pawn == null) return;
 
-            int playerIndex = FindPlayerEconomyIndex(pawn.PawnSlot);
-            if (playerIndex < 0) return;
-
-            PlayerEconomyState economy = playerEconomyNet[playerIndex];
+            PlayerEconomyState economy = _economyService.GetPlayerState(pawn.PawnSlot);
             if (economy.Balance < space.Price) return;
 
-            playerEconomyNet[playerIndex] = economy.WithBalance(economy.Balance - space.Price);
-            propertyOwnershipNet[propertyIndex] = new PropertyOwnershipState(spaceIndex, pawn.PawnSlot, pawn.PlayerId, pawn.DisplayName);
+            _economyService.UpdatePlayerState(pawn.PawnSlot, economy.WithBalance(economy.Balance - space.Price));
+            _economyService.UpdatePropertyState(spaceIndex, new PropertyOwnershipState(spaceIndex, pawn.PawnSlot, pawn.PlayerId, pawn.DisplayName));
 
             boardManager.SetSpaceOwner(spaceIndex, pawn.PlayerId);
             pendingPurchaseSpaceIndexNet.Value = -1;
@@ -701,16 +692,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            int playerIndex = FindPlayerEconomyIndex(activePawn.PawnSlot);
-            if (playerIndex < 0)
-            {
-                return;
-            }
+            _economyService.AddBalance(activePawn.PawnSlot, passStartReward);
 
-            PlayerEconomyState economy = playerEconomyNet[playerIndex];
-            playerEconomyNet[playerIndex] = economy.WithBalance(economy.Balance + passStartReward);
-
-            SetEconomyMessage($"{economy.DisplayName} received {passStartReward} for passing Start.");
+            var state = _economyService.GetPlayerState(activePawn.PawnSlot);
+            SetEconomyMessage($"{state.DisplayName} received {passStartReward} for passing Start.");
             EconomyChanged?.Invoke();
         }
         
@@ -726,24 +711,18 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            int playerIndex = FindPlayerEconomyIndex(activePawn.PawnSlot);
-            if (playerIndex < 0)
-            {
-                return;
-            }
-
-            PlayerEconomyState economy = playerEconomyNet[playerIndex];
-            int taxToPay = Mathf.Min(result.Price, economy.Balance);
+            var state = _economyService.GetPlayerState(activePawn.PawnSlot);
+            int taxToPay = Mathf.Min(result.Price, state.Balance);
 
             if (taxToPay <= 0)
             {
                 return;
             }
 
-            playerEconomyNet[playerIndex] = economy.WithBalance(economy.Balance - taxToPay);
+            _economyService.DeductBalance(activePawn.PawnSlot, taxToPay);
 
-            SetEconomyMessage($"{economy.DisplayName} paid {taxToPay} tax on {result.DisplayName}.");
-            Debug.Log($"[Economy] {economy.DisplayName} paid {taxToPay} tax on {result.DisplayName}.");
+            SetEconomyMessage($"{state.DisplayName} paid {taxToPay} tax on {result.DisplayName}.");
+            Debug.Log($"[Economy] {state.DisplayName} paid {taxToPay} tax on {result.DisplayName}.");
 
             EconomyChanged?.Invoke();
         }
@@ -760,33 +739,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            int propertyIndex = FindPropertyIndex(result.SpaceIndex);
-            if (propertyIndex < 0)
+            int ownerSlot = _economyService.GetPropertyOwnerPawnSlot(result.SpaceIndex);
+            if (ownerSlot < 0 || ownerSlot == activePawn.PawnSlot)
             {
                 return;
             }
 
-            PropertyOwnershipState ownership = propertyOwnershipNet[propertyIndex];
-            if (ownership.OwnerPawnSlot < 0)
-            {
-                return;
-            }
-
-            if (ownership.OwnerPawnSlot == activePawn.PawnSlot)
-            {
-                return;
-            }
-
-            int payerIndex = FindPlayerEconomyIndex(activePawn.PawnSlot);
-            int ownerIndex = FindPlayerEconomyIndex(ownership.OwnerPawnSlot);
-
-            if (payerIndex < 0 || ownerIndex < 0)
-            {
-                return;
-            }
-
-            PlayerEconomyState payer = playerEconomyNet[payerIndex];
-            PlayerEconomyState owner = playerEconomyNet[ownerIndex];
+            PlayerEconomyState payer = _economyService.GetPlayerState(activePawn.PawnSlot);
+            PlayerEconomyState owner = _economyService.GetPlayerState(ownerSlot);
 
             int rentToPay = Mathf.Min(result.BaseRent, payer.Balance);
             if (rentToPay <= 0)
@@ -794,8 +754,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            playerEconomyNet[payerIndex] = payer.WithBalance(payer.Balance - rentToPay);
-            playerEconomyNet[ownerIndex] = owner.WithBalance(owner.Balance + rentToPay);
+            _economyService.DeductBalance(activePawn.PawnSlot, rentToPay);
+            _economyService.AddBalance(ownerSlot, rentToPay);
 
             SetEconomyMessage($"{payer.DisplayName} paid {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
             Debug.Log($"[Economy] {payer.DisplayName} paid {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
@@ -817,8 +777,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            int propertyIndex = FindPropertyIndex(result.SpaceIndex);
-            if (propertyIndex >= 0 && propertyOwnershipNet[propertyIndex].OwnerPawnSlot < 0)
+            if (!_economyService.IsPropertyOwned(result.SpaceIndex))
             {
                 pendingPurchaseSpaceIndexNet.Value = result.SpaceIndex;
             }
