@@ -1,7 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Unity.Netcode;
 using MonopolyGame.Multiplayer;
+using MonopolyGame.Multiplayer.Gameplay;
 
 namespace MonopolyGame.Multiplayer.SceneManagement
 {
@@ -18,6 +20,7 @@ namespace MonopolyGame.Multiplayer.SceneManagement
         [SerializeField] private float fadeDuration = 0.3f;
         [SerializeField] private MultiplayerFlowCoordinator coordinator;
 
+        private MonoBehaviour gameSceneInstaller;
         private bool isLoadingGame = false;
 
         private void Awake()
@@ -45,6 +48,19 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             if (coordinator != null)
             {
                 coordinator.ReadyToEnterGame -= OnReadyToEnterGame;
+            }
+        }
+
+        public void RegisterGameSceneInstaller(MonoBehaviour installer)
+        {
+            gameSceneInstaller = installer;
+        }
+
+        public void UnregisterGameSceneInstaller(MonoBehaviour installer)
+        {
+            if (gameSceneInstaller == installer)
+            {
+                gameSceneInstaller = null;
             }
         }
 
@@ -81,13 +97,29 @@ namespace MonopolyGame.Multiplayer.SceneManagement
                 yield return StartCoroutine(FadeCanvasGroup(loadingScreenCanvasGroup, 0, 1, fadeDuration));
             }
 
-            // Load game scene asynchronously
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(gameSceneName, LoadSceneMode.Single);
+            NetworkManager networkManager = NetworkManager.Singleton;
+            bool useNetworkSceneManagement = networkManager != null && networkManager.IsListening;
 
-            while (!asyncLoad.isDone)
+            if (useNetworkSceneManagement && networkManager.IsServer)
+            {
+                networkManager.SceneManager.LoadScene(gameSceneName, LoadSceneMode.Single);
+            }
+            else if (!useNetworkSceneManagement)
+            {
+                AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(gameSceneName, LoadSceneMode.Single);
+
+                while (!asyncLoad.isDone)
+                {
+                    yield return null;
+                }
+            }
+
+            while (SceneManager.GetActiveScene().name != gameSceneName)
             {
                 yield return null;
             }
+
+            BindGameSceneInstaller();
 
             // Fade out loading screen
             if (loadingScreenCanvasGroup != null)
@@ -97,6 +129,17 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             }
 
             isLoadingGame = false;
+        }
+
+        private void BindGameSceneInstaller()
+        {
+            if (gameSceneInstaller != null)
+            {
+                gameSceneInstaller.SendMessage("Configure", coordinator, SendMessageOptions.DontRequireReceiver);
+                return;
+            }
+
+            Debug.LogWarning("[MultiplayerSceneManager] GameSceneInstaller was not found in the Game scene. Add the installer component to wire gameplay dependencies from the editor.");
         }
 
         private IEnumerator FadeCanvasGroup(CanvasGroup canvasGroup, float start, float end, float duration)
