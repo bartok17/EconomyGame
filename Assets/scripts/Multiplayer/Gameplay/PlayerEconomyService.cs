@@ -100,7 +100,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 if (_propertyOwnershipNet[i].SpaceIndex == spaceIndex)
                 {
-                    return _propertyOwnershipNet[i].OwnerName;
+                    return _propertyOwnershipNet[i].OwnerName.ToString();
                 }
             }
 
@@ -195,12 +195,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             _propertyOwnershipNet.Add(newState);
-        }
-
-        public void Clear()
-        {
-            _playerEconomyNet.Clear();
-            _propertyOwnershipNet.Clear();
         }
     }
 }
