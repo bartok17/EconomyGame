@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace MonopolyGame.Multiplayer
+namespace MonopolyGame.Multiplayer.UI
 {
     public sealed class MultiplayerErrorPresenter : MonoBehaviour
     {
