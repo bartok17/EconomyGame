@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace MonopolyGame.Board
@@ -59,6 +60,30 @@ namespace MonopolyGame.Board
         public Vector3 GetPawnWorldPosition(int spaceIndex, int pawnSlot)
         {
             return GetSpace(spaceIndex).GetPawnWorldPosition(pawnSlot);
+        }
+        
+        public void SetSpaceOwner(int index, string ownerId)
+        {
+            BoardSpaceView space = GetSpace(index);
+            space.ownerId = ownerId ?? string.Empty;
+        }
+
+        public BoardState CaptureBoardState()
+        {
+            if (spaces.Count == 0)
+            {
+                RefreshSpaces();
+            }
+
+            return new BoardState(spaces.Where(space => space != null).Select(space => new BoardSpaceSnapshot(
+                space.index,
+                space.displayName,
+                space.type,
+                space.price,
+                space.baseRent,
+                space.houseCost,
+                space.ownerId,
+                space.housesBuilt)));
         }
 
         public int NormalizeIndex(int index)
