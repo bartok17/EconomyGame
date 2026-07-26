@@ -3,6 +3,7 @@
     "rootNamespace": "MonopolyGame.Multiplayer.UI",
     "references": [
         "MonopolyGame.Core",
+        "MonopolyGame.DesignSystem",
         "MonopolyGame.Multiplayer",
         "Unity.TextMeshPro"
     ],

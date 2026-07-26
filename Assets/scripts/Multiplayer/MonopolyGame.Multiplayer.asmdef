@@ -3,6 +3,7 @@
     "rootNamespace": "MonopolyGame.Multiplayer",
     "references": [
         "MonopolyGame.Core",
+        "MonopolyGame.DesignSystem",
         "Unity.Netcode.Runtime",
         "Unity.Collections",
         "Unity.Networking.Transport",
