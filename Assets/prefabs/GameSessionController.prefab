@@ -47,8 +47,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1579097702
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  GlobalObjectIdHash: 89657588
+  InScenePlacedSourceGlobalObjectIdHash: 1579097702
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
@@ -76,7 +76,10 @@ MonoBehaviour:
   coordinator: {fileID: 0}
   boardManager: {fileID: 0}
   pawnSpawner: {fileID: 0}
+  startingBalance: 1500
   startSpaceIndex: 0
+  jailSpaceIndex: 10
+  passStartReward: 200
   pawnMoveDuration: 0.45
   resolveDelay: 0.35
   autoAdvanceTurns: 0
@@ -100,9 +103,14 @@ MonoBehaviour:
   turnText: {fileID: 0}
   phaseText: {fileID: 0}
   diceText: {fileID: 0}
+  balanceText: {fileID: 0}
+  propertyText: {fileID: 0}
+  ownerText: {fileID: 0}
+  economyMessageText: {fileID: 0}
   hostHintText: {fileID: 0}
   rollButton: {fileID: 0}
   endTurnButton: {fileID: 0}
+  buyButton: {fileID: 0}
 --- !u!114 &-5989799859918288946
 MonoBehaviour:
   m_ObjectHideFlags: 0
