@@ -26,11 +26,6 @@ namespace MonopolyGame.Multiplayer.UI
         {
             if (coordinator == null)
             {
-                coordinator = FindAnyObjectByType<MultiplayerFlowCoordinator>();
-            }
-
-            if (coordinator == null)
-            {
                 Debug.LogWarning("[HubMenuCoordinator] MultiplayerFlowCoordinator not found. Panel transitions will not react to lobby events.");
                 return;
             }
