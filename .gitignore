@@ -99,6 +99,9 @@ InitTestScene*.unity*
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
+# AI instructions — local only, do not commit
+.github/copilot-instructions.md
+
 
 .idea/
 .vsconfig
