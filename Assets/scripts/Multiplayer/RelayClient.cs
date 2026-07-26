@@ -4,7 +4,7 @@ using Unity.Services.Relay.Models;
 
 namespace MonopolyGame.Multiplayer
 {
-    public sealed class RelayClient
+    public sealed class RelayClient : IRelayClient
     {
         public async Task<Allocation> CreateAllocationAsync(int maxConnections)
         {

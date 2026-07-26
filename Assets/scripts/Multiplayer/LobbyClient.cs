@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace MonopolyGame.Multiplayer
 {
-    public sealed class LobbyClient
+    public sealed class LobbyClient : ILobbyClient
     {
         private const int DefaultQueryCount = 25;
         private const float DefaultHeartbeatSeconds = 15f;

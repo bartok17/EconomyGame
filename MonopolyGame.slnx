@@ -1,4 +1,8 @@
 ﻿<Solution>
+  <Project Path="MonopolyGame.Core.csproj" />
+  <Project Path="MonopolyGame.UI.csproj" />
+  <Project Path="MonopolyGame.Multiplayer.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="MonopolyGame.DesignSystem.csproj" />
 </Solution>

@@ -1,0 +1,29 @@
+{
+    "name": "MonopolyGame.Multiplayer",
+    "rootNamespace": "MonopolyGame.Multiplayer",
+    "references": [
+        "MonopolyGame.Core",
+        "MonopolyGame.DesignSystem",
+        "Unity.Netcode.Runtime",
+        "Unity.Collections",
+        "Unity.Networking.Transport",
+        "Unity.Services.Core",
+        "Unity.Services.Authentication",
+        "Unity.Services.Lobbies",
+        "Unity.Services.Relay",
+        "Unity.Services.Multiplayer",
+        "Unity.Services.QoS",
+        "Unity.TextMeshPro",
+        "Unity.Mathematics",
+        "Unity.Burst"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
