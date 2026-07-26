@@ -21,6 +21,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         void SetPropertyOwner(int spaceIndex, int ownerPawnSlot, string ownerPlayerId, string ownerName);
         int GetPropertyOwnerPawnSlot(int spaceIndex);
+        string GetPropertyOwnerName(int spaceIndex);
         bool IsPropertyOwned(int spaceIndex);
 
         IReadOnlyList<PlayerEconomyState> GetAllEconomyStates();
@@ -28,5 +29,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         void Initialize(int startingBalance);
         void Clear();
+        
+        void AddPlayerState(PlayerEconomyState state);
+        void AddPropertyState(PropertyOwnershipState state);
+        PlayerEconomyState GetPlayerState(int pawnSlot);
+        void UpdatePlayerState(int pawnSlot, PlayerEconomyState newState);
+        void UpdatePropertyState(int spaceIndex, PropertyOwnershipState newState);
     }
 }

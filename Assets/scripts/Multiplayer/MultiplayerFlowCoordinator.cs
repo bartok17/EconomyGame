@@ -4,12 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using Unity.Services.Relay.Models;
 using UnityEngine;
 
 namespace MonopolyGame.Multiplayer
@@ -25,10 +22,10 @@ namespace MonopolyGame.Multiplayer
         private IAuthClient _authClient;
         private ILobbyClient _lobbyClient;
         private IRelayClient _relayClient;
+        private IRelayTransportService _relayTransportService;
 
         private CancellationTokenSource _waitRelayCts;
         private NetworkManager _networkManager;
-        private UnityTransport _transport;
 
         private string _currentLobbyHostPlayerId;
         private bool _networkStartRequested;
@@ -64,11 +61,12 @@ namespace MonopolyGame.Multiplayer
             _statusStateMachine.StatusChanged -= status => StatusChanged?.Invoke(status);
         }
 
-        public void InjectDependencies(IAuthClient authClient, ILobbyClient lobbyClient, IRelayClient relayClient)
+        public void InjectDependencies(IAuthClient authClient, ILobbyClient lobbyClient, IRelayClient relayClient, IRelayTransportService relayTransportService)
         {
             _authClient = authClient ?? throw new ArgumentNullException(nameof(authClient));
             _lobbyClient = lobbyClient ?? throw new ArgumentNullException(nameof(lobbyClient));
             _relayClient = relayClient ?? throw new ArgumentNullException(nameof(relayClient));
+            _relayTransportService = relayTransportService ?? throw new ArgumentNullException(nameof(relayTransportService));
         }
 
         public async Task InitializeAsync()
@@ -296,44 +294,25 @@ namespace MonopolyGame.Multiplayer
 
             try
             {
-                EnsureNetworkDependencies();
                 _statusStateMachine.TransitionTo(MultiplayerStatus.RelayAllocating);
                 Debug.Log("[MultiplayerFlow] Allocating relay for game start.");
 
-                var allocation = await _relayClient.CreateAllocationAsync(CurrentLobbySnapshot.MaxPlayers - 1);
-                
-                if (allocation == null)
-                {
-                    throw new InvalidOperationException("Relay allocation returned null.");
-                }
-                var joinCode = await _relayClient.GetJoinCodeAsync(allocation);
-                
-                if (string.IsNullOrWhiteSpace(joinCode))
-                {
-                    throw new InvalidOperationException("Relay join code was empty.");
-                }
-                
-                Debug.Log($"[MultiplayerFlow] Host relay join code created. code={joinCode}, region={allocation.Region}, allocationId={allocation.AllocationId}");
+                var summary = await _relayTransportService.CreateAndConfigureHostAsync(
+                    CurrentLobbySnapshot.MaxPlayers - 1, RelayConnectionType);
 
-                await PublishGameStartDataAsync(joinCode);
+                Debug.Log($"[MultiplayerFlow] Host relay created. code={summary.JoinCode}");
+
+                await PublishGameStartDataAsync(summary.JoinCode);
                 Debug.Log("[MultiplayerFlow] Game start data published to lobby.");
-                ConfigureTransportForHost(allocation);
 
                 _statusStateMachine.TransitionTo(MultiplayerStatus.NetworkStarting);
                 _networkManager.StartHost();
-
-                var summary = new RelayConnectionSummary(
-                    allocation.AllocationId.ToString(),
-                    joinCode,
-                    allocation.Region,
-                    RelayConnectionType);
 
                 RelayReady?.Invoke(summary);
                 _statusStateMachine.TransitionTo(MultiplayerStatus.NetworkStarted);
                 NetworkStarted?.Invoke(MultiplayerRole.Host);
                 ReadyToEnterGame?.Invoke(MultiplayerRole.Host);
             }
-
             catch (Exception ex)
             {
                 _networkStartRequested = false;
@@ -352,27 +331,17 @@ namespace MonopolyGame.Multiplayer
 
             try
             {
-                EnsureNetworkDependencies();
-                Debug.Log($"[MultiplayerFlow] Starting client from current lobby. snapshot={(CurrentLobbySnapshot != null ? CurrentLobbySnapshot.Name : "<null>")}, relayCode={(CurrentLobbySnapshot != null && !string.IsNullOrWhiteSpace(CurrentLobbySnapshot.RelayJoinCode) ? "present" : "missing")}");
-                _statusStateMachine.TransitionTo(MultiplayerStatus.RelayJoining);
-                
+                Debug.Log($"[MultiplayerFlow] Starting client from current lobby.");
+
                 var joinCode = await WaitForRelayJoinCodeAsync(TimeSpan.FromSeconds(RelayJoinCodeTimeoutSeconds));
                 Debug.Log($"[MultiplayerFlow] Relay join code received. length={joinCode?.Length ?? 0}");
 
-                var joinAllocation = await _relayClient.JoinAllocationAsync(joinCode);
-                Debug.Log($"[MultiplayerFlow] Relay allocation joined. region={joinAllocation.Region}, allocationId={joinAllocation.AllocationId}");
+                var summary = await _relayTransportService.JoinAndConfigureClientAsync(joinCode, RelayConnectionType);
+                Debug.Log($"[MultiplayerFlow] Relay allocation joined. region={summary.Region}");
 
-                ConfigureTransportForClient(joinAllocation);
-                
                 _statusStateMachine.TransitionTo(MultiplayerStatus.NetworkStarting);
                 Debug.Log("[MultiplayerFlow] Starting NetworkManager client.");
                 _networkManager.StartClient();
-                
-                var summary = new RelayConnectionSummary(
-                    joinAllocation.AllocationId.ToString(),
-                    joinCode,
-                    joinAllocation.Region,
-                    RelayConnectionType);
 
                 RelayReady?.Invoke(summary);
                 _statusStateMachine.TransitionTo(MultiplayerStatus.NetworkStarted);
@@ -409,12 +378,7 @@ namespace MonopolyGame.Multiplayer
         public void AssignNetworkManager(NetworkManager manager)
         {
             _networkManager = manager;
-            _transport = manager != null ? manager.GetComponent<UnityTransport>() : null;
-
-            if (_networkManager != null && _transport != null)
-            {
-                _networkManager.NetworkConfig.NetworkTransport = _transport;
-            }
+            _relayTransportService.BindNetworkManager(manager);
         }
 
         private void HookLobbyEvents()
@@ -460,27 +424,6 @@ namespace MonopolyGame.Multiplayer
                 new UpdatePlayerOptions { Data = data });
         }
 
-        private async Task PublishRelayJoinCodeAsync(string joinCode)
-        {
-            if (_lobbyClient.CurrentLobby == null)
-            {
-                throw new InvalidOperationException("Cannot publish relay join code because the current lobby is missing.");
-            }
-
-            Debug.Log($"[MultiplayerFlow] Publishing relay join code. lobbyId={_lobbyClient.CurrentLobby.Id}, lobbyCode={_lobbyClient.CurrentLobby.LobbyCode}, joinCode={joinCode}");
-            await _lobbyClient.RefreshCurrentLobbyAsync();
-
-            var data = new Dictionary<string, DataObject>
-            {
-                {
-                    MultiplayerKeys.LobbyDataRelayJoinCodeKey,
-                    new DataObject(DataObject.VisibilityOptions.Public, joinCode)
-                }
-            };
-
-            await _lobbyClient.UpdateLobbyDataAsync(data);
-        }
-
         private async Task<string> WaitForRelayJoinCodeAsync(TimeSpan timeout)
         {
             _waitRelayCts?.Cancel();
@@ -501,58 +444,6 @@ namespace MonopolyGame.Multiplayer
             }
 
             throw new TimeoutException("Relay join code was not set in time.");
-        }
-
-        private void ConfigureTransportForHost(Allocation allocation)
-        {
-            EnsureNetworkDependencies();
-            var relayServerData = allocation.ToRelayServerData(RelayConnectionType);
-            _transport.SetRelayServerData(relayServerData);
-        }
-
-        private void ConfigureTransportForClient(JoinAllocation joinAllocation)
-        {
-            EnsureNetworkDependencies();
-            var relayServerData = joinAllocation.ToRelayServerData(RelayConnectionType);
-            _transport.SetRelayServerData(relayServerData);
-        }
-
-        private void EnsureNetworkDependencies()
-        {
-            if (_networkManager == null)
-            {
-                _networkManager = NetworkManager.Singleton;
-            }
-
-            if (_networkManager == null)
-            {
-                _networkManager = FindAnyObjectByType<NetworkManager>();
-            }
-
-            if (_networkManager == null)
-            {
-                throw new InvalidOperationException(
-                    "NetworkManager was not found. Add NetworkManager to the lobby scene and assign it in MultiplayerBootstrapper.");
-            }
-
-            if (_transport == null)
-            {
-                _transport = _networkManager.GetComponent<UnityTransport>();
-            }
-
-            if (_transport == null)
-            {
-                throw new InvalidOperationException(
-                    "UnityTransport was not found on NetworkManager. Add UnityTransport to the NetworkManager object.");
-            }
-
-            if (_networkManager.NetworkConfig == null)
-            {
-                throw new InvalidOperationException(
-                    "NetworkManager has no NetworkConfig. Configure NetworkManager in the scene instead of creating it at runtime.");
-            }
-
-            _networkManager.NetworkConfig.NetworkTransport = _transport;
         }
 
         private void RaiseError(string code, string message, Exception exception)
