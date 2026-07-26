@@ -94,6 +94,19 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return -1;
         }
 
+        public string GetPropertyOwnerName(int spaceIndex)
+        {
+            for (int i = 0; i < _propertyOwnershipNet.Count; i++)
+            {
+                if (_propertyOwnershipNet[i].SpaceIndex == spaceIndex)
+                {
+                    return _propertyOwnershipNet[i].OwnerName;
+                }
+            }
+
+            return string.Empty;
+        }
+
         public bool IsPropertyOwned(int spaceIndex)
         {
             return GetPropertyOwnerPawnSlot(spaceIndex) >= 0;
@@ -127,6 +140,61 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             _playerEconomyNet.Clear();
             _propertyOwnershipNet.Clear();
+        }
+        
+        public void Clear()
+        {
+            _playerEconomyNet.Clear();
+            _propertyOwnershipNet.Clear();
+        }
+        
+        public void AddPlayerState(PlayerEconomyState state)
+        {
+            _playerEconomyNet.Add(state);
+        }
+        
+        public void AddPropertyState(PropertyOwnershipState state)
+        {
+            _propertyOwnershipNet.Add(state);
+        }
+        
+        public PlayerEconomyState GetPlayerState(int pawnSlot)
+        {
+            for (int i = 0; i < _playerEconomyNet.Count; i++)
+            {
+                if (_playerEconomyNet[i].PawnSlot == pawnSlot)
+                {
+                    return _playerEconomyNet[i];
+                }
+            }
+
+            return default;
+        }
+        
+        public void UpdatePlayerState(int pawnSlot, PlayerEconomyState newState)
+        {
+            for (int i = 0; i < _playerEconomyNet.Count; i++)
+            {
+                if (_playerEconomyNet[i].PawnSlot == pawnSlot)
+                {
+                    _playerEconomyNet[i] = newState;
+                    return;
+                }
+            }
+        }
+        
+        public void UpdatePropertyState(int spaceIndex, PropertyOwnershipState newState)
+        {
+            for (int i = 0; i < _propertyOwnershipNet.Count; i++)
+            {
+                if (_propertyOwnershipNet[i].SpaceIndex == spaceIndex)
+                {
+                    _propertyOwnershipNet[i] = newState;
+                    return;
+                }
+            }
+
+            _propertyOwnershipNet.Add(newState);
         }
 
         public void Clear()
