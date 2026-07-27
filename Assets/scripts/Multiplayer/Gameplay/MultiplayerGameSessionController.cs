@@ -38,6 +38,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private readonly TurnStateMachine turnStateMachine = new TurnStateMachine();
         private readonly BoardRuleResolver boardRuleResolver = new BoardRuleResolver();
         private IPlayerEconomyService _economyService;
+        private TurnResolutionService _turnResolution;
 
         private Coroutine bootstrapCoroutine;
         private Coroutine turnCoroutine;
@@ -104,6 +105,15 @@ namespace MonopolyGame.Multiplayer.Gameplay
             playerEconomyNet = new NetworkList<PlayerEconomyState>();
             propertyOwnershipNet = new NetworkList<PropertyOwnershipState>();
             _economyService = new PlayerEconomyService(playerEconomyNet, propertyOwnershipNet);
+            _turnResolution = new TurnResolutionService(
+                _economyService,
+                pendingPurchaseSpaceIndexNet,
+                lastResolvedSpaceIndexNet,
+                lastEconomyMessageNet,
+                passStartReward,
+                jailSpaceIndex,
+                pawnMoveDuration,
+                () => EconomyChanged?.Invoke());
         }
 
         public override void OnNetworkSpawn()
@@ -467,22 +477,23 @@ namespace MonopolyGame.Multiplayer.Gameplay
             
             if (IsServer && result != null)
             {
-                lastResolvedSpaceIndexNet.Value = result.SpaceIndex;
+                _turnResolution.SetLastResolvedSpaceIndex(result.SpaceIndex);
             }
             
-            ResolvePassStartReward(activePawn, passedStart);
+            _turnResolution.ResolvePassStartReward(activePawn, passedStart);
             
-            bool sentToJail = ResolveGoToJail(activePawn, result);
+            bool sentToJail = _turnResolution.ResolveGoToJail(activePawn, result, boardManager,
+                (slot, index, duration) => MovePawnClientRpc(slot, index, duration));
             if (sentToJail)
             {
                 yield return new WaitForSeconds(pawnMoveDuration);
             }
             else
             {
-                ResolveTaxPayment(activePawn, result);
-                ResolveAutomaticRent(activePawn, result);
-                ResolveSpecialSpaceMessage(result);
-                UpdatePendingPurchase(result);
+                _turnResolution.ResolveTaxPayment(activePawn, result);
+                _turnResolution.ResolveAutomaticRent(activePawn, result);
+                _turnResolution.ResolveSpecialSpaceMessage(result);
+                _turnResolution.UpdatePendingPurchase(result, boardManager);
             }
 
             yield return new WaitForSeconds(resolveDelay);
@@ -581,24 +592,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            _economyService.Clear();
-
+            int spaceCount = boardManager != null ? boardManager.SpaceCount : 0;
+            var pawns = new List<PlayerPawnNetworkSync>();
             for (int i = 0; i < Registry.Count; i++)
             {
-                PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(i);
-                if (pawn != null)
-                {
-                    _economyService.AddPlayerState(new PlayerEconomyState(pawn.PawnSlot, pawn.PlayerId, pawn.DisplayName, startingBalance));
-                }
+                pawns.Add(Registry.GetAtTurnIndex(i));
             }
 
-            int spaceCount = boardManager != null ? boardManager.SpaceCount : 0;
-            for (int i = 0; i < spaceCount; i++)
-            {
-                _economyService.AddPropertyState(new PropertyOwnershipState(i, -1, string.Empty, string.Empty));
-            }
-
-            pendingPurchaseSpaceIndexNet.Value = -1;
+            _turnResolution.InitializeEconomyState(pawns, spaceCount, startingBalance);
         }
 
         private void HandleBuyPropertyOnServer(ulong senderClientId)
@@ -610,211 +611,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
             int spaceIndex = pendingPurchaseSpaceIndexNet.Value;
             if (spaceIndex < 0) return;
 
-            BoardState boardState = boardManager.CaptureBoardState();
-            BoardSpaceSnapshot space = boardState.GetSpace(spaceIndex);
-            if (space == null || space.SpaceType != BoardSpaceType.Property) return;
-
-            int propertyIndex = FindPropertyIndex(spaceIndex);
-            if (propertyIndex < 0 || _economyService.GetPropertyOwnerPawnSlot(spaceIndex) >= 0) return;
-
             PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
             if (pawn == null) return;
 
-            PlayerEconomyState economy = _economyService.GetPlayerState(pawn.PawnSlot);
-            if (economy.Balance < space.Price) return;
-
-            _economyService.UpdatePlayerState(pawn.PawnSlot, economy.WithBalance(economy.Balance - space.Price));
-            _economyService.UpdatePropertyState(spaceIndex, new PropertyOwnershipState(spaceIndex, pawn.PawnSlot, pawn.PlayerId, pawn.DisplayName));
-
-            boardManager.SetSpaceOwner(spaceIndex, pawn.PlayerId);
-            pendingPurchaseSpaceIndexNet.Value = -1;
-
-            SetEconomyMessage($"{pawn.DisplayName} bought {space.DisplayName} for {space.Price}.");
-            EconomyChanged?.Invoke();
+            _turnResolution.TryBuyProperty(spaceIndex, pawn, boardManager);
         }
         
-        private bool ResolveGoToJail(PlayerPawnNetworkSync activePawn, BoardLandingResult result)
-        {
-            if (!IsServer || activePawn == null || result == null)
-            {
-                return false;
-            }
-
-            if (result.SpaceType != BoardSpaceType.GoToJail)
-            {
-                return false;
-            }
-
-            int resolvedJailSpaceIndex = FindFirstSpaceIndexByType(BoardSpaceType.Jail, jailSpaceIndex);
-
-            pendingPurchaseSpaceIndexNet.Value = -1;
-            lastResolvedSpaceIndexNet.Value = resolvedJailSpaceIndex;
-
-            MovePawnClientRpc(activePawn.PawnSlot, resolvedJailSpaceIndex, pawnMoveDuration);
-
-            SetEconomyMessage($"{activePawn.DisplayName} was sent to Jail.");
-            EconomyChanged?.Invoke();
-
-            return true;
-        }
-
-        private void ResolveSpecialSpaceMessage(BoardLandingResult result)
-        {
-            if (!IsServer || result == null)
-            {
-                return;
-            }
-
-            switch (result.SpaceType)
-            {
-                case BoardSpaceType.Jail:
-                    SetEconomyMessage($"{result.DisplayName}: just visiting.");
-                    break;
-
-                case BoardSpaceType.Parking:
-                    SetEconomyMessage($"{result.DisplayName}: no action.");
-                    break;
-
-                case BoardSpaceType.ActionCard:
-                    SetEconomyMessage($"{result.DisplayName}: action cards are not implemented yet.");
-                    break;
-
-                case BoardSpaceType.EventCard:
-                    SetEconomyMessage($"{result.DisplayName}: event cards are not implemented yet.");
-                    break;
-            }
-        }
-        
-        private void ResolvePassStartReward(PlayerPawnNetworkSync activePawn, bool passedStart)
-        {
-            if (!IsServer || activePawn == null || !passedStart || passStartReward <= 0)
-            {
-                return;
-            }
-
-            _economyService.AddBalance(activePawn.PawnSlot, passStartReward);
-
-            var state = _economyService.GetPlayerState(activePawn.PawnSlot);
-            SetEconomyMessage($"{state.DisplayName} received {passStartReward} for passing Start.");
-            EconomyChanged?.Invoke();
-        }
-        
-        private void ResolveTaxPayment(PlayerPawnNetworkSync activePawn, BoardLandingResult result)
-        {
-            if (!IsServer || activePawn == null || result == null)
-            {
-                return;
-            }
-
-            if (result.SpaceType != BoardSpaceType.Tax || result.Price <= 0)
-            {
-                return;
-            }
-
-            var state = _economyService.GetPlayerState(activePawn.PawnSlot);
-            int taxToPay = Mathf.Min(result.Price, state.Balance);
-
-            if (taxToPay <= 0)
-            {
-                return;
-            }
-
-            _economyService.DeductBalance(activePawn.PawnSlot, taxToPay);
-
-            SetEconomyMessage($"{state.DisplayName} paid {taxToPay} tax on {result.DisplayName}.");
-            Debug.Log($"[Economy] {state.DisplayName} paid {taxToPay} tax on {result.DisplayName}.");
-
-            EconomyChanged?.Invoke();
-        }
-        
-        private void ResolveAutomaticRent(PlayerPawnNetworkSync activePawn, BoardLandingResult result)
-        {
-            if (!IsServer || activePawn == null || result == null)
-            {
-                return;
-            }
-
-            if (result.SpaceType != BoardSpaceType.Property || result.BaseRent <= 0)
-            {
-                return;
-            }
-
-            int ownerSlot = _economyService.GetPropertyOwnerPawnSlot(result.SpaceIndex);
-            if (ownerSlot < 0 || ownerSlot == activePawn.PawnSlot)
-            {
-                return;
-            }
-
-            PlayerEconomyState payer = _economyService.GetPlayerState(activePawn.PawnSlot);
-            PlayerEconomyState owner = _economyService.GetPlayerState(ownerSlot);
-
-            int rentToPay = Mathf.Min(result.BaseRent, payer.Balance);
-            if (rentToPay <= 0)
-            {
-                return;
-            }
-
-            _economyService.DeductBalance(activePawn.PawnSlot, rentToPay);
-            _economyService.AddBalance(ownerSlot, rentToPay);
-
-            SetEconomyMessage($"{payer.DisplayName} paid {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
-            Debug.Log($"[Economy] {payer.DisplayName} paid {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
-
-            EconomyChanged?.Invoke();
-        }
-        
-        private void UpdatePendingPurchase(BoardLandingResult result)
-        {
-            if (!IsServer)
-            {
-                return;
-            }
-
-            pendingPurchaseSpaceIndexNet.Value = -1;
-
-            if (result == null || result.SpaceType != BoardSpaceType.Property || result.Price <= 0)
-            {
-                return;
-            }
-
-            if (!_economyService.IsPropertyOwned(result.SpaceIndex))
-            {
-                pendingPurchaseSpaceIndexNet.Value = result.SpaceIndex;
-            }
-        }
-        
-        private int FindFirstSpaceIndexByType(BoardSpaceType type, int fallbackIndex)
-        {
-            if (boardManager == null)
-            {
-                return fallbackIndex;
-            }
-
-            for (int i = 0; i < boardManager.SpaceCount; i++)
-            {
-                BoardSpaceView space = boardManager.GetSpace(i);
-                if (space != null && space.type == type)
-                {
-                    return space.index;
-                }
-            }
-
-            return boardManager.NormalizeIndex(fallbackIndex);
-        }
-
-        private int FindPropertyIndex(int spaceIndex)
-        {
-            for (int i = 0; i < propertyOwnershipNet.Count; i++)
-            {
-                if (propertyOwnershipNet[i].SpaceIndex == spaceIndex)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
         private int GetPawnSlotForClient(ulong clientId)
         {
             IReadOnlyList<TurnParticipant> participants = Registry.BuildParticipants();
@@ -830,19 +632,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return -1;
         }
         
-        private int FindPlayerEconomyIndex(int pawnSlot)
-        {
-            for (int i = 0; i < playerEconomyNet.Count; i++)
-            {
-                if (playerEconomyNet[i].PawnSlot == pawnSlot)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
         private void HandleEconomyChanged(NetworkListEvent<PlayerEconomyState> changeEvent)
         {
             EconomyChanged?.Invoke();
@@ -867,16 +656,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private void HandleLastEconomyMessageChanged(FixedString128Bytes previousValue, FixedString128Bytes newValue)
         {
             EconomyChanged?.Invoke();
-        }
-
-        private void SetEconomyMessage(string message)
-        {
-            if (!IsServer)
-            {
-                return;
-            }
-
-            lastEconomyMessageNet.Value = new FixedString128Bytes(message ?? string.Empty);
         }
 
         private void ApplyPropertyOwnersToBoard()
