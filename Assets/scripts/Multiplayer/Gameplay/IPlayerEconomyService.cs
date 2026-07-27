@@ -5,7 +5,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
 {
     /// <summary>
     /// Manages player economy state: balance, property ownership, network sync.
-    /// Extracted from <see cref="MultiplayerGameSessionController"/>.
     /// </summary>
     public interface IPlayerEconomyService
     {

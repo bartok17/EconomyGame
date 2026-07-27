@@ -7,7 +7,6 @@ namespace MonopolyGame.Multiplayer
 {
     /// <summary>
     /// Handles relay allocation and Unity Transport configuration.
-    /// Extracted from <see cref="MultiplayerFlowCoordinator"/> to keep it focused.
     /// </summary>
     public interface IRelayTransportService
     {
