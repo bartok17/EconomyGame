@@ -3,10 +3,6 @@ using MonopolyGame.Pawns;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
-    /// <summary>
-    /// Public contract for the session controller.
-    /// UI and scene-management code depend on this, not the concrete NetworkBehaviour.
-    /// </summary>
     public interface IGameSessionController
     {
         TurnPhase CurrentPhase { get; }

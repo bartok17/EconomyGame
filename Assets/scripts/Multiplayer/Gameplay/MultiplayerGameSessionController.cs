@@ -10,13 +10,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
-    /// <summary>
-    /// Server-authoritative game session coordinator.
-    /// Owns the NetworkVariables, bootstraps the session, and orchestrates turn flow.
-    /// Pawn tracking → <see cref="GameSessionPawnRegistry"/>.
-    /// Turn logic     → <see cref="TurnStateMachine"/>.
-    /// Board rules    → <see cref="BoardRuleResolver"/>.
-    /// </summary>
     [RequireComponent(typeof(NetworkObject))]
     public sealed class MultiplayerGameSessionController : NetworkBehaviour
     {

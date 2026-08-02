@@ -5,10 +5,6 @@ using Unity.Netcode;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
-    /// <summary>
-    /// Tracks the live set of spawned pawn syncs and owns ownership assignment.
-    /// Plain C# class — no MonoBehaviour overhead.
-    /// </summary>
     public sealed class GameSessionPawnRegistry
     {
         private readonly List<PlayerPawnNetworkSync> pawnSyncs = new List<PlayerPawnNetworkSync>();
@@ -21,14 +17,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public int Count => pawnSyncs.Count;
 
-        /// <summary>Replaces the list with a freshly spawned set (server only, at game start).</summary>
         public void Populate(IEnumerable<PlayerPawnNetworkSync> syncs)
         {
             pawnSyncs.Clear();
             pawnSyncs.AddRange(syncs.Where(s => s != null));
         }
 
-        /// <summary>Rebuilds the list from the static NGO registry, falling back to the spawner.</summary>
         public void Refresh()
         {
             pawnSyncs.Clear();
@@ -40,7 +34,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        /// <summary>Assigns NetworkObject ownership so pawn slot i belongs to clientId i.</summary>
         public void AssignOwnerships()
         {
             if (NetworkManager.Singleton == null)
@@ -66,7 +59,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        /// <summary>Builds the participant list for the turn state machine from current pawn ownership.</summary>
         public IReadOnlyList<TurnParticipant> BuildParticipants()
         {
             List<TurnParticipant> participants = new List<TurnParticipant>();
@@ -87,7 +79,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return participants;
         }
 
-        /// <summary>Returns the pawn sync whose turn index maps to <paramref name="turnIndex"/>. Refreshes first.</summary>
         public PlayerPawnNetworkSync GetAtTurnIndex(int turnIndex)
         {
             Refresh();
@@ -100,7 +91,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return pawnSyncs[turnIndex % pawnSyncs.Count];
         }
 
-        /// <summary>Finds a pawn sync by slot number. Refreshes first, falls back to the static registry.</summary>
         public PlayerPawnNetworkSync FindBySlot(int pawnSlot)
         {
             Refresh();
@@ -117,7 +107,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return fallback;
         }
 
-        /// <summary>Returns all alive PlayerPawn components across spawned syncs.</summary>
         public IReadOnlyList<PlayerPawn> GetAllPawns()
         {
             Refresh();

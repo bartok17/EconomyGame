@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Board
 {
-    /// <summary>
-    /// Public contract for board-space queries.
-    /// Gameplay systems depend on this instead of the concrete BoardManager.
-    /// </summary>
     public interface IBoardManager
     {
         int SpaceCount { get; }

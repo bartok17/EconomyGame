@@ -88,9 +88,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             TryApplyPawnState();
         }
 
-        // Start() runs after all Awake() calls complete, so it is the safe retry point
-        // for the case where FindAnyObjectByType<BoardManager>() returned null during
-        // OnNetworkSpawn because BoardManager.Awake had not yet executed.
         private void Start()
         {
             if (pawn == null || boardManager == null)

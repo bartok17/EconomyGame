@@ -4,10 +4,6 @@ using UnityEngine.UI;
 
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Handles join-by-code UI input and validation.
-    /// Converts code input to lobby join request.
-    /// </summary>
     public class JoinByCodePresenter : MonoBehaviour
     {
         [SerializeField] private TMP_InputField codeInputField;
@@ -30,13 +26,11 @@ namespace MonopolyGame.Multiplayer.UI
                 joinButton.onClick.AddListener(HandleJoinByCode);
             }
 
-            // Focus input field when panel shows
             if (codeInputField != null)
             {
                 codeInputField.ActivateInputField();
             }
 
-            // Ensure UI state is consistent when the panel becomes active
             OnCodeInputChanged(codeInputField != null ? codeInputField.text : string.Empty);
         }
 
@@ -51,28 +45,21 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void OnCodeInputChanged(string newValue)
         {
-            // Auto-format to uppercase
             string formatted = newValue.ToUpper();
-
-            // Remove non-alphanumeric characters
             formatted = System.Text.RegularExpressions.Regex.Replace(formatted, "[^A-Z0-9]", "");
 
-            // Limit to code length
             if (formatted.Length > CodeLength)
                 formatted = formatted.Substring(0, CodeLength);
 
-            // Update field if changed
             if (formatted != codeInputField.text)
             {
                 codeInputField.text = formatted;
             }
 
-            // Update join button state
             bool isValid = formatted.Length == CodeLength;
             if (joinButton != null)
                 joinButton.interactable = isValid;
 
-            // Update instruction text
             if (instructionText != null)
             {
                 if (isValid)
@@ -98,9 +85,6 @@ namespace MonopolyGame.Multiplayer.UI
             }
         }
 
-        /// <summary>
-        /// Reset input field when panel is shown.
-        /// </summary>
         public void ResetInput()
         {
             if (codeInputField == null)
