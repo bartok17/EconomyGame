@@ -4,11 +4,6 @@ using UnityEngine.UI;
 
 namespace MonopolyGame.UI.DesignSystem
 {
-    /// <summary>
-    /// Drop this on any GameObject with an <see cref="Image"/>.
-    /// Assign a <see cref="UIStyleSheet"/> and pick an <see cref="ImageRole"/> —
-    /// the color is applied automatically at edit time and runtime.
-    /// </summary>
     [ExecuteAlways]
     [RequireComponent(typeof(Image))]
     [DisallowMultipleComponent]

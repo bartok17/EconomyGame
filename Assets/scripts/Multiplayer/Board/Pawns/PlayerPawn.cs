@@ -162,10 +162,6 @@ namespace MonopolyGame.Pawns
             PlayerPawnNetworkSync pawnSync = pawnObject.GetComponent<PlayerPawnNetworkSync>();
             if (pawnSync == null)
             {
-                // PlayerPawnNetworkSync MUST be a pre-added component on the prefab.
-                // Dynamically adding a NetworkBehaviour at runtime only affects the server
-                // instance; clients instantiate the registered prefab asset which lacks the
-                // component, so OnNetworkSpawn never fires for them and pawns are invisible.
                 Debug.LogError(
                     $"[PawnFactory] Pawn prefab '{pawnPrefab.name}' is missing a " +
                     $"PlayerPawnNetworkSync component. Open the prefab in the inspector, add " +

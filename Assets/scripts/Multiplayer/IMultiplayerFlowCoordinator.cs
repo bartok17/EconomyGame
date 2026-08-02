@@ -5,10 +5,6 @@ using Unity.Netcode;
 
 namespace MonopolyGame.Multiplayer
 {
-    /// <summary>
-    /// Abstraction over the multiplayer flow lifecycle.
-    /// UI code should depend on this interface, not the concrete coordinator.
-    /// </summary>
     public interface IMultiplayerFlowCoordinator
     {
         MultiplayerStatus Status { get; }

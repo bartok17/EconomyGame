@@ -5,10 +5,6 @@ using System;
 
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Individual lobby list item displayed in the lobby browser.
-    /// Shows game info and handles join button click.
-    /// </summary>
     public class LobbyListItemController : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI gameNameText;

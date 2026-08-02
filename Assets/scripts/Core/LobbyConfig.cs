@@ -2,10 +2,6 @@ using System;
 
 namespace MonopolyGame.Multiplayer
 {
-    /// <summary>
-    /// Configuration for creating a lobby with game-specific settings.
-    /// Used during creation and displayed in waiting room.
-    /// </summary>
     public class LobbyConfig
     {
         public string GameName { get; set; }

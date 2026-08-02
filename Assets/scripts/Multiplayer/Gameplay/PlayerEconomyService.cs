@@ -5,10 +5,6 @@ using Unity.Netcode;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
-    /// <summary>
-    /// Server-authoritative player economy manager.
-    /// Owns the NetworkLists and exposes balance/property read/write operations.
-    /// </summary>
     public sealed class PlayerEconomyService : IPlayerEconomyService
     {
         private readonly NetworkList<PlayerEconomyState> _playerEconomyNet;

@@ -4,17 +4,6 @@ using UnityEngine;
 
 namespace MonopolyGame.UI.DesignSystem
 {
-    /// <summary>
-    /// Drop this on any GameObject with a <see cref="TextMeshProUGUI"/>.
-    /// Assign a <see cref="UIStyleSheet"/> and pick a <see cref="TextStyle"/> —
-    /// font, size, and color are applied automatically at edit time and runtime.
-    ///
-    /// <para>
-    /// To add a new text style: add an entry to the <see cref="TextStyle"/> enum
-    /// and the corresponding color/size fields in <see cref="UIStyleSheet"/>.
-    /// No code changes needed here.
-    /// </para>
-    /// </summary>
     [ExecuteAlways]
     [RequireComponent(typeof(TextMeshProUGUI))]
     [DisallowMultipleComponent]
@@ -49,10 +38,6 @@ namespace MonopolyGame.UI.DesignSystem
 
         // ── Public API ─────────────────────────────────
 
-        /// <summary>
-        /// Re-applies font, size, and color from the current <see cref="UIStyleSheet"/>.
-        /// Safe to call repeatedly; does nothing if references are missing.
-        /// </summary>
         public void ApplyStyle()
         {
             if (styleSheet == null) return;

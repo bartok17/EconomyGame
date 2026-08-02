@@ -6,11 +6,6 @@ using UnityEngine.UI;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
-    /// <summary>
-    /// Builds a default runtime HUD layout when scene references are missing.
-    /// All visual values (colors, sizes, spacing) are driven by a
-    /// <see cref="UIStyleSheet"/> when provided; otherwise sensible defaults are used.
-    /// </summary>
     public sealed class GameHudLayoutBuilder
     {
         // ── Fallback defaults (used when no UIStyleSheet is assigned) ──
@@ -58,9 +53,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         //  Public API
         // ════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Build the HUD using the given stylesheet. Pass null to use hardcoded defaults.
-        /// </summary>
         public BuildResult Build(UIStyleSheet styleSheet = null)
         {
             BuildResult result = new BuildResult();

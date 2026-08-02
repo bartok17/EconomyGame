@@ -15,8 +15,6 @@ namespace MonopolyGame.Multiplayer
 
         private void Awake()
         {
-            // Singleton: if we return to the auth scene a second time, destroy the
-            // freshly-loaded duplicate so the original DDOL instance keeps running.
             if (_instance != null && _instance != this)
             {
                 Destroy(gameObject);
@@ -43,8 +41,6 @@ namespace MonopolyGame.Multiplayer
                 flowCoordinator = gameObject.AddComponent<MultiplayerFlowCoordinator>();
             }
 
-            // Resolve NetworkManager: prefer inspector field, then singleton, then scene search.
-            // NEVER create a new one — the scene's NetworkManager holds all prefab registrations.
             if (networkManager == null)
             {
                 networkManager = NetworkManager.Singleton;
@@ -63,7 +59,6 @@ namespace MonopolyGame.Multiplayer
                 return;
             }
 
-            // Keep the scene's NetworkManager alive across scene loads.
             DontDestroyOnLoad(networkManager.gameObject);
 
             var relayClient = new RelayClient();

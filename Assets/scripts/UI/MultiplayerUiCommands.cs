@@ -110,11 +110,6 @@ namespace MonopolyGame.Multiplayer.UI
             Run(coordinator.StartGameAsHostAsync);
         }
 
-        /// <summary>
-        /// Join by lobby ID (from browser list) or join code.
-        /// If joinCodeOrId looks like a code (alphanumeric), use as code.
-        /// Otherwise, treat as lobby ID.
-        /// </summary>
         public void Join(string joinCodeOrId)
         {
             if (string.IsNullOrWhiteSpace(joinCodeOrId))
@@ -157,7 +152,6 @@ namespace MonopolyGame.Multiplayer.UI
 
         private static void Run(Func<Task> action)
         {
-            // Fire-and-forget is intentional here: Unity UI event handlers cannot await.
             _ = RunAsync(action);
         }
 

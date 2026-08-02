@@ -8,12 +8,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
-    /// <summary>
-    /// Handles all economy-related space resolution after a pawn lands.
-    /// Pure logic — no MonoBehaviour, no coroutines.
-    /// The owning <see cref="MultiplayerGameSessionController"/> drives
-    /// the coroutine flow and calls into this service for each step.
-    /// </summary>
     public sealed class TurnResolutionService
     {
         private readonly IPlayerEconomyService _economy;
@@ -70,7 +64,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         // ── Resolution steps (called by host-only coroutine in the controller) ──────
 
-        /// <summary>Awards the pass-Start bonus when the pawn crossed the board boundary.</summary>
         public void ResolvePassStartReward(PlayerPawnNetworkSync pawn, bool passedStart)
         {
             if (pawn == null || !passedStart || _passStartReward <= 0)
@@ -85,10 +78,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             _onEconomyChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Sends the pawn to jail when the landing result is GoToJail.
-        /// Returns true when jail was applied so the controller can wait for the move animation.
-        /// </summary>
         public bool ResolveGoToJail(
             PlayerPawnNetworkSync pawn,
             BoardLandingResult result,
@@ -105,7 +94,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             _pendingPurchaseSpaceIndexNet.Value = -1;
             _lastResolvedSpaceIndexNet.Value = jailIndex;
 
-            // Move the pawn to jail via the RPC callback; the controller's coroutine waits.
             movePawnRpc?.Invoke(pawn.PawnSlot, jailIndex, _pawnMoveDuration);
 
             SetEconomyMessage($"{pawn.DisplayName} was sent to Jail.");
@@ -212,10 +200,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         // ── Purchase ────────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Attempts to purchase the property at <paramref name="spaceIndex"/> for <paramref name="pawn"/>.
-        /// Returns true on success. Caller is responsible for authorization checks.
-        /// </summary>
         public bool TryBuyProperty(int spaceIndex, PlayerPawnNetworkSync pawn, BoardManager boardManager)
         {
             if (spaceIndex < 0 || pawn == null || boardManager == null)
