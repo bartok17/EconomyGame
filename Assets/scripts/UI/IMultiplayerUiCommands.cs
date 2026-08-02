@@ -1,9 +1,5 @@
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Public contract for UI command dispatching.
-    /// Presenters depend on this instead of the concrete <see cref="MultiplayerUiCommands"/>.
-    /// </summary>
     public interface IMultiplayerUiCommands
     {
         void SetUsername(string value);

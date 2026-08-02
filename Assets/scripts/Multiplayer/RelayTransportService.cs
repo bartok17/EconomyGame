@@ -9,10 +9,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Multiplayer
 {
-    /// <summary>
-    /// Concrete relay + transport service.
-    /// Created by <see cref="MultiplayerFlowCoordinator"/> and injected with its dependencies.
-    /// </summary>
     public sealed class RelayTransportService : IRelayTransportService
     {
         private readonly IRelayClient _relayClient;

@@ -4,10 +4,6 @@ using UnityEngine.UI;
 
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Handles lobby creation form: name, max players, variant, privacy.
-    /// Validates input and passes config to MultiplayerUiCommands.Host().
-    /// </summary>
     public class LobbyCreatorPresenter : MonoBehaviour
     {
         private static readonly string[] MaxPlayerOptions = { "2 Players", "3 Players", "4 Players" };
@@ -177,9 +173,6 @@ namespace MonopolyGame.Multiplayer.UI
             }
         }
 
-        /// <summary>
-        /// Reset form when panel is shown.
-        /// </summary>
         public void ResetForm()
         {
             if (gameNameInput != null)

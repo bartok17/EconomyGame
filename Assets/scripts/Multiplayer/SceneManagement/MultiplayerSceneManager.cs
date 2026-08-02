@@ -7,10 +7,6 @@ using MonopolyGame.Multiplayer.Gameplay;
 
 namespace MonopolyGame.Multiplayer.SceneManagement
 {
-    /// <summary>
-    /// Manages scene transitions for the multiplayer lobby and game flow.
-    /// Listens to MultiplayerFlowCoordinator events and loads appropriate scenes.
-    /// </summary>
     public class MultiplayerSceneManager : MonoBehaviour
     {
         private static MultiplayerSceneManager _instance;
@@ -64,9 +60,6 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             }
         }
 
-        /// <summary>
-        /// Called when multiplayer network is ready and players can enter game.
-        /// </summary>
         private void OnReadyToEnterGame(MultiplayerRole role)
         {
             if (!isLoadingGame)
@@ -75,9 +68,6 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             }
         }
 
-        /// <summary>
-        /// Manually trigger game scene load (for testing or explicit control).
-        /// </summary>
         public void TriggerLoadGameScene()
         {
             if (!isLoadingGame)
@@ -90,7 +80,6 @@ namespace MonopolyGame.Multiplayer.SceneManagement
         {
             isLoadingGame = true;
 
-            // Show loading screen with fade-in
             if (loadingScreenCanvasGroup != null)
             {
                 loadingScreenCanvasGroup.gameObject.SetActive(true);
@@ -121,7 +110,6 @@ namespace MonopolyGame.Multiplayer.SceneManagement
 
             BindGameSceneInstaller();
 
-            // Fade out loading screen
             if (loadingScreenCanvasGroup != null)
             {
                 yield return StartCoroutine(FadeCanvasGroup(loadingScreenCanvasGroup, 1, 0, fadeDuration));
@@ -156,21 +144,16 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             canvasGroup.alpha = end;
         }
 
-        /// <summary>
-        /// Return to lobby (called when leaving game or on disconnect).
-        /// </summary>
         public void ReturnToLobby()
         {
             StopAllCoroutines();
             isLoadingGame = false;
 
-            // Call leave lobby on flow coordinator
             if (coordinator != null)
             {
                 _ = coordinator.LeaveLobbyAsync();
             }
 
-            // Reload auth/lobby hub scene
             SceneManager.LoadScene("AuthLobbyHub", LoadSceneMode.Single);
         }
 

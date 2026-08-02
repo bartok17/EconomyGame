@@ -6,10 +6,6 @@ using System;
 
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Displays list of available lobbies and handles lobby selection.
-    /// Refreshes from MultiplayerFlowCoordinator LobbyListUpdated event.
-    /// </summary>
     public class LobbyBrowserPresenter : MonoBehaviour
     {
         [SerializeField] private Transform lobbyListContainer;

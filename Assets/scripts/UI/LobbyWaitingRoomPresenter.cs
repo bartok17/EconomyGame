@@ -5,10 +5,6 @@ using System.Collections.Generic;
 
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Displays lobby waiting room: player list, game settings, ready/start controls.
-    /// Manages ready state toggling and game launch coordination.
-    /// </summary>
     public class LobbyWaitingRoomPresenter : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI lobbyNameText;
@@ -161,7 +157,6 @@ namespace MonopolyGame.Multiplayer.UI
 
         private bool IsPlayerReady(int playerIndex, LobbySnapshot lobby)
         {
-            // Ready-state is not synced yet, so we treat joined players as ready placeholders.
             return true;
         }
 
@@ -201,7 +196,6 @@ namespace MonopolyGame.Multiplayer.UI
             }
 
             Debug.Log($"[WaitingRoom] Player ready state: {_isPlayerReady}");
-            // This currently updates local UI only; lobby-backed ready state can be wired in later.
         }
 
         private ColorBlock GetReadyButtonColors()
@@ -228,7 +222,6 @@ namespace MonopolyGame.Multiplayer.UI
 
             if (uiCommands != null)
             {
-                // Reuse the host flow to ensure relay/network startup is triggered from one path.
                 uiCommands.StartGame();
             }
         }

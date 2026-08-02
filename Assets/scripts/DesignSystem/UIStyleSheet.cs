@@ -2,11 +2,6 @@ using UnityEngine;
 
 namespace MonopolyGame.DesignSystem
 {
-    /// <summary>
-    /// Semantic text roles. To extend the design system with a new style,
-    /// add an entry here and the corresponding color/size fields in
-    /// <see cref="UIStyleSheet"/> — no component code changes needed.
-    /// </summary>
     public enum TextStyle
     {
         Title,
@@ -22,9 +17,6 @@ namespace MonopolyGame.DesignSystem
         Dice
     }
 
-    /// <summary>
-    /// Semantic button roles. Color is driven by role; sizing by <see cref="ButtonSize"/>.
-    /// </summary>
     public enum ButtonRole
     {
         Primary,
@@ -33,9 +25,6 @@ namespace MonopolyGame.DesignSystem
         Neutral
     }
 
-    /// <summary>
-    /// Sizing presets for buttons — keeps dimensions consistent across roles.
-    /// </summary>
     public enum ButtonSize
     {
         Standard,
@@ -43,9 +32,6 @@ namespace MonopolyGame.DesignSystem
         Compact
     }
 
-    /// <summary>
-    /// Semantic image roles for panels, backgrounds, and decorative elements.
-    /// </summary>
     public enum ImageRole
     {
         PanelBackground,
@@ -54,10 +40,6 @@ namespace MonopolyGame.DesignSystem
         Overlay
     }
 
-    /// <summary>
-    /// Player identity colors. Used for pawns, ownership markers, player-labels,
-    /// and any UI that needs to distinguish players 1–4.
-    /// </summary>
     public enum PlayerColorRole
     {
         Player1,
@@ -66,9 +48,6 @@ namespace MonopolyGame.DesignSystem
         Player4
     }
 
-    /// <summary>
-    /// Spacing presets for vertical gaps, padding, and margin in layout builders.
-    /// </summary>
     public enum SpacingScale
     {
         Tight,
@@ -77,13 +56,7 @@ namespace MonopolyGame.DesignSystem
         ExtraLoose
     }
 
-    /// <summary>
-    /// Central design-token store. Create one asset via
-    /// <b>Assets → Create → Monopoly Game → UI Style Sheet</b> and assign it to
-    /// <see cref="UI.DesignSystem.ThemedText"/>, <see cref="UI.DesignSystem.ThemedButton"/>,
-    /// and <see cref="UI.DesignSystem.ThemedImage"/> components.
-    /// Changing a value here propagates everywhere at edit time and runtime.
-    /// </summary>
+    /// <summary>Central design-token store. Create via Assets → Create → Monopoly Game → UI Style Sheet.</summary>
     [CreateAssetMenu(menuName = "Monopoly Game/UI Style Sheet", fileName = "UIStyleSheet")]
     public sealed class UIStyleSheet : ScriptableObject
     {

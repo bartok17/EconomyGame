@@ -4,9 +4,6 @@ using UnityEngine.UI;
 
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Displays one lobby player slot, including empty-slot state and ready status.
-    /// </summary>
     public class PlayerSlotItem : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI playerNameText;

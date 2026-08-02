@@ -3,14 +3,9 @@ using Unity.Netcode;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
-    /// <summary>
-    /// Manages player economy state: balance, property ownership, network sync.
-    /// </summary>
     public interface IPlayerEconomyService
     {
-        /// <summary>NetworkList exposed for change-tracking by the session controller.</summary>
         NetworkList<PlayerEconomyState> PlayerEconomyNet { get; }
-        /// <summary>NetworkList exposed for ownership change-tracking by the session controller.</summary>
         NetworkList<PropertyOwnershipState> PropertyOwnershipNet { get; }
 
         int GetBalance(int pawnSlot);

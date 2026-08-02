@@ -4,17 +4,6 @@ using UnityEngine.UI;
 
 namespace MonopolyGame.UI.DesignSystem
 {
-    /// <summary>
-    /// Drop this on any GameObject with a <see cref="Button"/> and <see cref="Image"/>.
-    /// Assign a <see cref="UIStyleSheet"/>, pick a <see cref="ButtonRole"/> and
-    /// <see cref="ButtonSize"/> — colors, sizing, and text styling are applied
-    /// automatically at edit time and runtime.
-    ///
-    /// <para>
-    /// The component looks for a child <see cref="TMPro.TextMeshProUGUI"/> named "Text"
-    /// (or the first TMP found) and styles its color / font size from the stylesheet.
-    /// </para>
-    /// </summary>
     [ExecuteAlways]
     [RequireComponent(typeof(Button))]
     [RequireComponent(typeof(Image))]

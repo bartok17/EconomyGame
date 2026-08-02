@@ -3,10 +3,6 @@ using System.Collections.Generic;
 
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Manages hub menu panel visibility and state transitions.
-    /// Coordinates between hub menu, browser, creator, and waiting room screens.
-    /// </summary>
     public class HubMenuCoordinator : MonoBehaviour
     {
         [SerializeField] private CanvasGroup authPanelGroup;
@@ -97,10 +93,6 @@ namespace MonopolyGame.Multiplayer.UI
             }
         }
 
-        /// <summary>
-        /// Handle status changes from multiplayer coordinator.
-        /// Show/hide panels based on login state and current flow.
-        /// </summary>
         private void OnStatusChanged(MultiplayerStatus status)
         {
             if (status == MultiplayerStatus.SignedOut || status == MultiplayerStatus.SigningIn)
@@ -120,30 +112,20 @@ namespace MonopolyGame.Multiplayer.UI
                      status == MultiplayerStatus.RelayJoining ||
                      status == MultiplayerStatus.NetworkStarting)
             {
-                // Keep the visible panel stable while child presenters disable their own actions.
             }
         }
 
-        /// <summary>
-        /// When successfully joined a lobby, transition to waiting room.
-        /// </summary>
         private void OnLobbyJoined(LobbySnapshot lobbySnapshot)
         {
             ShowPanel("waiting");
         }
 
-        /// <summary>
-        /// When left a lobby, return to hub menu.
-        /// </summary>
         private void OnLobbyLeft()
         {
             Debug.Log("[HubMenuCoordinator] Left lobby, returning to hub");
             ShowPanel("hub");
         }
 
-        /// <summary>
-        /// Display a specific panel and fade out others.
-        /// </summary>
         public void ShowPanel(string panelName)
         {
             if (!_panelMap.ContainsKey(panelName))
@@ -168,9 +150,6 @@ namespace MonopolyGame.Multiplayer.UI
             _currentActivePanel = targetPanel;
         }
 
-        /// <summary>
-        /// Return to hub menu from any sub-panel.
-        /// </summary>
         public void BackToHub()
         {
             ShowPanel("hub");

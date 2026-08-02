@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Multiplayer.UI
 {
-    /// <summary>
-    /// Thin UI bridge for the Hub panel buttons.
-    /// Prefer wiring Buttons to these methods (strongly named) instead of passing strings.
-    /// </summary>
     public sealed class HubMenuPresenter : MonoBehaviour
     {
         [SerializeField] private bool allowAutoDisableWhenUnwired = true;
@@ -33,7 +29,6 @@ namespace MonopolyGame.Multiplayer.UI
             if (hub != null)
                 hub.ShowPanel("browser");
 
-            // Optional: auto-refresh when opening the browser
             if (uiCommands != null)
                 uiCommands.RefreshLobbies();
         }
