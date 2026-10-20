@@ -51,6 +51,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public string DisplayName => pawn != null && !string.IsNullOrWhiteSpace(pawn.DisplayName) ? pawn.DisplayName : displayNameNet.Value.ToString();
         public int PawnSlot => pawn != null && pawn.PawnSlot >= 0 ? pawn.PawnSlot : pawnSlotNet.Value;
         public int CurrentSpaceIndex => pawn != null ? pawn.CurrentSpaceIndex : syncedSpaceIndex.Value;
+        public PlayerPawn Pawn => pawn;
 
         public void Initialize(PlayerPawn pawn, BoardManager boardManager, int pawnSlot, string playerId, string displayName)
         {

@@ -13,6 +13,12 @@ namespace MonopolyGame.Board
 
         public int SpaceCount => spaces.Count;
 
+        /// <summary>
+        /// Raised after the board spaces are (re)discovered — e.g. when the board
+        /// is rebuilt. Listeners (camera focus) can re-resolve their tile references.
+        /// </summary>
+        public event Action SpacesRefreshed;
+
         private void Awake()
         {
             RefreshSpaces();
@@ -35,6 +41,8 @@ namespace MonopolyGame.Board
             spaces.AddRange(foundSpaces);
 
             Debug.Log($"[BoardManager] Loaded {spaces.Count} board spaces.");
+
+            SpacesRefreshed?.Invoke();
         }
 
         public BoardSpaceView GetSpace(int index)

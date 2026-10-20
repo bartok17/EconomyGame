@@ -1,5 +1,6 @@
 using MonopolyGame.Board;
 using MonopolyGame.Multiplayer;
+using MonopolyGame.Multiplayer.Camera;
 using MonopolyGame.Multiplayer.Gameplay;
 using MonopolyGame.Pawns;
 using UnityEngine;
@@ -15,8 +16,14 @@ namespace MonopolyGame.Multiplayer.SceneManagement
         [SerializeField] private BoardManager boardManager;
         [SerializeField] private PlayerPawnSpawner pawnSpawner;
         [SerializeField] private MultiplayerGameHudPresenter hudPresenter;
+        [SerializeField] private BoardCameraController boardCamera;
+        [SerializeField] private BoardFocusCoordinator focusCoordinator;
 
         public static GameSceneInstaller Instance => instance;
+
+        public BoardCameraController BoardCamera => boardCamera;
+
+        public BoardFocusCoordinator FocusCoordinator => focusCoordinator;
 
         private void OnEnable()
         {
@@ -74,6 +81,11 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             {
                 hudPresenter.BindSession(sessionController);
             }
+
+            if (focusCoordinator != null)
+            {
+                focusCoordinator.Bind(boardCamera, sessionController, boardManager);
+            }
         }
 
         private void AutoWireSceneReferences()
@@ -86,6 +98,26 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             if (hudPresenter == null)
             {
                 hudPresenter = GetComponent<MultiplayerGameHudPresenter>();
+            }
+
+            if (boardCamera == null)
+            {
+                boardCamera = GetComponent<BoardCameraController>();
+
+                if (boardCamera == null)
+                {
+                    boardCamera = FindAnyObjectByType<BoardCameraController>();
+                }
+            }
+
+            if (focusCoordinator == null)
+            {
+                focusCoordinator = GetComponent<BoardFocusCoordinator>();
+
+                if (focusCoordinator == null)
+                {
+                    focusCoordinator = FindAnyObjectByType<BoardFocusCoordinator>();
+                }
             }
         }
     }

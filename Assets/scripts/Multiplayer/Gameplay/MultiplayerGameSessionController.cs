@@ -461,6 +461,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 activePawn.ForceSpaceIndex(targetSpaceIndex);
             }
 
+            // Landing signal for local systems (e.g. camera focus). Clients get
+            // the equivalent notification from HandlePhaseChanged below.
+            PawnMoved?.Invoke(activePawn != null ? activePawn.Pawn : null, targetSpaceIndex);
+
             turnStateMachine.BeginResolve();
             SetServerState(turnStateMachine.State);
 
@@ -547,7 +551,22 @@ namespace MonopolyGame.Multiplayer.Gameplay
         }
 
         private void HandleTurnIndexChanged(int _, int newValue)    { CurrentTurnIndex = newValue; PublishTurnState(); }
-        private void HandlePhaseChanged(int _, int newValue)        { CurrentPhase = (TurnPhase)newValue; PhaseChanged?.Invoke(CurrentPhase); }
+        private void HandlePhaseChanged(int _, int newValue)
+        {
+            CurrentPhase = (TurnPhase)newValue;
+            PhaseChanged?.Invoke(CurrentPhase);
+
+            // Server fires PawnMoved directly in ResolveAfterMoveRoutine; on
+            // clients the landing is derived from the replicated phase change.
+            if (CurrentPhase == TurnPhase.ResolvingSpace && !IsServer)
+            {
+                PlayerPawnNetworkSync activePawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
+                if (activePawn != null)
+                {
+                    PawnMoved?.Invoke(activePawn.Pawn, activePawn.CurrentSpaceIndex);
+                }
+            }
+        }
         private void HandleDiceRollChanged(int _, int newValue)     { LastDiceRoll = newValue; DiceRolled?.Invoke(newValue); }
         private void HandleActivePlayerChanged(FixedString64Bytes _, FixedString64Bytes newValue) { ActivePlayerName = newValue.ToString(); PublishTurnState(); }
         private void HandleActiveClientChanged(ulong _, ulong newValue) { ActiveClientId = newValue; PublishTurnState(); }
