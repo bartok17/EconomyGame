@@ -11202,6 +11202,10 @@ MonoBehaviour:
     distance: 12
   tradeViewElevation: 30
   tradeViewDistance: 8
+  enableClickToFocus: 1
+  focusElevation: 35
+  focusDistance: 7
+  focusHeightOffset: 0.15
 --- !u!21 &1963988630
 Material:
   serializedVersion: 8
@@ -12342,6 +12346,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -5989799859918288946, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: boardCamera
+      value: 
+      objectReference: {fileID: 1949555430}
+    - target: {fileID: -5989799859918288946, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
       propertyPath: pawnSpawner
       value: 
       objectReference: {fileID: 1485807580}
@@ -12416,8 +12424,29 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7132333650056584807, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1941726233275368985}
   m_SourcePrefab: {fileID: 100100000, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+--- !u!1 &1941726233275368984 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7132333650056584807, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+  m_PrefabInstance: {fileID: 1941726233275368983}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1941726233275368985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941726233275368984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3bf9d880707d41fb84b7d0f6c902704, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.Multiplayer::MonopolyGame.Multiplayer.Camera.BoardFocusCoordinator
+  focusOnAction: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
