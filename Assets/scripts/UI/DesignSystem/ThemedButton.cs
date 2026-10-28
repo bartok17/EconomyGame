@@ -44,13 +44,14 @@ namespace MonopolyGame.UI.DesignSystem
 
         public void ApplyStyle()
         {
-            if (styleSheet == null) return;
+            UIStyleSheet sheet = styleSheet != null ? styleSheet : UIStyleSheetLocator.Instance;
+            if (sheet == null) return;
 
             _image  ??= GetComponent<Image>();
             _button ??= GetComponent<Button>();
             _label  ??= GetComponentInChildren<TMPro.TextMeshProUGUI>();
 
-            Color baseColor = styleSheet.GetButtonColor(buttonRole);
+            Color baseColor = sheet.GetButtonColor(buttonRole);
 
             // -- Image fill --
             if (_image != null)
@@ -61,8 +62,8 @@ namespace MonopolyGame.UI.DesignSystem
             {
                 ColorBlock cb = _button.colors;
                 cb.normalColor      = baseColor;
-                cb.highlightedColor  = baseColor * styleSheet.ButtonHighlightMultiplier;
-                cb.pressedColor      = baseColor * styleSheet.ButtonPressedMultiplier;
+                cb.highlightedColor  = baseColor * sheet.ButtonHighlightMultiplier;
+                cb.pressedColor      = baseColor * sheet.ButtonPressedMultiplier;
                 cb.selectedColor     = baseColor;
                 cb.disabledColor     = baseColor * 0.5f;
                 _button.colors = cb;
@@ -72,15 +73,15 @@ namespace MonopolyGame.UI.DesignSystem
             LayoutElement layout = GetComponent<LayoutElement>();
             if (layout != null)
             {
-                layout.preferredWidth  = styleSheet.GetButtonWidth(buttonSize);
-                layout.preferredHeight = styleSheet.GetButtonHeight(buttonSize);
+                layout.preferredWidth  = sheet.GetButtonWidth(buttonSize);
+                layout.preferredHeight = sheet.GetButtonHeight(buttonSize);
             }
 
             // -- Child label --
             if (_label != null)
             {
-                _label.color     = styleSheet.ButtonTextColor;
-                _label.fontSize  = styleSheet.ButtonFontSize;
+                _label.color     = sheet.ButtonTextColor;
+                _label.fontSize  = sheet.ButtonFontSize;
                 _label.alignment = TMPro.TextAlignmentOptions.Center;
             }
         }
