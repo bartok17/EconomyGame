@@ -40,12 +40,13 @@ namespace MonopolyGame.UI.DesignSystem
 
         public void ApplyStyle()
         {
-            if (styleSheet == null) return;
+            UIStyleSheet sheet = styleSheet != null ? styleSheet : UIStyleSheetLocator.Instance;
+            if (sheet == null) return;
 
             _image ??= GetComponent<Image>();
             if (_image == null) return;
 
-            _image.color = styleSheet.GetImageColor(imageRole);
+            _image.color = sheet.GetImageColor(imageRole);
         }
 
 #if UNITY_EDITOR

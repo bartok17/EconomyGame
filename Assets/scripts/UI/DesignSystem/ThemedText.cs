@@ -40,16 +40,17 @@ namespace MonopolyGame.UI.DesignSystem
 
         public void ApplyStyle()
         {
-            if (styleSheet == null) return;
+            UIStyleSheet sheet = styleSheet != null ? styleSheet : UIStyleSheetLocator.Instance;
+            if (sheet == null) return;
 
             _text ??= GetComponent<TextMeshProUGUI>();
             if (_text == null) return;
 
-            if (styleSheet.DefaultFont != null)
-                _text.font = styleSheet.DefaultFont;
+            if (sheet.DefaultFont != null)
+                _text.font = sheet.DefaultFont;
 
-            _text.fontSize = styleSheet.GetTextSize(textStyle);
-            _text.color    = styleSheet.GetTextColor(textStyle);
+            _text.fontSize = sheet.GetTextSize(textStyle);
+            _text.color    = sheet.GetTextColor(textStyle);
         }
 
         // ── Context menu (editor convenience) ──────────

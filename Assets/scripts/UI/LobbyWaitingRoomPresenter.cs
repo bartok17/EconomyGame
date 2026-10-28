@@ -1,5 +1,6 @@
-using UnityEngine;
+using MonopolyGame.DesignSystem;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
@@ -162,11 +163,16 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void UpdateRoleBadge()
         {
-            if (roleBadgeText != null)
-            {
-                roleBadgeText.text = _playerRole == MultiplayerRole.Host ? "HOST" : "PLAYER";
-                roleBadgeText.color = _playerRole == MultiplayerRole.Host ? Color.green : Color.cyan;
-            }
+            if (roleBadgeText == null) return;
+
+            roleBadgeText.text = _playerRole == MultiplayerRole.Host ? "HOST" : "PLAYER";
+
+            UIStyleSheet sheet = UIStyleSheetLocator.Instance;
+            if (sheet == null) return;
+
+            roleBadgeText.color = _playerRole == MultiplayerRole.Host
+                ? sheet.GetTextColor(TextStyle.Success)
+                : sheet.GetTextColor(TextStyle.Accent);
         }
 
         private void UpdateControlsForRole()
@@ -189,20 +195,32 @@ namespace MonopolyGame.Multiplayer.UI
 
             if (readyButton != null)
             {
-                readyButton.GetComponentInChildren<TextMeshProUGUI>().text = 
+                readyButton.GetComponentInChildren<TextMeshProUGUI>().text =
                     _isPlayerReady ? "Ready" : "Not Ready";
-                readyButton.colors = _isPlayerReady ? 
-                    GetReadyButtonColors() : ColorBlock.defaultColorBlock;
+                readyButton.colors = GetReadyButtonColors(
+                    _isPlayerReady ? ButtonRole.Success : ButtonRole.Neutral);
             }
 
             Debug.Log($"[WaitingRoom] Player ready state: {_isPlayerReady}");
         }
 
-        private ColorBlock GetReadyButtonColors()
+        private ColorBlock GetReadyButtonColors(ButtonRole role)
         {
             ColorBlock colors = ColorBlock.defaultColorBlock;
-            colors.normalColor = Color.green;
-            colors.highlightedColor = new Color(0.7f, 1f, 0.7f);
+
+            UIStyleSheet sheet = UIStyleSheetLocator.Instance;
+            if (sheet == null)
+            {
+                colors.normalColor = role == ButtonRole.Success ? Color.green : Color.white;
+                return colors;
+            }
+
+            Color baseColor = sheet.GetButtonColor(role);
+            colors.normalColor      = baseColor;
+            colors.highlightedColor = baseColor * sheet.ButtonHighlightMultiplier;
+            colors.pressedColor     = baseColor * sheet.ButtonPressedMultiplier;
+            colors.selectedColor    = baseColor;
+            colors.disabledColor    = baseColor * 0.5f;
             return colors;
         }
 
