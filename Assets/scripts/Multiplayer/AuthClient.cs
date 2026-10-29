@@ -39,6 +39,45 @@ namespace MonopolyGame.Multiplayer
             AuthenticationService.Instance.SignOut();
         }
 
+        public void SetProfile(string profile)
+        {
+            AuthenticationService.Instance.SwitchProfile(profile);
+        }
+
+        public bool HasCachedSession(string profile)
+        {
+            SetProfile(profile);
+            return AuthenticationService.Instance.SessionTokenExists;
+        }
+
+        public async Task<bool> TryRestoreSessionAsync(string profile)
+        {
+            SetProfile(profile);
+
+            // Never call SignInAnonymouslyAsync without a token: the SDK would
+            // silently create a new anonymous account instead of failing.
+            if (!AuthenticationService.Instance.SessionTokenExists)
+            {
+                return false;
+            }
+
+            try
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                return AuthenticationService.Instance.IsSignedIn;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public void ClearSession(string profile)
+        {
+            SetProfile(profile);
+            AuthenticationService.Instance.ClearSessionToken();
+        }
+
         private string GetEffectiveDisplayName()
         {
             var playerName = AuthenticationService.Instance.PlayerName;
