@@ -23,6 +23,7 @@ namespace MonopolyGame.Multiplayer
         private ILobbyClient _lobbyClient;
         private IRelayClient _relayClient;
         private IRelayTransportService _relayTransportService;
+        private IAutomaticLoginService _automaticLogin;
 
         private CancellationTokenSource _waitRelayCts;
         private NetworkManager _networkManager;
@@ -41,7 +42,11 @@ namespace MonopolyGame.Multiplayer
         
         public LobbySnapshot CurrentLobbySnapshot { get; private set; }
 
+        public IReadOnlyList<RememberedAccount> RememberedAccounts =>
+            _automaticLogin != null ? _automaticLogin.Accounts : Array.Empty<RememberedAccount>();
+
         public event Action<MultiplayerStatus> StatusChanged;
+        public event Action<IReadOnlyList<RememberedAccount>> RememberedAccountsChanged;
         public event Action<string, string> SignedIn;
         public event Action<IReadOnlyList<LobbySummary>> LobbyListUpdated;
         public event Action<LobbySnapshot> LobbyJoined;
@@ -61,12 +66,21 @@ namespace MonopolyGame.Multiplayer
             _statusStateMachine.StatusChanged -= status => StatusChanged?.Invoke(status);
         }
 
-        public void InjectDependencies(IAuthClient authClient, ILobbyClient lobbyClient, IRelayClient relayClient, IRelayTransportService relayTransportService)
+        public void InjectDependencies(
+            IAuthClient authClient,
+            ILobbyClient lobbyClient,
+            IRelayClient relayClient,
+            IRelayTransportService relayTransportService,
+            IAutomaticLoginService automaticLogin)
         {
             _authClient = authClient ?? throw new ArgumentNullException(nameof(authClient));
             _lobbyClient = lobbyClient ?? throw new ArgumentNullException(nameof(lobbyClient));
             _relayClient = relayClient ?? throw new ArgumentNullException(nameof(relayClient));
             _relayTransportService = relayTransportService ?? throw new ArgumentNullException(nameof(relayTransportService));
+            _automaticLogin = automaticLogin ?? throw new ArgumentNullException(nameof(automaticLogin));
+
+            _automaticLogin.AccountsChanged -= HandleRememberedAccountsChanged;
+            _automaticLogin.AccountsChanged += HandleRememberedAccountsChanged;
         }
 
         public async Task InitializeAsync()
@@ -85,6 +99,8 @@ namespace MonopolyGame.Multiplayer
                 await UnityServices.InitializeAsync();
                 _statusStateMachine.TransitionTo(_authClient.IsSignedIn ? MultiplayerStatus.SignedIn : MultiplayerStatus.SignedOut);
                 HookLobbyEvents();
+                _automaticLogin.Load();
+                RememberedAccountsChanged?.Invoke(_automaticLogin.Accounts);
             }
             catch (Exception ex)
             {
@@ -92,7 +108,7 @@ namespace MonopolyGame.Multiplayer
             }
         }
 
-        public async Task SignUpAsync(string username, string password, string displayName)
+        public async Task SignUpAsync(string username, string password, string displayName, bool remember = false)
         {
             var validationError = InputValidator.ValidateSignUp(username, password);
             if (validationError != null)
@@ -105,9 +121,16 @@ namespace MonopolyGame.Multiplayer
 
             try
             {
+                // Isolate the cached session token per account before signing in.
+                _authClient.SetProfile(AccountProfile.FromUsername(username));
                 await _authClient.SignUpAsync(username, password, displayName);
                 _statusStateMachine.TransitionTo(MultiplayerStatus.SignedIn);
                 SignedIn?.Invoke(_authClient.PlayerId, _authClient.DisplayName);
+
+                if (remember)
+                {
+                    _automaticLogin.RecordSuccessfulSignIn(username, _authClient.DisplayName);
+                }
             }
             catch (Exception ex)
             {
@@ -115,7 +138,7 @@ namespace MonopolyGame.Multiplayer
             }
         }
 
-        public async Task SignInAsync(string username, string password)
+        public async Task SignInAsync(string username, string password, bool remember = false)
         {
             var validationError = InputValidator.ValidateSignIn(username, password);
             if (validationError != null)
@@ -128,9 +151,16 @@ namespace MonopolyGame.Multiplayer
 
             try
             {
+                // Isolate the cached session token per account before signing in.
+                _authClient.SetProfile(AccountProfile.FromUsername(username));
                 await _authClient.SignInAsync(username, password);
                 _statusStateMachine.TransitionTo(MultiplayerStatus.SignedIn);
                 SignedIn?.Invoke(_authClient.PlayerId, _authClient.DisplayName);
+
+                if (remember)
+                {
+                    _automaticLogin.RecordSuccessfulSignIn(username, _authClient.DisplayName);
+                }
             }
             catch (Exception ex)
             {
@@ -161,6 +191,82 @@ namespace MonopolyGame.Multiplayer
             _statusStateMachine.ClearLastError();
             _authClient.SignOut();
             _statusStateMachine.TransitionTo(MultiplayerStatus.SignedOut);
+        }
+
+        public async Task TrySignInRememberedAsync(string accountId)
+        {
+            _statusStateMachine.ClearLastError();
+
+            if (Status == MultiplayerStatus.SigningIn)
+            {
+                // Already busy; the UI also disables Use buttons while signing in.
+                return;
+            }
+
+            if (Status != MultiplayerStatus.SignedOut)
+            {
+                RaiseError("remembered_wrong_state", "Cannot use a remembered account right now.", null);
+                return;
+            }
+
+            var account = _automaticLogin.Accounts.FirstOrDefault(a => a.id == accountId);
+            if (account == null)
+            {
+                RaiseError("remembered_account_missing", "This remembered account no longer exists.", null);
+                return;
+            }
+
+            _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.SigningIn);
+
+            try
+            {
+                if (!_authClient.HasCachedSession(account.id))
+                {
+                    RaiseError("remembered_no_session",
+                        $"No saved session for \"{account.username}\". Log in with your password again.", null);
+                    return;
+                }
+
+                var restored = await _authClient.TryRestoreSessionAsync(account.id);
+                if (!restored)
+                {
+                    RaiseError("remembered_restore_failed",
+                        $"Could not restore the session for \"{account.username}\". It may have expired — log in with your password again.", null);
+                    return;
+                }
+
+                _automaticLogin.Touch(account.id);
+                _statusStateMachine.TransitionTo(MultiplayerStatus.SignedIn);
+                SignedIn?.Invoke(_authClient.PlayerId, _authClient.DisplayName);
+            }
+            catch (Exception ex)
+            {
+                RaiseError("remembered_restore_failed", "Could not restore the saved session. Log in with your password again.", ex);
+            }
+        }
+
+        public void ForgetRememberedAccount(string accountId)
+        {
+            _statusStateMachine.ClearLastError();
+
+            if (Status != MultiplayerStatus.SignedOut)
+            {
+                RaiseError("forget_wrong_state", "Cannot forget an account right now.", null);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(accountId))
+            {
+                RaiseError("forget_invalid_account", "Invalid remembered account.", null);
+                return;
+            }
+
+            _automaticLogin.Forget(accountId);
+        }
+
+        private void HandleRememberedAccountsChanged(IReadOnlyList<RememberedAccount> accounts)
+        {
+            RememberedAccountsChanged?.Invoke(accounts);
         }
 
         public async Task QueryLobbiesAsync(int maxResults = 25)
