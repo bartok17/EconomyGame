@@ -5,6 +5,7 @@ namespace MonopolyGame.Multiplayer.UI
         void SetUsername(string value);
         void SetPassword(string value);
         void SetDisplayName(string value);
+        void SetRemember(bool value);
         void SetLobbyName(string value);
         void SetLobbyCode(string value);
         void SetMaxPlayers(int value);
