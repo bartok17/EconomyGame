@@ -1,4 +1,5 @@
 using MonopolyGame.DesignSystem;
+using MonopolyGame.UI.DesignSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,8 +31,16 @@ namespace MonopolyGame.Multiplayer.UI
         private bool _isPlayerReady = false;
         private Dictionary<int, GameObject> _playerSlots = new();
 
+        private ThemedButton _readyThemed;
+        private ThemedText _roleBadgeThemed;
+
         private void OnEnable()
         {
+            _readyThemed = readyButton != null ? readyButton.GetComponent<ThemedButton>() : null;
+            _roleBadgeThemed = roleBadgeText != null ? roleBadgeText.GetComponent<ThemedText>() : null;
+
+            ApplyReadyState();
+
             if (coordinator != null)
             {
                 coordinator.LobbyJoined += OnLobbyUpdated;
@@ -131,7 +140,7 @@ namespace MonopolyGame.Multiplayer.UI
                     {
                         string playerName = lobby.PlayerDisplayNames[i];
                         bool isReady = IsPlayerReady(i, lobby);
-                        slotUI.SetPlayer(playerName, isReady);
+                        slotUI.SetPlayer(playerName, isReady, i);
                     }
                     else
                     {
@@ -167,12 +176,13 @@ namespace MonopolyGame.Multiplayer.UI
 
             roleBadgeText.text = _playerRole == MultiplayerRole.Host ? "HOST" : "PLAYER";
 
-            UIStyleSheet sheet = UIStyleSheetLocator.Instance;
-            if (sheet == null) return;
-
-            roleBadgeText.color = _playerRole == MultiplayerRole.Host
-                ? sheet.GetTextColor(TextStyle.Success)
-                : sheet.GetTextColor(TextStyle.Accent);
+            _roleBadgeThemed ??= roleBadgeText.GetComponent<ThemedText>();
+            if (_roleBadgeThemed != null)
+            {
+                _roleBadgeThemed.SetTextStyle(_playerRole == MultiplayerRole.Host
+                    ? TextStyle.Success
+                    : TextStyle.Accent);
+            }
         }
 
         private void UpdateControlsForRole()
@@ -192,36 +202,24 @@ namespace MonopolyGame.Multiplayer.UI
         private void HandleReadyToggle()
         {
             _isPlayerReady = !_isPlayerReady;
-
-            if (readyButton != null)
-            {
-                readyButton.GetComponentInChildren<TextMeshProUGUI>().text =
-                    _isPlayerReady ? "Ready" : "Not Ready";
-                readyButton.colors = GetReadyButtonColors(
-                    _isPlayerReady ? ButtonRole.Success : ButtonRole.Neutral);
-            }
+            ApplyReadyState();
 
             Debug.Log($"[WaitingRoom] Player ready state: {_isPlayerReady}");
         }
 
-        private ColorBlock GetReadyButtonColors(ButtonRole role)
+        private void ApplyReadyState()
         {
-            ColorBlock colors = ColorBlock.defaultColorBlock;
+            if (readyButton == null) return;
 
-            UIStyleSheet sheet = UIStyleSheetLocator.Instance;
-            if (sheet == null)
+            TextMeshProUGUI label = readyButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null)
+                label.text = _isPlayerReady ? "Ready" : "Not Ready";
+
+            _readyThemed ??= readyButton.GetComponent<ThemedButton>();
+            if (_readyThemed != null)
             {
-                colors.normalColor = role == ButtonRole.Success ? Color.green : Color.white;
-                return colors;
+                _readyThemed.SetRole(_isPlayerReady ? ButtonRole.Success : ButtonRole.Neutral);
             }
-
-            Color baseColor = sheet.GetButtonColor(role);
-            colors.normalColor      = baseColor;
-            colors.highlightedColor = baseColor * sheet.ButtonHighlightMultiplier;
-            colors.pressedColor     = baseColor * sheet.ButtonPressedMultiplier;
-            colors.selectedColor    = baseColor;
-            colors.disabledColor    = baseColor * 0.5f;
-            return colors;
         }
 
         private void HandleStartGame()
