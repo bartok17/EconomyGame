@@ -11,8 +11,22 @@ namespace MonopolyGame.UI.DesignSystem
     {
         [SerializeField] private UIStyleSheet styleSheet;
         [SerializeField] private ImageRole    imageRole = ImageRole.PanelBackground;
+        [SerializeField] private bool         usePlayerColor;
+        [SerializeField] private PlayerColorRole playerColorRole = PlayerColorRole.Player1;
 
         private Image _image;
+
+        public ImageRole Role => imageRole;
+
+        /// <summary>Switch to a player colour token; pass <c>null</c> to go back to the image role.</summary>
+        public void SetPlayerColor(PlayerColorRole? role)
+        {
+            usePlayerColor = role.HasValue;
+            if (role.HasValue)
+                playerColorRole = role.Value;
+
+            ApplyStyle();
+        }
 
         // ── Unity lifecycle ────────────────────────────
 
@@ -38,6 +52,12 @@ namespace MonopolyGame.UI.DesignSystem
 
         // ── Public API ─────────────────────────────────
 
+        public void SetImageRole(ImageRole role)
+        {
+            imageRole = role;
+            ApplyStyle();
+        }
+
         public void ApplyStyle()
         {
             UIStyleSheet sheet = styleSheet != null ? styleSheet : UIStyleSheetLocator.Instance;
@@ -46,7 +66,9 @@ namespace MonopolyGame.UI.DesignSystem
             _image ??= GetComponent<Image>();
             if (_image == null) return;
 
-            _image.color = sheet.GetImageColor(imageRole);
+            _image.color = usePlayerColor
+                ? sheet.GetPlayerColor(playerColorRole)
+                : sheet.GetImageColor(imageRole);
         }
 
 #if UNITY_EDITOR
