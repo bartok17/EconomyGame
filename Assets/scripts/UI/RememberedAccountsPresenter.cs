@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MonopolyGame.Multiplayer.UI
 {
@@ -17,6 +18,8 @@ namespace MonopolyGame.Multiplayer.UI
         [SerializeField] private GameObject itemPrefab;
         [SerializeField] private Transform itemContainer;
         [SerializeField] private GameObject sectionRoot;
+        [SerializeField] private MultiplayerUiCommands uiCommands;
+        [SerializeField] private Toggle rememberToggle;
 
         private readonly List<RememberedAccountItem> _activeItems = new();
 
@@ -33,6 +36,7 @@ namespace MonopolyGame.Multiplayer.UI
             coordinator.SignedIn += HandleSignedIn;
             coordinator.RememberedAccountsChanged += HandleAccountsChanged;
 
+            WireRememberToggle();
             Render(coordinator.RememberedAccounts);
         }
 
@@ -46,6 +50,29 @@ namespace MonopolyGame.Multiplayer.UI
             coordinator.StatusChanged -= HandleStatusChanged;
             coordinator.SignedIn -= HandleSignedIn;
             coordinator.RememberedAccountsChanged -= HandleAccountsChanged;
+
+            UnwireRememberToggle();
+        }
+
+        private void WireRememberToggle()
+        {
+            if (uiCommands == null || rememberToggle == null)
+            {
+                return;
+            }
+
+            rememberToggle.SetIsOnWithoutNotify(uiCommands.Remember);
+            rememberToggle.onValueChanged.AddListener(uiCommands.SetRemember);
+        }
+
+        private void UnwireRememberToggle()
+        {
+            if (uiCommands == null || rememberToggle == null)
+            {
+                return;
+            }
+
+            rememberToggle.onValueChanged.RemoveListener(uiCommands.SetRemember);
         }
 
         private void HandleStatusChanged(MultiplayerStatus status)
