@@ -187,8 +187,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -205,8 +205,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -344,8 +344,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
-  m_fontSizeBase: 30
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -535,8 +535,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
-  m_fontSizeBase: 30
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -715,8 +715,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -733,8 +733,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 60
-  m_fontSizeBase: 60
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -836,7 +836,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.45, g: 0.48, b: 0.55, a: 0.9}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1068,8 +1068,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 24
+  m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1352,8 +1352,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1370,8 +1370,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1489,8 +1489,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1507,8 +1507,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 60
-  m_fontSizeBase: 60
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1760,8 +1760,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 2150773298
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 0.5}
+    rgba: 4289111718
+  m_fontColor: {r: 0.65, g: 0.65, b: 0.65, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1951,6 +1951,7 @@ GameObject:
   - component: {fileID: 272087135}
   - component: {fileID: 272087134}
   - component: {fileID: 272087133}
+  - component: {fileID: 272087137}
   m_Layer: 5
   m_Name: LeaveLobbyButton
   m_TagString: Untagged
@@ -1979,11 +1980,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -2058,8 +2059,24 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -508, y: -334}
-  m_SizeDelta: {x: 300, y: 80}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &272087137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 272087132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 1
+  buttonSize: 0
+  styleLabel: 1
 --- !u!1 &311096475
 GameObject:
   m_ObjectHideFlags: 0
@@ -2144,8 +2161,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
-  m_fontSizeBase: 30
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2384,7 +2401,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.82, g: 0.82, b: 0.82, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2583,8 +2600,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2686,7 +2703,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.45, g: 0.48, b: 0.55, a: 0.9}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2925,6 +2942,7 @@ GameObject:
   - component: {fileID: 471989449}
   - component: {fileID: 471989448}
   - component: {fileID: 471989447}
+  - component: {fileID: 471989450}
   m_Layer: 5
   m_Name: Password (input field)
   m_TagString: Untagged
@@ -3048,9 +3066,9 @@ MonoBehaviour:
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_CaretColor: {r: 1, g: 1, b: 1, a: 1}
   m_CustomCaretColor: 0
-  m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
+  m_SelectionColor: {r: 0.22, g: 0.52, b: 0.92, a: 0.35}
   m_Text: 
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
@@ -3079,7 +3097,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3104,6 +3122,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 471989445}
   m_CullTransparentMesh: 1
+--- !u!114 &471989450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 471989445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2aa3d14516d1f4c39856a47fbbc1e12e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedInputField
+  styleSheet: {fileID: 0}
+  backgroundRole: 5
+  textStyle: 2
+  placeholderStyle: 4
 --- !u!224 &479421900 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1298349499076255502, guid: e5296735e101947f5bbd61c19da754b8, type: 3}
@@ -3169,10 +3203,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_NormalColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
+    m_HighlightedColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+    m_PressedColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+    m_SelectedColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -3196,6 +3230,158 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 1
+--- !u!1 &512842829
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 512842833}
+  - component: {fileID: 512842832}
+  - component: {fileID: 512842830}
+  - component: {fileID: 512842831}
+  m_Layer: 0
+  m_Name: RoleBadge
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &512842830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 512842829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: PLAYER
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 18
+  m_fontSizeBase: 18
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &512842831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 512842829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 5
+--- !u!222 &512842832
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 512842829}
+  m_CullTransparentMesh: 1
+--- !u!224 &512842833
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 512842829}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1151884800}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 320}
+  m_SizeDelta: {x: 220, y: 40}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &515232999
 GameObject:
   m_ObjectHideFlags: 0
@@ -3207,6 +3393,7 @@ GameObject:
   - component: {fileID: 515233002}
   - component: {fileID: 515233001}
   - component: {fileID: 515233000}
+  - component: {fileID: 515233003}
   m_Layer: 5
   m_Name: Error message
   m_TagString: Untagged
@@ -3333,6 +3520,20 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -10, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &515233003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 515232999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 11
 --- !u!1 &531469233
 GameObject:
   m_ObjectHideFlags: 0
@@ -3455,7 +3656,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.82, g: 0.82, b: 0.82, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3492,6 +3693,7 @@ GameObject:
   - component: {fileID: 562411229}
   - component: {fileID: 562411228}
   - component: {fileID: 562411227}
+  - component: {fileID: 562411230}
   m_Layer: 5
   m_Name: JoinByCodeButton
   m_TagString: Untagged
@@ -3518,7 +3720,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -200}
-  m_SizeDelta: {x: 300, y: 90}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &562411227
 MonoBehaviour:
@@ -3541,11 +3743,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -3589,7 +3791,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3614,6 +3816,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 562411225}
   m_CullTransparentMesh: 1
+--- !u!114 &562411230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 562411225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 3
+  buttonSize: 1
+  styleLabel: 1
 --- !u!1 &567356513
 GameObject:
   m_ObjectHideFlags: 0
@@ -3627,6 +3845,7 @@ GameObject:
   - component: {fileID: 567356516}
   - component: {fileID: 567356518}
   - component: {fileID: 567356519}
+  - component: {fileID: 567356520}
   m_Layer: 5
   m_Name: HubPanel
   m_TagString: Untagged
@@ -3669,7 +3888,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3722,6 +3941,22 @@ MonoBehaviour:
   hub: {fileID: 353643863}
   uiCommands: {fileID: 1476316968}
   joinByCodePresenter: {fileID: 1340761907}
+--- !u!114 &567356520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 567356513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 0
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &569014298
 GameObject:
   m_ObjectHideFlags: 0
@@ -3733,6 +3968,7 @@ GameObject:
   - component: {fileID: 569014299}
   - component: {fileID: 569014301}
   - component: {fileID: 569014300}
+  - component: {fileID: 569014302}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -3806,8 +4042,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 42.69
-  m_fontSizeBase: 42.69
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -3859,6 +4095,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 569014298}
   m_CullTransparentMesh: 1
+--- !u!114 &569014302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569014298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 0
 --- !u!1 &569208834
 GameObject:
   m_ObjectHideFlags: 0
@@ -3927,8 +4177,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -3945,8 +4195,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4048,7 +4298,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.82, g: 0.82, b: 0.82, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4156,6 +4406,7 @@ GameObject:
   - component: {fileID: 583575280}
   - component: {fileID: 583575279}
   - component: {fileID: 583575278}
+  - component: {fileID: 583575281}
   m_Layer: 5
   m_Name: GameNameInput
   m_TagString: Untagged
@@ -4266,9 +4517,9 @@ MonoBehaviour:
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_CaretColor: {r: 1, g: 1, b: 1, a: 1}
   m_CustomCaretColor: 0
-  m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
+  m_SelectionColor: {r: 0.22, g: 0.52, b: 0.92, a: 0.35}
   m_Text: 
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
@@ -4297,7 +4548,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4322,6 +4573,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 583575276}
   m_CullTransparentMesh: 1
+--- !u!114 &583575281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 583575276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2aa3d14516d1f4c39856a47fbbc1e12e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedInputField
+  styleSheet: {fileID: 0}
+  backgroundRole: 5
+  textStyle: 2
+  placeholderStyle: 4
 --- !u!1 &595111362
 GameObject:
   m_ObjectHideFlags: 0
@@ -4411,8 +4678,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 2152944471
-  m_fontColor: {r: 0.33962262, g: 0.32520467, b: 0.32520467, a: 0.5}
+    rgba: 4289111718
+  m_fontColor: {r: 0.65, g: 0.65, b: 0.65, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4429,8 +4696,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 35
-  m_fontSizeBase: 35
+  m_fontSize: 14
+  m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4607,7 +4874,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.45, g: 0.48, b: 0.55, a: 0.9}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4643,6 +4910,7 @@ GameObject:
   - component: {fileID: 622476741}
   - component: {fileID: 622476743}
   - component: {fileID: 622476742}
+  - component: {fileID: 622476744}
   m_Layer: 5
   m_Name: VariantLabel
   m_TagString: Untagged
@@ -4716,8 +4984,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4769,6 +5037,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 622476740}
   m_CullTransparentMesh: 1
+--- !u!114 &622476744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 622476740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 2
 --- !u!1 &631354866
 GameObject:
   m_ObjectHideFlags: 0
@@ -4837,8 +5119,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4855,8 +5137,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4920,6 +5202,7 @@ GameObject:
   - component: {fileID: 653638073}
   - component: {fileID: 653638072}
   - component: {fileID: 653638071}
+  - component: {fileID: 653638075}
   m_Layer: 5
   m_Name: ReadyButton
   m_TagString: Untagged
@@ -4948,11 +5231,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -5027,8 +5310,24 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 220, y: -229}
-  m_SizeDelta: {x: 300, y: 80}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &653638075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653638070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 2
+  buttonSize: 0
+  styleLabel: 1
 --- !u!1 &696248658
 GameObject:
   m_ObjectHideFlags: 0
@@ -5095,8 +5394,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -5113,8 +5412,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5253,6 +5552,7 @@ GameObject:
   - component: {fileID: 743996353}
   - component: {fileID: 743996352}
   - component: {fileID: 743996351}
+  - component: {fileID: 743996354}
   m_Layer: 5
   m_Name: PrivacyDropdown
   m_TagString: Untagged
@@ -5303,11 +5603,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_HighlightedColor: {r: 0.192, g: 0.21600002, b: 0.264, a: 1.14}
+    m_PressedColor: {r: 0.128, g: 0.14400001, b: 0.176, a: 0.76}
+    m_SelectedColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_DisabledColor: {r: 0.08, g: 0.09, b: 0.11, a: 0.475}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -5384,6 +5684,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 743996349}
   m_CullTransparentMesh: 1
+--- !u!114 &743996354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743996349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2865f9a0b024e2aa91c30871f3e24a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedDropdown
+  styleSheet: {fileID: 0}
+  backgroundRole: 6
+  labelStyle: 2
+  itemLabelStyle: 2
+  arrowImage: {fileID: 548584355}
 --- !u!1 &805201753
 GameObject:
   m_ObjectHideFlags: 0
@@ -5506,6 +5823,7 @@ GameObject:
   - component: {fileID: 809720224}
   - component: {fileID: 809720223}
   - component: {fileID: 809720222}
+  - component: {fileID: 809720225}
   m_Layer: 0
   m_Name: RememberMeToggle
   m_TagString: Untagged
@@ -5555,11 +5873,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_HighlightedColor: {r: 0.192, g: 0.21600002, b: 0.264, a: 1.14}
+    m_PressedColor: {r: 0.128, g: 0.14400001, b: 0.176, a: 0.76}
+    m_SelectedColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_DisabledColor: {r: 0.08, g: 0.09, b: 0.11, a: 0.475}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -5620,6 +5938,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 809720220}
   m_CullTransparentMesh: 1
+--- !u!114 &809720225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 809720220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb3e457f6532b4a24844db528f888baa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedToggle
+  styleSheet: {fileID: 0}
+  backgroundRole: 5
+  labelStyle: 3
+  label: {fileID: 0}
 --- !u!1 &811686627
 GameObject:
   m_ObjectHideFlags: 0
@@ -5686,8 +6020,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -5704,8 +6038,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5823,8 +6157,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -5841,8 +6175,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -6010,7 +6344,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -6027,8 +6361,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -6140,10 +6474,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_NormalColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
+    m_HighlightedColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+    m_PressedColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+    m_SelectedColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -6302,10 +6636,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_NormalColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
+    m_HighlightedColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+    m_PressedColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+    m_SelectedColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -6598,6 +6932,7 @@ GameObject:
   - component: {fileID: 900974341}
   - component: {fileID: 900974343}
   - component: {fileID: 900974342}
+  - component: {fileID: 900974344}
   m_Layer: 5
   m_Name: Errors
   m_TagString: Untagged
@@ -6653,8 +6988,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4288059135
-  m_fontColor: {r: 1, g: 0.5896226, b: 0.5896226, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -6724,6 +7059,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 900974340}
   m_CullTransparentMesh: 1
+--- !u!114 &900974344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900974340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 11
 --- !u!1 &903453431
 GameObject:
   m_ObjectHideFlags: 0
@@ -6735,6 +7084,7 @@ GameObject:
   - component: {fileID: 903453434}
   - component: {fileID: 903453433}
   - component: {fileID: 903453432}
+  - component: {fileID: 903453435}
   m_Layer: 5
   m_Name: MaxPlayersLabel
   m_TagString: Untagged
@@ -6762,7 +7112,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Variant: '
+  m_text: 'Max players: '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -6789,8 +7139,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -6861,6 +7211,20 @@ RectTransform:
   m_AnchoredPosition: {x: 231, y: -241}
   m_SizeDelta: {x: 235.2652, y: 30.002}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &903453435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 903453431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 2
 --- !u!1 &919625559
 GameObject:
   m_ObjectHideFlags: 0
@@ -6873,6 +7237,7 @@ GameObject:
   - component: {fileID: 919625563}
   - component: {fileID: 919625562}
   - component: {fileID: 919625561}
+  - component: {fileID: 919625564}
   m_Layer: 5
   m_Name: CreateGameButton
   m_TagString: Untagged
@@ -6899,7 +7264,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 300, y: 90}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &919625561
 MonoBehaviour:
@@ -6922,11 +7287,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -6970,7 +7335,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -6995,6 +7360,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919625559}
   m_CullTransparentMesh: 1
+--- !u!114 &919625564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919625559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 0
+  buttonSize: 1
+  styleLabel: 1
 --- !u!1 &948576771
 GameObject:
   m_ObjectHideFlags: 0
@@ -7007,6 +7388,7 @@ GameObject:
   - component: {fileID: 948576775}
   - component: {fileID: 948576774}
   - component: {fileID: 948576773}
+  - component: {fileID: 948576776}
   m_Layer: 5
   m_Name: MaxPlayersDropdown
   m_TagString: Untagged
@@ -7057,11 +7439,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_HighlightedColor: {r: 0.192, g: 0.21600002, b: 0.264, a: 1.14}
+    m_PressedColor: {r: 0.128, g: 0.14400001, b: 0.176, a: 0.76}
+    m_SelectedColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_DisabledColor: {r: 0.08, g: 0.09, b: 0.11, a: 0.475}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -7138,6 +7520,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 948576771}
   m_CullTransparentMesh: 1
+--- !u!114 &948576776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 948576771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2865f9a0b024e2aa91c30871f3e24a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedDropdown
+  styleSheet: {fileID: 0}
+  backgroundRole: 6
+  labelStyle: 2
+  itemLabelStyle: 2
+  arrowImage: {fileID: 348709817}
 --- !u!1 &954671035
 GameObject:
   m_ObjectHideFlags: 0
@@ -7150,6 +7549,7 @@ GameObject:
   - component: {fileID: 954671039}
   - component: {fileID: 954671038}
   - component: {fileID: 954671037}
+  - component: {fileID: 954671040}
   m_Layer: 5
   m_Name: Scrollbar
   m_TagString: Untagged
@@ -7239,7 +7639,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.1, g: 0.12, b: 0.15, a: 0.6}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -7264,6 +7664,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 954671035}
   m_CullTransparentMesh: 1
+--- !u!114 &954671040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 954671035}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58818a9a244534fb5a9b8a043fb88bf1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedScrollbar
+  styleSheet: {fileID: 0}
+  trackRole: 9
+  handleRole: 10
 --- !u!1 &963877141
 GameObject:
   m_ObjectHideFlags: 0
@@ -7428,6 +7843,7 @@ GameObject:
   - component: {fileID: 967879061}
   - component: {fileID: 967879060}
   - component: {fileID: 967879059}
+  - component: {fileID: 967879062}
   m_Layer: 5
   m_Name: RefreshButton
   m_TagString: Untagged
@@ -7453,7 +7869,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 580.00006, y: 420}
-  m_SizeDelta: {x: 160, y: 60}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &967879059
 MonoBehaviour:
@@ -7476,11 +7892,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -7537,6 +7953,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 967879057}
   m_CullTransparentMesh: 1
+--- !u!114 &967879062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 967879057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 3
+  buttonSize: 0
+  styleLabel: 1
 --- !u!1 &972519302
 GameObject:
   m_ObjectHideFlags: 0
@@ -7678,8 +8110,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -7696,8 +8128,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 60
-  m_fontSizeBase: 60
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -7761,6 +8193,7 @@ GameObject:
   - component: {fileID: 975223496}
   - component: {fileID: 975223495}
   - component: {fileID: 975223494}
+  - component: {fileID: 975223497}
   m_Layer: 5
   m_Name: Sign in (Button)
   m_TagString: Untagged
@@ -7786,7 +8219,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 50}
-  m_SizeDelta: {x: 160, y: 30}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &975223494
 MonoBehaviour:
@@ -7809,11 +8242,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -7883,6 +8316,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 975223492}
   m_CullTransparentMesh: 1
+--- !u!114 &975223497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 975223492}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 3
+  buttonSize: 0
+  styleLabel: 1
 --- !u!1 &1009765030
 GameObject:
   m_ObjectHideFlags: 0
@@ -7942,6 +8391,7 @@ GameObject:
   - component: {fileID: 1031496010}
   - component: {fileID: 1031496012}
   - component: {fileID: 1031496011}
+  - component: {fileID: 1031496013}
   m_Layer: 5
   m_Name: MaxPlayersLabel
   m_TagString: Untagged
@@ -8015,8 +8465,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -8068,6 +8518,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1031496009}
   m_CullTransparentMesh: 1
+--- !u!114 &1031496013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1031496009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 2
 --- !u!1 &1034061462
 GameObject:
   m_ObjectHideFlags: 0
@@ -8080,6 +8544,7 @@ GameObject:
   - component: {fileID: 1034061466}
   - component: {fileID: 1034061465}
   - component: {fileID: 1034061464}
+  - component: {fileID: 1034061467}
   m_Layer: 5
   m_Name: Scrollbar
   m_TagString: Untagged
@@ -8169,7 +8634,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.1, g: 0.12, b: 0.15, a: 0.6}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -8194,6 +8659,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1034061462}
   m_CullTransparentMesh: 1
+--- !u!114 &1034061467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034061462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58818a9a244534fb5a9b8a043fb88bf1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedScrollbar
+  styleSheet: {fileID: 0}
+  trackRole: 9
+  handleRole: 10
 --- !u!1 &1047182835
 GameObject:
   m_ObjectHideFlags: 0
@@ -8205,6 +8685,7 @@ GameObject:
   - component: {fileID: 1047182838}
   - component: {fileID: 1047182837}
   - component: {fileID: 1047182836}
+  - component: {fileID: 1047182839}
   m_Layer: 5
   m_Name: VariantLabel
   m_TagString: Untagged
@@ -8259,8 +8740,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -8331,6 +8812,20 @@ RectTransform:
   m_AnchoredPosition: {x: 231, y: -197}
   m_SizeDelta: {x: 235.2652, y: 30.002}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &1047182839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1047182835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 2
 --- !u!1 &1076150110
 GameObject:
   m_ObjectHideFlags: 0
@@ -8456,7 +8951,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.45, g: 0.48, b: 0.55, a: 0.9}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -8582,6 +9077,7 @@ GameObject:
   - component: {fileID: 1093875820}
   - component: {fileID: 1093875822}
   - component: {fileID: 1093875821}
+  - component: {fileID: 1093875823}
   m_Layer: 5
   m_Name: InfoText
   m_TagString: Untagged
@@ -8655,8 +9151,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 64
-  m_fontSizeBase: 64
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -8708,6 +9204,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1093875819}
   m_CullTransparentMesh: 1
+--- !u!114 &1093875823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093875819}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 0
 --- !u!1 &1098313700
 GameObject:
   m_ObjectHideFlags: 0
@@ -8947,6 +9457,7 @@ GameObject:
   - component: {fileID: 1129454121}
   - component: {fileID: 1129454120}
   - component: {fileID: 1129454119}
+  - component: {fileID: 1129454123}
   m_Layer: 5
   m_Name: StrartGameButton
   m_TagString: Untagged
@@ -8975,11 +9486,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -9054,8 +9565,24 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 220, y: -229}
-  m_SizeDelta: {x: 300, y: 80}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1129454123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1129454118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 0
+  buttonSize: 1
+  styleLabel: 1
 --- !u!1 &1151884795
 GameObject:
   m_ObjectHideFlags: 0
@@ -9069,6 +9596,7 @@ GameObject:
   - component: {fileID: 1151884798}
   - component: {fileID: 1151884796}
   - component: {fileID: 1151884801}
+  - component: {fileID: 1151884802}
   m_Layer: 5
   m_Name: WaitingRoomPanel
   m_TagString: Untagged
@@ -9101,7 +9629,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9147,6 +9675,7 @@ RectTransform:
   - {fileID: 1446620749}
   - {fileID: 1746995281}
   - {fileID: 1936831373}
+  - {fileID: 512842833}
   m_Father: {fileID: 805201757}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -9167,7 +9696,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonopolyGame.Multiplayer.UI.LobbyWaitingRoomPresenter
   lobbyNameText: {fileID: 1936831371}
-  roleBadgeText: {fileID: 0}
+  roleBadgeText: {fileID: 512842830}
   variantText: {fileID: 1047182836}
   maxPlayersText: {fileID: 903453432}
   privateStatusText: {fileID: 1446620747}
@@ -9179,6 +9708,22 @@ MonoBehaviour:
   leaveLobbyButton: {fileID: 272087133}
   uiCommands: {fileID: 1476316968}
   coordinator: {fileID: 90336227}
+--- !u!114 &1151884802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1151884795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 0
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &1164896469
 GameObject:
   m_ObjectHideFlags: 0
@@ -9328,7 +9873,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -9345,8 +9890,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -9409,6 +9954,7 @@ GameObject:
   - component: {fileID: 1199366855}
   - component: {fileID: 1199366857}
   - component: {fileID: 1199366856}
+  - component: {fileID: 1199366858}
   m_Layer: 5
   m_Name: Instructions
   m_TagString: Untagged
@@ -9482,8 +10028,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -9535,6 +10081,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1199366854}
   m_CullTransparentMesh: 1
+--- !u!114 &1199366858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1199366854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 3
 --- !u!1 &1235987630
 GameObject:
   m_ObjectHideFlags: 0
@@ -9548,6 +10108,7 @@ GameObject:
   - component: {fileID: 1235987633}
   - component: {fileID: 1235987635}
   - component: {fileID: 1235987636}
+  - component: {fileID: 1235987637}
   m_Layer: 5
   m_Name: CreateLobbyPanel
   m_TagString: Untagged
@@ -9597,7 +10158,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9649,11 +10210,27 @@ MonoBehaviour:
   gameNameInput: {fileID: 583575278}
   maxPlayersDropdown: {fileID: 948576773}
   variantDropdown: {fileID: 1871505813}
-  privacyDropdown: {fileID: 0}
+  privacyDropdown: {fileID: 743996351}
   passwordInput: {fileID: 0}
   createButton: {fileID: 1586798739}
   errorText: {fileID: 900974342}
   uiCommands: {fileID: 1476316968}
+--- !u!114 &1235987637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1235987630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 0
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &1262165938
 GameObject:
   m_ObjectHideFlags: 0
@@ -9805,6 +10382,7 @@ GameObject:
   - component: {fileID: 1309746544}
   - component: {fileID: 1309746546}
   - component: {fileID: 1309746547}
+  - component: {fileID: 1309746548}
   m_Layer: 5
   m_Name: LobbyBrowserPanel
   m_TagString: Untagged
@@ -9847,7 +10425,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9903,6 +10481,22 @@ MonoBehaviour:
   sortDropdown: {fileID: 1452124108}
   uiCommands: {fileID: 1476316968}
   coordinator: {fileID: 90336227}
+--- !u!114 &1309746548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1309746541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 0
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &1313098966
 GameObject:
   m_ObjectHideFlags: 0
@@ -9991,6 +10585,7 @@ GameObject:
   - component: {fileID: 1340761904}
   - component: {fileID: 1340761906}
   - component: {fileID: 1340761907}
+  - component: {fileID: 1340761908}
   m_Layer: 5
   m_Name: JoinByCodePanel
   m_TagString: Untagged
@@ -10033,7 +10628,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -10086,6 +10681,22 @@ MonoBehaviour:
   joinButton: {fileID: 1457122273}
   instructionText: {fileID: 1199366856}
   uiCommands: {fileID: 1476316968}
+--- !u!114 &1340761908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1340761901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 0
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &1349765446
 GameObject:
   m_ObjectHideFlags: 0
@@ -10200,6 +10811,7 @@ GameObject:
   - component: {fileID: 1363385378}
   - component: {fileID: 1363385379}
   - component: {fileID: 1363385380}
+  - component: {fileID: 1363385381}
   m_Layer: 5
   m_Name: AuthPanel
   m_TagString: Untagged
@@ -10247,7 +10859,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -10317,6 +10929,22 @@ MonoBehaviour:
   sectionRoot: {fileID: 1720459489}
   uiCommands: {fileID: 1476316968}
   rememberToggle: {fileID: 809720222}
+--- !u!114 &1363385381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1363385374}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 0
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &1407153528
 GameObject:
   m_ObjectHideFlags: 0
@@ -10383,8 +11011,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -10401,8 +11029,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -10466,6 +11094,7 @@ GameObject:
   - component: {fileID: 1412506733}
   - component: {fileID: 1412506732}
   - component: {fileID: 1412506731}
+  - component: {fileID: 1412506734}
   m_Layer: 5
   m_Name: CodeInputField
   m_TagString: Untagged
@@ -10577,9 +11206,9 @@ MonoBehaviour:
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_CaretColor: {r: 1, g: 1, b: 1, a: 1}
   m_CustomCaretColor: 0
-  m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
+  m_SelectionColor: {r: 0.22, g: 0.52, b: 0.92, a: 0.35}
   m_Text: 
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
@@ -10608,7 +11237,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -10633,6 +11262,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1412506729}
   m_CullTransparentMesh: 1
+--- !u!114 &1412506734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1412506729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2aa3d14516d1f4c39856a47fbbc1e12e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedInputField
+  styleSheet: {fileID: 0}
+  backgroundRole: 5
+  textStyle: 2
+  placeholderStyle: 4
 --- !u!1 &1420210934
 GameObject:
   m_ObjectHideFlags: 0
@@ -10683,7 +11328,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.76, g: 1, b: 0.76, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -10842,6 +11487,7 @@ GameObject:
   - component: {fileID: 1446620749}
   - component: {fileID: 1446620748}
   - component: {fileID: 1446620747}
+  - component: {fileID: 1446620750}
   m_Layer: 5
   m_Name: PrivacyLabel
   m_TagString: Untagged
@@ -10869,7 +11515,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Variant: '
+  m_text: 'Privacy: '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -10896,8 +11542,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -10968,6 +11614,20 @@ RectTransform:
   m_AnchoredPosition: {x: 231, y: -290}
   m_SizeDelta: {x: 235.2652, y: 30.002}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &1446620750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446620746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 2
 --- !u!1 &1452124106
 GameObject:
   m_ObjectHideFlags: 0
@@ -10980,6 +11640,7 @@ GameObject:
   - component: {fileID: 1452124110}
   - component: {fileID: 1452124109}
   - component: {fileID: 1452124108}
+  - component: {fileID: 1452124111}
   m_Layer: 5
   m_Name: SortDropdown
   m_TagString: Untagged
@@ -11030,11 +11691,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_HighlightedColor: {r: 0.192, g: 0.21600002, b: 0.264, a: 1.14}
+    m_PressedColor: {r: 0.128, g: 0.14400001, b: 0.176, a: 0.76}
+    m_SelectedColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_DisabledColor: {r: 0.08, g: 0.09, b: 0.11, a: 0.475}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -11111,6 +11772,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1452124106}
   m_CullTransparentMesh: 1
+--- !u!114 &1452124111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1452124106}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2865f9a0b024e2aa91c30871f3e24a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedDropdown
+  styleSheet: {fileID: 0}
+  backgroundRole: 6
+  labelStyle: 2
+  itemLabelStyle: 2
+  arrowImage: {fileID: 1877657175}
 --- !u!1 &1455143237
 GameObject:
   m_ObjectHideFlags: 0
@@ -11123,6 +11801,7 @@ GameObject:
   - component: {fileID: 1455143241}
   - component: {fileID: 1455143240}
   - component: {fileID: 1455143239}
+  - component: {fileID: 1455143242}
   m_Layer: 5
   m_Name: Scrollbar
   m_TagString: Untagged
@@ -11212,7 +11891,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.1, g: 0.12, b: 0.15, a: 0.6}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -11237,6 +11916,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1455143237}
   m_CullTransparentMesh: 1
+--- !u!114 &1455143242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1455143237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58818a9a244534fb5a9b8a043fb88bf1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedScrollbar
+  styleSheet: {fileID: 0}
+  trackRole: 9
+  handleRole: 10
 --- !u!1 &1457122271
 GameObject:
   m_ObjectHideFlags: 0
@@ -11249,6 +11943,7 @@ GameObject:
   - component: {fileID: 1457122275}
   - component: {fileID: 1457122274}
   - component: {fileID: 1457122273}
+  - component: {fileID: 1457122276}
   m_Layer: 5
   m_Name: JoinLobbyButtun
   m_TagString: Untagged
@@ -11275,7 +11970,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 200.00006, y: 0}
-  m_SizeDelta: {x: 100, y: 60}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1457122273
 MonoBehaviour:
@@ -11298,11 +11993,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0, g: 0, b: 0, a: 1}
-    m_HighlightedColor: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 1}
-    m_PressedColor: {r: 0, g: 0, b: 0, a: 1}
-    m_SelectedColor: {r: 0.2924528, g: 0.2924528, b: 0.2924528, a: 1}
-    m_DisabledColor: {r: 0.4716981, g: 0, b: 0, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -11359,6 +12054,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1457122271}
   m_CullTransparentMesh: 1
+--- !u!114 &1457122276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1457122271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 0
+  buttonSize: 0
+  styleLabel: 1
 --- !u!1 &1468866185
 GameObject:
   m_ObjectHideFlags: 0
@@ -11426,7 +12137,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -11443,8 +12154,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -11508,6 +12219,7 @@ GameObject:
   - component: {fileID: 1471101714}
   - component: {fileID: 1471101713}
   - component: {fileID: 1471101712}
+  - component: {fileID: 1471101715}
   m_Layer: 5
   m_Name: Scrollbar
   m_TagString: Untagged
@@ -11597,7 +12309,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.1, g: 0.12, b: 0.15, a: 0.6}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -11622,6 +12334,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1471101710}
   m_CullTransparentMesh: 1
+--- !u!114 &1471101715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1471101710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58818a9a244534fb5a9b8a043fb88bf1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedScrollbar
+  styleSheet: {fileID: 0}
+  trackRole: 9
+  handleRole: 10
 --- !u!1 &1471913168
 GameObject:
   m_ObjectHideFlags: 0
@@ -11706,8 +12433,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 35
-  m_fontSizeBase: 35
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -11883,8 +12610,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -11901,8 +12628,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -12018,6 +12745,7 @@ GameObject:
   - component: {fileID: 1586798741}
   - component: {fileID: 1586798740}
   - component: {fileID: 1586798739}
+  - component: {fileID: 1586798742}
   m_Layer: 5
   m_Name: CreateLobbyButton
   m_TagString: Untagged
@@ -12043,7 +12771,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -98}
-  m_SizeDelta: {x: 160, y: 30}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1586798739
 MonoBehaviour:
@@ -12066,11 +12794,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -12127,6 +12855,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1586798737}
   m_CullTransparentMesh: 1
+--- !u!114 &1586798742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1586798737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 0
+  buttonSize: 0
+  styleLabel: 1
 --- !u!1 &1676136963
 GameObject:
   m_ObjectHideFlags: 0
@@ -12214,8 +12958,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 2150773298
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 0.5}
+    rgba: 4289111718
+  m_fontColor: {r: 0.65, g: 0.65, b: 0.65, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -12232,8 +12976,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 14
+  m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -12427,6 +13171,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
   styleSheet: {fileID: 0}
   imageRole: 2
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!114 &1720459492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12640,7 +13386,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -12657,8 +13403,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -12721,6 +13467,7 @@ GameObject:
   - component: {fileID: 1746995281}
   - component: {fileID: 1746995283}
   - component: {fileID: 1746995282}
+  - component: {fileID: 1746995284}
   m_Layer: 5
   m_Name: PlaySlotsInfo
   m_TagString: Untagged
@@ -12794,8 +13541,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 45
-  m_fontSizeBase: 45
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -12847,6 +13594,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1746995280}
   m_CullTransparentMesh: 1
+--- !u!114 &1746995284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1746995280}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 1
 --- !u!1 &1748484191
 GameObject:
   m_ObjectHideFlags: 0
@@ -12913,8 +13674,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -12931,8 +13692,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -13073,8 +13834,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 2150773298
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 0.5}
+    rgba: 4289111718
+  m_fontColor: {r: 0.65, g: 0.65, b: 0.65, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -13204,10 +13965,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_NormalColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
+    m_HighlightedColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+    m_PressedColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+    m_SelectedColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -13242,6 +14003,7 @@ GameObject:
   - component: {fileID: 1799751173}
   - component: {fileID: 1799751175}
   - component: {fileID: 1799751174}
+  - component: {fileID: 1799751176}
   m_Layer: 5
   m_Name: NoLObbiesFoundText
   m_TagString: Untagged
@@ -13315,8 +14077,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -13368,6 +14130,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1799751172}
   m_CullTransparentMesh: 1
+--- !u!114 &1799751176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1799751172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 4
 --- !u!1 &1805148509
 GameObject:
   m_ObjectHideFlags: 0
@@ -13379,6 +14155,7 @@ GameObject:
   - component: {fileID: 1805148510}
   - component: {fileID: 1805148512}
   - component: {fileID: 1805148511}
+  - component: {fileID: 1805148513}
   m_Layer: 5
   m_Name: PrivateInfo
   m_TagString: Untagged
@@ -13452,8 +14229,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -13505,6 +14282,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1805148509}
   m_CullTransparentMesh: 1
+--- !u!114 &1805148513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1805148509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 2
 --- !u!1 &1832825177
 GameObject:
   m_ObjectHideFlags: 0
@@ -13553,6 +14344,7 @@ GameObject:
   - component: {fileID: 1871505815}
   - component: {fileID: 1871505814}
   - component: {fileID: 1871505813}
+  - component: {fileID: 1871505816}
   m_Layer: 5
   m_Name: VariantDropdown
   m_TagString: Untagged
@@ -13603,11 +14395,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_HighlightedColor: {r: 0.192, g: 0.21600002, b: 0.264, a: 1.14}
+    m_PressedColor: {r: 0.128, g: 0.14400001, b: 0.176, a: 0.76}
+    m_SelectedColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+    m_DisabledColor: {r: 0.08, g: 0.09, b: 0.11, a: 0.475}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -13684,6 +14476,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1871505811}
   m_CullTransparentMesh: 1
+--- !u!114 &1871505816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1871505811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2865f9a0b024e2aa91c30871f3e24a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedDropdown
+  styleSheet: {fileID: 0}
+  backgroundRole: 6
+  labelStyle: 2
+  itemLabelStyle: 2
+  arrowImage: {fileID: 569242688}
 --- !u!1 &1877657173
 GameObject:
   m_ObjectHideFlags: 0
@@ -13734,7 +14543,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.82, g: 0.82, b: 0.82, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -13771,6 +14580,7 @@ GameObject:
   - component: {fileID: 1896940242}
   - component: {fileID: 1896940241}
   - component: {fileID: 1896940239}
+  - component: {fileID: 1896940243}
   m_Layer: 5
   m_Name: LoadingOverlay
   m_TagString: Untagged
@@ -13822,7 +14632,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -13847,6 +14657,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1896940237}
   m_CullTransparentMesh: 1
+--- !u!114 &1896940243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1896940237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 3
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &1929082497
 GameObject:
   m_ObjectHideFlags: 0
@@ -13859,6 +14685,7 @@ GameObject:
   - component: {fileID: 1929082501}
   - component: {fileID: 1929082500}
   - component: {fileID: 1929082499}
+  - component: {fileID: 1929082502}
   m_Layer: 5
   m_Name: BrowseGamesButton
   m_TagString: Untagged
@@ -13885,7 +14712,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 200}
-  m_SizeDelta: {x: 300, y: 90}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1929082499
 MonoBehaviour:
@@ -13908,11 +14735,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -13956,7 +14783,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -13981,6 +14808,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1929082497}
   m_CullTransparentMesh: 1
+--- !u!114 &1929082502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929082497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 3
+  buttonSize: 1
+  styleLabel: 1
 --- !u!1 &1936831370
 GameObject:
   m_ObjectHideFlags: 0
@@ -13992,6 +14835,7 @@ GameObject:
   - component: {fileID: 1936831373}
   - component: {fileID: 1936831372}
   - component: {fileID: 1936831371}
+  - component: {fileID: 1936831374}
   m_Layer: 5
   m_Name: LobbyName
   m_TagString: Untagged
@@ -14046,8 +14890,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 64
-  m_fontSizeBase: 64
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -14118,6 +14962,20 @@ RectTransform:
   m_AnchoredPosition: {x: 0.00012207031, y: 0}
   m_SizeDelta: {x: 600, y: 150}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &1936831374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936831370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 0
 --- !u!1 &1938474952
 GameObject:
   m_ObjectHideFlags: 0
@@ -14295,8 +15153,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -14313,8 +15171,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 14
-  m_fontSizeBase: 14
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -14378,6 +15236,7 @@ GameObject:
   - component: {fileID: 2005478084}
   - component: {fileID: 2005478083}
   - component: {fileID: 2005478082}
+  - component: {fileID: 2005478085}
   m_Layer: 5
   m_Name: Username (Input Field)
   m_TagString: Untagged
@@ -14501,9 +15360,9 @@ MonoBehaviour:
   m_OnTouchScreenKeyboardStatusChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_CaretColor: {r: 1, g: 1, b: 1, a: 1}
   m_CustomCaretColor: 0
-  m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
+  m_SelectionColor: {r: 0.22, g: 0.52, b: 0.92, a: 0.35}
   m_Text: 
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
@@ -14532,7 +15391,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -14557,6 +15416,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2005478080}
   m_CullTransparentMesh: 1
+--- !u!114 &2005478085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2005478080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2aa3d14516d1f4c39856a47fbbc1e12e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedInputField
+  styleSheet: {fileID: 0}
+  backgroundRole: 5
+  textStyle: 2
+  placeholderStyle: 4
 --- !u!1 &2013136978
 GameObject:
   m_ObjectHideFlags: 0
@@ -14659,6 +15534,7 @@ GameObject:
   - component: {fileID: 2066190204}
   - component: {fileID: 2066190203}
   - component: {fileID: 2066190202}
+  - component: {fileID: 2066190205}
   m_Layer: 5
   m_Name: Log in (Button)
   m_TagString: Untagged
@@ -14684,7 +15560,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 100}
-  m_SizeDelta: {x: 160, y: 30}
+  m_SizeDelta: {x: 180, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2066190202
 MonoBehaviour:
@@ -14707,11 +15583,11 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_HighlightedColor: {r: 0.264, g: 0.624, b: 1.1040001, a: 1.2}
+    m_PressedColor: {r: 0.176, g: 0.41599998, b: 0.736, a: 0.8}
+    m_SelectedColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
+    m_DisabledColor: {r: 0.11, g: 0.26, b: 0.46, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -14781,6 +15657,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2066190200}
   m_CullTransparentMesh: 1
+--- !u!114 &2066190205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066190200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cb2369561dfc4ce4aa0f45d6b497e8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedButton
+  styleSheet: {fileID: 0}
+  buttonRole: 0
+  buttonSize: 0
+  styleLabel: 1
 --- !u!1 &2083215781
 GameObject:
   m_ObjectHideFlags: 0
@@ -15065,6 +15957,7 @@ GameObject:
   - component: {fileID: 2132470966}
   - component: {fileID: 2132470968}
   - component: {fileID: 2132470967}
+  - component: {fileID: 2132470969}
   m_Layer: 5
   m_Name: error field
   m_TagString: Untagged
@@ -15105,7 +15998,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -15130,6 +16023,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2132470965}
   m_CullTransparentMesh: 1
+--- !u!114 &2132470969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132470965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 11
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &2136186727
 GameObject:
   m_ObjectHideFlags: 0
