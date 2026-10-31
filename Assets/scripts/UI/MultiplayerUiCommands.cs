@@ -67,6 +67,7 @@ namespace MonopolyGame.Multiplayer.UI
         public void SetPassword(string value) => password = value;
         public void SetDisplayName(string value) => displayName = value;
         public void SetRemember(bool value) => remember = value;
+        public bool Remember => remember;
         public void SetLobbyName(string value) => lobbyName = value;
         public void SetLobbyCode(string value) => lobbyCode = value;
 
