@@ -62,11 +62,16 @@ namespace MonopolyGame.Multiplayer
             DontDestroyOnLoad(networkManager.gameObject);
 
             var relayClient = new RelayClient();
+            var authClient = new AuthClient();
+            var automaticLogin = new AutomaticLoginService(
+                new PlayerPrefsRememberedAccountStore(),
+                authClient);
             flowCoordinator.InjectDependencies(
-                new AuthClient(),
+                authClient,
                 new LobbyClient(),
                 relayClient,
-                new RelayTransportService(relayClient));
+                new RelayTransportService(relayClient),
+                automaticLogin);
             flowCoordinator.AssignNetworkManager(networkManager);
         }
     }

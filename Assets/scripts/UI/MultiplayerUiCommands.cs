@@ -15,6 +15,7 @@ namespace MonopolyGame.Multiplayer.UI
         [SerializeField] private string username;
         [SerializeField] private string password;
         [SerializeField] private string displayName;
+        [SerializeField] private bool remember = true;
         [SerializeField] private string lobbyName;
         [SerializeField] private string lobbyCode;
         [SerializeField] private int maxPlayers = 4;
@@ -65,6 +66,8 @@ namespace MonopolyGame.Multiplayer.UI
         public void SetUsername(string value) => username = value;
         public void SetPassword(string value) => password = value;
         public void SetDisplayName(string value) => displayName = value;
+        public void SetRemember(bool value) => remember = value;
+        public bool Remember => remember;
         public void SetLobbyName(string value) => lobbyName = value;
         public void SetLobbyCode(string value) => lobbyCode = value;
 
@@ -85,9 +88,9 @@ namespace MonopolyGame.Multiplayer.UI
 
         public void Initialize() => Run(coordinator.InitializeAsync);
 
-        public void SignIn() => Run(() => coordinator.SignInAsync(username, password));
+        public void SignIn() => Run(() => coordinator.SignInAsync(username, password, remember));
 
-        public void SignUp() => Run(() => coordinator.SignUpAsync(username, password, displayName));
+        public void SignUp() => Run(() => coordinator.SignUpAsync(username, password, displayName, remember));
 
         public void SetName() => Run(() => coordinator.SetDisplayNameAsync(displayName));
 

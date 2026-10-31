@@ -102,6 +102,9 @@ InitTestScene*.unity*
 # AI instructions — local only, do not commit
 .github/copilot-instructions.md
 
+# Local AI/MCP tooling — local only, do not commit
+/.gladekit/
+/.vscode/mcp.json
 
 .idea/
 .vsconfig

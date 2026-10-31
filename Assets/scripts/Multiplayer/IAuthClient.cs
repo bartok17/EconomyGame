@@ -12,5 +12,10 @@ namespace MonopolyGame.Multiplayer
         Task SignInAsync(string username, string password);
         Task SetDisplayNameAsync(string displayName);
         void SignOut();
+
+        void SetProfile(string profile);
+        bool HasCachedSession(string profile);
+        Task<bool> TryRestoreSessionAsync(string profile);
+        void ClearSession(string profile);
     }
 }

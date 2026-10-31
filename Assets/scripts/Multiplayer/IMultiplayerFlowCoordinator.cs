@@ -13,8 +13,10 @@ namespace MonopolyGame.Multiplayer
         string LocalDisplayName { get; }
         bool IsLocalPlayerHost { get; }
         LobbySnapshot CurrentLobbySnapshot { get; }
+        IReadOnlyList<RememberedAccount> RememberedAccounts { get; }
 
         event Action<MultiplayerStatus> StatusChanged;
+        event Action<IReadOnlyList<RememberedAccount>> RememberedAccountsChanged;
         event Action<string, string> SignedIn;
         event Action<IReadOnlyList<LobbySummary>> LobbyListUpdated;
         event Action<LobbySnapshot> LobbyJoined;
@@ -25,8 +27,10 @@ namespace MonopolyGame.Multiplayer
         event Action<MultiplayerError> ErrorOccurred;
 
         Task InitializeAsync();
-        Task SignUpAsync(string username, string password, string displayName);
-        Task SignInAsync(string username, string password);
+        Task SignUpAsync(string username, string password, string displayName, bool remember = false);
+        Task SignInAsync(string username, string password, bool remember = false);
+        Task TrySignInRememberedAsync(string accountId);
+        void ForgetRememberedAccount(string accountId);
         Task SetDisplayNameAsync(string displayName);
         void SignOut();
         Task QueryLobbiesAsync(int maxResults = 25);
