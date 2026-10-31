@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4776511555311155082}
   - component: {fileID: 1638616133823726150}
   - component: {fileID: 3283506515999312664}
+  - component: {fileID: 4668277170704455205}
   m_Layer: 5
   m_Name: Image
   m_TagString: Untagged
@@ -58,7 +59,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3679245, g: 0.3175952, b: 0.3175952, a: 1}
+  m_Color: {r: 0.86, g: 0.3, b: 0.3, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -75,6 +76,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4668277170704455205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 313210487465181545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 4
+  usePlayerColor: 1
+  playerColorRole: 0
 --- !u!1 &1016767999168628266
 GameObject:
   m_ObjectHideFlags: 0
@@ -162,6 +179,7 @@ GameObject:
   - component: {fileID: 5866416593185258607}
   - component: {fileID: 8857716284272145249}
   - component: {fileID: -3246590267153020760}
+  - component: {fileID: 7152389113961983272}
   m_Layer: 5
   m_Name: PlayerSlotItem
   m_TagString: Untagged
@@ -213,7 +231,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 0.1, g: 0.12, b: 0.15, a: 0.88}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -246,6 +264,22 @@ MonoBehaviour:
   avatarImage: {fileID: 0}
   readyStatusText: {fileID: 6030643845303862310}
   emptySlotPlaceholder: {fileID: 313210487465181545}
+--- !u!114 &7152389113961983272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1986319719794938535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 1
+  usePlayerColor: 0
+  playerColorRole: 0
 --- !u!1 &3084603617583168809
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,6 +291,7 @@ GameObject:
   - component: {fileID: 4595099923212828471}
   - component: {fileID: 1847182679728660596}
   - component: {fileID: 6030643845303862310}
+  - component: {fileID: -6674783944641707212}
   m_Layer: 5
   m_Name: ReadyStatus
   m_TagString: Untagged
@@ -321,7 +356,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 0.82, g: 0.82, b: 0.82, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -338,8 +373,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 16
+  m_fontSizeBase: 16
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -383,6 +418,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &-6674783944641707212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3084603617583168809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 3
 --- !u!1 &6474169395880960339
 GameObject:
   m_ObjectHideFlags: 0
@@ -394,6 +443,7 @@ GameObject:
   - component: {fileID: 878757885462160312}
   - component: {fileID: 700953420711086897}
   - component: {fileID: 2227995381931084792}
+  - component: {fileID: 7911111755717526883}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -475,8 +525,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -520,3 +570,17 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7911111755717526883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6474169395880960339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d9f08ff81814a6988235f89a850391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedText
+  styleSheet: {fileID: 0}
+  textStyle: 2
