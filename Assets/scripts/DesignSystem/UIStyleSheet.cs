@@ -14,7 +14,9 @@ namespace MonopolyGame.DesignSystem
         Warning,
         Balance,
         Property,
-        Dice
+        Dice,
+        Error,
+        Info
     }
 
     public enum ButtonRole
@@ -37,7 +39,15 @@ namespace MonopolyGame.DesignSystem
         PanelBackground,
         CardBackground,
         CardSurface,
-        Overlay
+        Overlay,
+        Icon,
+        InputBackground,
+        DropdownBackground,
+        DropdownItemBackground,
+        DropdownItemHighlight,
+        ScrollbarTrack,
+        ScrollbarHandle,
+        ErrorBanner
     }
 
     public enum PlayerColorRole
@@ -80,6 +90,17 @@ namespace MonopolyGame.DesignSystem
         [SerializeField] private Color infoNotificationColor    = new(0.52f, 0.73f, 0.94f);
         [SerializeField] private Color errorNotificationColor   = new(0.94f, 0.35f, 0.35f);
 
+        [Header("Input Colors")]
+        [SerializeField] private Color inputTextColor        = new(1.00f, 1.00f, 1.00f);
+        [SerializeField] private Color inputPlaceholderColor = new(0.65f, 0.65f, 0.65f, 0.80f);
+        [SerializeField] private Color caretColor            = new(1.00f, 1.00f, 1.00f);
+        [SerializeField] private Color selectionColor        = new(0.22f, 0.52f, 0.92f, 0.35f);
+
+        [Header("Widget Colors")]
+        [SerializeField] private Color toggleCheckmarkColor     = new(0.76f, 1.00f, 0.76f);
+        [SerializeField] private Color dropdownArrowColor       = new(0.82f, 0.82f, 0.82f);
+        [SerializeField] private float buttonDisabledMultiplier = 0.5f;
+
         [Header("Text Sizes")]
         [SerializeField] private float titleSize    = 22f;
         [SerializeField] private float headingSize  = 20f;
@@ -92,6 +113,8 @@ namespace MonopolyGame.DesignSystem
         [SerializeField] private float balanceSize  = 20f;
         [SerializeField] private float propertySize = 18f;
         [SerializeField] private float diceSize     = 20f;
+        [SerializeField] private float errorSize    = 16f;
+        [SerializeField] private float infoSize     = 16f;
 
         [Header("Button Colors")]
         [SerializeField] private Color buttonPrimaryColor = new(0.22f, 0.52f, 0.92f);
@@ -116,6 +139,14 @@ namespace MonopolyGame.DesignSystem
         [SerializeField] private Color cardBackgroundColor  = new(0.10f, 0.12f, 0.15f, 0.88f);
         [SerializeField] private Color cardSurfaceColor     = new(0.14f, 0.16f, 0.20f, 0.92f);
         [SerializeField] private Color overlayColor         = new(0.00f, 0.00f, 0.00f, 0.60f);
+        [SerializeField] private Color iconColor                   = new(1.00f, 1.00f, 1.00f);
+        [SerializeField] private Color inputBackgroundColor        = new(0.16f, 0.18f, 0.22f, 0.95f);
+        [SerializeField] private Color dropdownBackgroundColor     = new(0.16f, 0.18f, 0.22f, 0.95f);
+        [SerializeField] private Color dropdownItemBackgroundColor = new(0.12f, 0.14f, 0.18f, 1.00f);
+        [SerializeField] private Color dropdownItemHighlightColor  = new(0.22f, 0.26f, 0.34f, 1.00f);
+        [SerializeField] private Color scrollbarTrackColor         = new(0.10f, 0.12f, 0.15f, 0.60f);
+        [SerializeField] private Color scrollbarHandleColor        = new(0.45f, 0.48f, 0.55f, 0.90f);
+        [SerializeField] private Color errorBannerColor            = new(0.45f, 0.10f, 0.10f, 0.90f);
 
         [Header("Player Colors")]
         [SerializeField] private Color player1Color = new(0.86f, 0.30f, 0.30f);
@@ -153,6 +184,8 @@ namespace MonopolyGame.DesignSystem
             TextStyle.Balance  => balanceColor,
             TextStyle.Property => propertyColor,
             TextStyle.Dice     => diceColor,
+            TextStyle.Error    => errorNotificationColor,
+            TextStyle.Info     => infoNotificationColor,
             _                  => bodyColor
         };
 
@@ -169,6 +202,8 @@ namespace MonopolyGame.DesignSystem
             TextStyle.Balance  => balanceSize,
             TextStyle.Property => propertySize,
             TextStyle.Dice     => diceSize,
+            TextStyle.Error    => errorSize,
+            TextStyle.Info     => infoSize,
             _                  => bodySize
         };
 
@@ -201,14 +236,23 @@ namespace MonopolyGame.DesignSystem
         public float ButtonFontSize            => buttonFontSize;
         public float ButtonHighlightMultiplier => buttonHighlightMultiplier;
         public float ButtonPressedMultiplier   => buttonPressedMultiplier;
+        public float ButtonDisabledMultiplier  => buttonDisabledMultiplier;
 
         public Color GetImageColor(ImageRole role) => role switch
         {
-            ImageRole.PanelBackground => panelBackgroundColor,
-            ImageRole.CardBackground  => cardBackgroundColor,
-            ImageRole.CardSurface     => cardSurfaceColor,
-            ImageRole.Overlay         => overlayColor,
-            _                         => panelBackgroundColor
+            ImageRole.PanelBackground           => panelBackgroundColor,
+            ImageRole.CardBackground            => cardBackgroundColor,
+            ImageRole.CardSurface               => cardSurfaceColor,
+            ImageRole.Overlay                   => overlayColor,
+            ImageRole.Icon                      => iconColor,
+            ImageRole.InputBackground           => inputBackgroundColor,
+            ImageRole.DropdownBackground        => dropdownBackgroundColor,
+            ImageRole.DropdownItemBackground    => dropdownItemBackgroundColor,
+            ImageRole.DropdownItemHighlight     => dropdownItemHighlightColor,
+            ImageRole.ScrollbarTrack            => scrollbarTrackColor,
+            ImageRole.ScrollbarHandle           => scrollbarHandleColor,
+            ImageRole.ErrorBanner               => errorBannerColor,
+            _                                   => panelBackgroundColor
         };
 
         public Color GetPlayerColor(PlayerColorRole role) => role switch
@@ -223,6 +267,13 @@ namespace MonopolyGame.DesignSystem
         public Color InfoNotificationColor  => infoNotificationColor;
         public Color ErrorNotificationColor => errorNotificationColor;
 
+        public Color InputTextColor        => inputTextColor;
+        public Color InputPlaceholderColor => inputPlaceholderColor;
+        public Color CaretColor            => caretColor;
+        public Color SelectionColor        => selectionColor;
+        public Color ToggleCheckmarkColor  => toggleCheckmarkColor;
+        public Color DropdownArrowColor    => dropdownArrowColor;
+
         public float GetSpacing(SpacingScale scale) => scale switch
         {
             SpacingScale.Tight      => spacingTight,
@@ -236,6 +287,7 @@ namespace MonopolyGame.DesignSystem
         public float PanelHorizontalPadding => panelHorizontalPadding;
         public float ElementSpacing         => elementSpacing;
         public float ButtonRowSpacing       => buttonRowSpacing;
-        public RectOffset PanelPadding      => panelPadding;
+        public RectOffset PanelPadding      =>
+            new(panelPadding.left, panelPadding.right, panelPadding.top, panelPadding.bottom);
     }
 }
