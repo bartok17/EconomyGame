@@ -228,7 +228,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             _economy.UpdatePlayerState(pawn.PawnSlot, economy.WithBalance(economy.Balance - space.Price));
             _economy.UpdatePropertyState(spaceIndex, new PropertyOwnershipState(spaceIndex, pawn.PawnSlot, pawn.PlayerId, pawn.DisplayName));
 
-            boardManager.SetSpaceOwner(spaceIndex, pawn.PlayerId);
+            boardManager.SetSpaceOwner(spaceIndex, pawn.PlayerId, pawn.PawnSlot);
             _pendingPurchaseSpaceIndexNet.Value = -1;
 
             SetEconomyMessage($"{pawn.DisplayName} bought {space.DisplayName} for {space.Price}.");
