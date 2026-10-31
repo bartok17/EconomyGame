@@ -106,6 +106,9 @@ InitTestScene*.unity*
 /.gladekit/
 /.vscode/mcp.json
 
+# Local work plans — local only, never commit
+/Docs/local/
+
 .idea/
 .vsconfig
 *.choices
