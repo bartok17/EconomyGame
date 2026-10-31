@@ -1,0 +1,20 @@
+{
+    "name": "MonopolyGame.Multiplayer.Editor",
+    "rootNamespace": "MonopolyGame.Multiplayer.Editor",
+    "references": [
+        "MonopolyGame.Core",
+        "MonopolyGame.Multiplayer",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
