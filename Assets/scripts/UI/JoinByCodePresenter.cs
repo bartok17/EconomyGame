@@ -1,3 +1,5 @@
+using MonopolyGame.DesignSystem;
+using MonopolyGame.UI.DesignSystem;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -12,10 +14,14 @@ namespace MonopolyGame.Multiplayer.UI
 
         [SerializeField] private MultiplayerUiCommands uiCommands;
 
+        private ThemedText _instructionThemed;
+
         private const int CodeLength = 6;
 
         private void OnEnable()
         {
+            _instructionThemed = instructionText != null ? instructionText.GetComponent<ThemedText>() : null;
+
             if (codeInputField != null)
             {
                 codeInputField.onValueChanged.AddListener(OnCodeInputChanged);
@@ -62,11 +68,10 @@ namespace MonopolyGame.Multiplayer.UI
 
             if (instructionText != null)
             {
-                if (isValid)
-                    instructionText.text = $"✓ Code ready";
-                else
-                    instructionText.text = $"Enter lobby code";
+                instructionText.text = isValid ? "✓ Code ready" : "Enter lobby code";
             }
+
+            _instructionThemed?.SetTextStyle(isValid ? TextStyle.Success : TextStyle.Caption);
         }
 
         private void HandleJoinByCode()
