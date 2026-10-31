@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77e01b438999543e0b1075037639e4a1, type: 3}
   m_Name: UIStyleSheet
   m_EditorClassIdentifier: MonopolyGame.DesignSystem::MonopolyGame.DesignSystem.UIStyleSheet
-  defaultFont: {fileID: 0}
+  defaultFont: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   titleColor: {r: 0.96, g: 0.9, b: 0.62, a: 1}
   headingColor: {r: 1, g: 1, b: 1, a: 1}
   bodyColor: {r: 1, g: 1, b: 1, a: 1}
@@ -26,8 +26,15 @@ MonoBehaviour:
   diceColor: {r: 0.9, g: 0.92, b: 0.78, a: 1}
   infoNotificationColor: {r: 0.52, g: 0.73, b: 0.94, a: 1}
   errorNotificationColor: {r: 0.94, g: 0.35, b: 0.35, a: 1}
-  titleSize: 22
-  headingSize: 20
+  inputTextColor: {r: 1, g: 1, b: 1, a: 1}
+  inputPlaceholderColor: {r: 0.65, g: 0.65, b: 0.65, a: 0.8}
+  caretColor: {r: 1, g: 1, b: 1, a: 1}
+  selectionColor: {r: 0.22, g: 0.52, b: 0.92, a: 0.35}
+  toggleCheckmarkColor: {r: 0.76, g: 1, b: 0.76, a: 1}
+  dropdownArrowColor: {r: 0.82, g: 0.82, b: 0.82, a: 1}
+  buttonDisabledMultiplier: 0.5
+  titleSize: 34
+  headingSize: 24
   bodySize: 18
   captionSize: 16
   mutedSize: 14
@@ -37,24 +44,34 @@ MonoBehaviour:
   balanceSize: 20
   propertySize: 18
   diceSize: 20
+  errorSize: 16
+  infoSize: 16
   buttonPrimaryColor: {r: 0.22, g: 0.52, b: 0.92, a: 1}
   buttonDangerColor: {r: 0.88, g: 0.46, b: 0.15, a: 1}
   buttonSuccessColor: {r: 0.2, g: 0.65, b: 0.32, a: 1}
   buttonNeutralColor: {r: 0.35, g: 0.35, b: 0.4, a: 1}
   buttonTextColor: {r: 1, g: 1, b: 1, a: 1}
-  buttonStandardWidth: 120
-  buttonStandardHeight: 36
-  buttonWideWidth: 180
-  buttonWideHeight: 44
-  buttonCompactWidth: 80
-  buttonCompactHeight: 28
-  buttonFontSize: 16
+  buttonStandardWidth: 180
+  buttonStandardHeight: 48
+  buttonWideWidth: 300
+  buttonWideHeight: 60
+  buttonCompactWidth: 120
+  buttonCompactHeight: 36
+  buttonFontSize: 20
   buttonHighlightMultiplier: 1.2
   buttonPressedMultiplier: 0.8
   panelBackgroundColor: {r: 0.08, g: 0.1, b: 0.13, a: 0.92}
   cardBackgroundColor: {r: 0.1, g: 0.12, b: 0.15, a: 0.88}
   cardSurfaceColor: {r: 0.14, g: 0.16, b: 0.2, a: 0.92}
   overlayColor: {r: 0, g: 0, b: 0, a: 0.6}
+  iconColor: {r: 1, g: 1, b: 1, a: 1}
+  inputBackgroundColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+  dropdownBackgroundColor: {r: 0.16, g: 0.18, b: 0.22, a: 0.95}
+  dropdownItemBackgroundColor: {r: 0.12, g: 0.14, b: 0.18, a: 1}
+  dropdownItemHighlightColor: {r: 0.22, g: 0.26, b: 0.34, a: 1}
+  scrollbarTrackColor: {r: 0.1, g: 0.12, b: 0.15, a: 0.6}
+  scrollbarHandleColor: {r: 0.45, g: 0.48, b: 0.55, a: 0.9}
+  errorBannerColor: {r: 0.45, g: 0.1, b: 0.1, a: 0.9}
   player1Color: {r: 0.86, g: 0.3, b: 0.3, a: 1}
   player2Color: {r: 0.22, g: 0.52, b: 0.92, a: 1}
   player3Color: {r: 0.2, g: 0.65, b: 0.32, a: 1}
@@ -68,7 +85,7 @@ MonoBehaviour:
   elementSpacing: 10
   buttonRowSpacing: 12
   panelPadding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
+    m_Left: 16
+    m_Right: 16
+    m_Top: 16
+    m_Bottom: 16
