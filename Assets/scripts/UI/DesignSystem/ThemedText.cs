@@ -14,6 +14,8 @@ namespace MonopolyGame.UI.DesignSystem
 
         private TextMeshProUGUI _text;
 
+        public TextStyle Style => textStyle;
+
         // ── Unity lifecycle ────────────────────────────
 
         private void Awake()
@@ -37,6 +39,12 @@ namespace MonopolyGame.UI.DesignSystem
         }
 
         // ── Public API ─────────────────────────────────
+
+        public void SetTextStyle(TextStyle style)
+        {
+            textStyle = style;
+            ApplyStyle();
+        }
 
         public void ApplyStyle()
         {
