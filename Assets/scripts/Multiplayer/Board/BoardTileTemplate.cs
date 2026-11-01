@@ -119,8 +119,8 @@ namespace MonopolyGame.Board
 
         [Header("Text")]
         [SerializeField] private TMPro.TMP_FontAsset font;
-        [SerializeField] private float nameFontSize = 0.35f;
-        [SerializeField] private float priceFontSize = 0.28f;
+        [SerializeField] private float nameFontSize = 0.8f;
+        [SerializeField] private float priceFontSize = 0.55f;
         [SerializeField] private Color textColor = Color.white;
 
         [Header("Materials")]
