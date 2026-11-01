@@ -35,7 +35,7 @@ MonoBehaviour:
   pawnHeightOffset: 0.45
   font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   nameFontSize: 0.8
-  priceFontSize: 0.55
+  priceFontSize: 0.825
   textColor: {r: 1, g: 1, b: 1, a: 1}
   baseMaterial: {fileID: 2100000, guid: 5cbe0bb9480634218b46775ec630c33d, type: 2}
   accentMaterial: {fileID: 2100000, guid: f4b6b7f26236a473b8326751a3351e44, type: 2}

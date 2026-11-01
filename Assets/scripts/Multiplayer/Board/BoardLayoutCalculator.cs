@@ -131,7 +131,7 @@ namespace MonopolyGame.Board
                     float z = -cornerOffset + cornerSize / 2f + edgeLength / 2f + step * edgeLength;
                     return new BoardTilePlacement(
                         new Vector3(-cornerOffset, 0f, z),
-                        new Vector3(laneDepth, tileHeight, longSide),
+                        new Vector3(longSide, tileHeight, laneDepth),
                         yRotation,
                         side,
                         -1);
@@ -155,7 +155,7 @@ namespace MonopolyGame.Board
                     float z = cornerOffset - cornerSize / 2f - edgeLength / 2f - step * edgeLength;
                     return new BoardTilePlacement(
                         new Vector3(cornerOffset, 0f, z),
-                        new Vector3(laneDepth, tileHeight, longSide),
+                        new Vector3(longSide, tileHeight, laneDepth),
                         yRotation,
                         TileSide.Right,
                         -1);
