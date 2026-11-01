@@ -105,6 +105,7 @@ InitTestScene*.unity*
 # Local AI/MCP tooling — local only, do not commit
 /.gladekit/
 /.vscode/mcp.json
+/.mcp.json
 
 # Local work plans — local only, never commit
 /Docs/local/

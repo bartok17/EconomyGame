@@ -96,21 +96,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonopolyGame.Multiplayer.Gameplay.MultiplayerGameHudPresenter
   session: {fileID: 6224139880210663676}
-  buildDefaultLayout: 1
-  rootCanvas: {fileID: 0}
-  eventSystem: {fileID: 0}
-  titleText: {fileID: 0}
   turnText: {fileID: 0}
   phaseText: {fileID: 0}
   diceText: {fileID: 0}
+  turnHintText: {fileID: 0}
+  localPlayerNameText: {fileID: 0}
   balanceText: {fileID: 0}
   propertyText: {fileID: 0}
+  propertyDetailsText: {fileID: 0}
   ownerText: {fileID: 0}
   economyMessageText: {fileID: 0}
-  hostHintText: {fileID: 0}
+  economyMessagePanel: {fileID: 0}
+  playerRailRoot: {fileID: 0}
   rollButton: {fileID: 0}
   endTurnButton: {fileID: 0}
   buyButton: {fileID: 0}
+  cardInspectionPanel: {fileID: 0}
 --- !u!114 &-5989799859918288946
 MonoBehaviour:
   m_ObjectHideFlags: 0
