@@ -1,8 +1,8 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace MonopolyGame.Multiplayer.Gameplay
@@ -12,26 +12,37 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [Header("Dependencies")]
         [SerializeField] private MultiplayerGameSessionController session;
 
-        [Header("Auto Layout")]
-        [SerializeField] private bool buildDefaultLayout = true;
-
-        [Header("Optional Scene UI")]
-        [SerializeField] private Canvas rootCanvas;
-        [SerializeField] private EventSystem eventSystem;
-
-        [Header("UI")]
-        [SerializeField] private TextMeshProUGUI titleText;
+        [Header("Top Bar")]
         [SerializeField] private TextMeshProUGUI turnText;
         [SerializeField] private TextMeshProUGUI phaseText;
         [SerializeField] private TextMeshProUGUI diceText;
+        [SerializeField] private TextMeshProUGUI turnHintText;
+
+        [Header("Local Player")]
+        [SerializeField] private TextMeshProUGUI localPlayerNameText;
         [SerializeField] private TextMeshProUGUI balanceText;
+
+        [Header("Current Field")]
         [SerializeField] private TextMeshProUGUI propertyText;
+        [SerializeField] private TextMeshProUGUI propertyDetailsText;
         [SerializeField] private TextMeshProUGUI ownerText;
+
+        [Header("Economy Message")]
         [SerializeField] private TextMeshProUGUI economyMessageText;
-        [SerializeField] private TextMeshProUGUI hostHintText;
+        [SerializeField] private GameObject economyMessagePanel;
+
+        [Header("Player Rail")]
+        [SerializeField] private Transform playerRailRoot;
+
+        [Header("Actions")]
         [SerializeField] private Button rollButton;
         [SerializeField] private Button endTurnButton;
         [SerializeField] private Button buyButton;
+
+        [Header("Overlays")]
+        [SerializeField] private GameObject cardInspectionPanel;
+
+        private readonly List<PlayerHudEntry> playerEntries = new();
 
         private void OnEnable()
         {
@@ -41,6 +52,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private void OnDisable()
         {
             UnbindSession();
+            playerEntries.Clear();
         }
 
         private IEnumerator BindWhenReady()
@@ -50,11 +62,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 yield return null;
             }
 
-            if (buildDefaultLayout)
-            {
-                EnsureLayout();
-            }
-
+            ResolvePlayerEntries();
             BindSession();
             RefreshFromSession();
         }
@@ -62,6 +70,34 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public void BindSession(MultiplayerGameSessionController sessionController)
         {
             session = sessionController;
+        }
+
+        public void ShowCardInspection()
+        {
+            if (cardInspectionPanel != null)
+            {
+                cardInspectionPanel.SetActive(true);
+            }
+        }
+
+        public void HideCardInspection()
+        {
+            if (cardInspectionPanel != null)
+            {
+                cardInspectionPanel.SetActive(false);
+            }
+        }
+
+        private void ResolvePlayerEntries()
+        {
+            playerEntries.Clear();
+
+            if (playerRailRoot == null)
+            {
+                return;
+            }
+
+            playerEntries.AddRange(playerRailRoot.GetComponentsInChildren<PlayerHudEntry>(includeInactive: true));
         }
 
         private void BindSession()
@@ -85,7 +121,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 endTurnButton.onClick.AddListener(HandleEndTurnClicked);
             }
-            
+
             if (buyButton != null)
             {
                 buyButton.onClick.AddListener(HandleBuyClicked);
@@ -111,40 +147,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 endTurnButton.onClick.RemoveListener(HandleEndTurnClicked);
             }
-            
+
             if (buyButton != null)
             {
                 buyButton.onClick.RemoveListener(HandleBuyClicked);
             }
-        }
-
-        private void EnsureLayout()
-        {
-            if (titleText != null && turnText != null && phaseText != null &&
-                diceText != null && balanceText != null && propertyText != null &&
-                ownerText != null && economyMessageText != null && hostHintText != null &&
-                rollButton != null && endTurnButton != null && buyButton != null)
-            {
-                return;
-            }
-
-            GameHudLayoutBuilder builder = new GameHudLayoutBuilder();
-            GameHudLayoutBuilder.BuildResult result = builder.Build(styleSheet: null);
-
-            rootCanvas = result.RootCanvas;
-            eventSystem = result.EventSystem;
-            titleText = result.TitleText;
-            turnText = result.TurnText;
-            phaseText = result.PhaseText;
-            diceText = result.DiceText;
-            balanceText = result.BalanceText;
-            propertyText = result.PropertyText;
-            ownerText = result.OwnerText;
-            economyMessageText = result.EconomyMessageText;
-            hostHintText = result.HostHintText;
-            rollButton = result.RollButton;
-            endTurnButton = result.EndTurnButton;
-            buyButton = result.BuyButton;
         }
 
         private void HandleRollClicked()
@@ -163,39 +170,36 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
+        private void HandleBuyClicked()
+        {
+            if (session != null)
+            {
+                session.RequestBuyCurrentProperty();
+            }
+        }
+
         private void HandlePhaseChanged(TurnPhase phase)
         {
-            if (phaseText != null)
-            {
-                phaseText.text = $"Phase: {session.GetPhaseLabel()}";
-            }
-
-            RefreshEconomyTexts();
+            UpdatePhaseText();
+            RefreshDashboard();
             UpdateControls();
         }
 
         private void HandleTurnChanged(int turnIndex, string activePlayerName)
         {
-            if (turnText != null)
-            {
-                turnText.text = $"Turn: {turnIndex + 1} - {activePlayerName}";
-            }
-
-            RefreshEconomyTexts();
+            UpdateTurnText(turnIndex, activePlayerName);
+            RefreshDashboard();
             UpdateControls();
         }
 
         private void HandleDiceRolled(int diceValue)
         {
-            if (diceText != null)
-            {
-                diceText.text = $"Dice: {diceValue}";
-            }
+            UpdateDiceText(diceValue);
         }
-        
+
         private void HandleEconomyChanged()
         {
-            RefreshEconomyTexts();
+            RefreshDashboard();
             UpdateControls();
         }
 
@@ -206,17 +210,130 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            HandleTurnChanged(session.CurrentTurnIndex, string.IsNullOrWhiteSpace(session.ActivePlayerName) ? "-" : session.ActivePlayerName);
-            HandlePhaseChanged(session.CurrentPhase);
-            HandleDiceRolled(session.LastDiceRoll);
-            RefreshEconomyTexts();
+            UpdateTurnText(session.CurrentTurnIndex, session.ActivePlayerName);
+            UpdatePhaseText();
+            UpdateDiceText(session.LastDiceRoll);
+            RefreshDashboard();
+            UpdateControls();
+        }
 
-            if (hostHintText != null)
+        private void RefreshDashboard()
+        {
+            if (session == null)
             {
-                hostHintText.gameObject.SetActive(!session.IsHostAuthority);
+                return;
             }
 
-            UpdateControls();
+            if (balanceText != null)
+            {
+                balanceText.text = session.GetLocalPlayerBalance().ToString("N0");
+            }
+
+            if (propertyText != null)
+            {
+                string propertyName = session.GetCurrentPropertyName();
+                propertyText.text = string.IsNullOrEmpty(propertyName) ? "No field resolved" : propertyName;
+            }
+
+            if (propertyDetailsText != null)
+            {
+                propertyDetailsText.text = session.GetCurrentPropertyDetails();
+            }
+
+            if (ownerText != null)
+            {
+                ownerText.text = $"Owner: {session.GetCurrentPropertyOwnerName()}";
+            }
+
+            RefreshEconomyMessage();
+            RefreshPlayerRail();
+        }
+
+        private void RefreshEconomyMessage()
+        {
+            bool hasMessage = session.HasEconomyMessage();
+
+            if (economyMessageText != null)
+            {
+                economyMessageText.text = hasMessage ? session.GetLastEconomyMessage() : string.Empty;
+            }
+
+            if (economyMessagePanel != null)
+            {
+                economyMessagePanel.SetActive(hasMessage);
+            }
+        }
+
+        private void RefreshPlayerRail()
+        {
+            int localSlot = session.GetLocalPawnSlot();
+            IReadOnlyList<PlayerEconomyState> states = session.GetPlayerEconomyStates();
+            int entryIndex = 0;
+
+            for (int i = 0; i < states.Count; i++)
+            {
+                PlayerEconomyState state = states[i];
+                string displayName = state.DisplayName.ToString();
+
+                if (state.PawnSlot == localSlot)
+                {
+                    if (localPlayerNameText != null)
+                    {
+                        localPlayerNameText.text = string.IsNullOrEmpty(displayName) ? "Player" : displayName;
+                    }
+
+                    continue;
+                }
+
+                if (entryIndex >= playerEntries.Count)
+                {
+                    continue;
+                }
+
+                bool isActivePlayer = !string.IsNullOrEmpty(session.ActivePlayerName) &&
+                                      session.ActivePlayerName == displayName;
+
+                playerEntries[entryIndex].Apply(displayName, state.Balance, isActivePlayer);
+                playerEntries[entryIndex].SetVisible(true);
+                entryIndex++;
+            }
+
+            if (localPlayerNameText != null && string.IsNullOrEmpty(localPlayerNameText.text))
+            {
+                localPlayerNameText.text = "Player";
+            }
+
+            for (; entryIndex < playerEntries.Count; entryIndex++)
+            {
+                playerEntries[entryIndex].SetVisible(false);
+            }
+        }
+
+        private void UpdateTurnText(int turnIndex, string activePlayerName)
+        {
+            if (turnText == null)
+            {
+                return;
+            }
+
+            string playerName = string.IsNullOrWhiteSpace(activePlayerName) ? "Waiting" : activePlayerName;
+            turnText.text = $"Turn {turnIndex + 1} — {playerName}";
+        }
+
+        private void UpdatePhaseText()
+        {
+            if (phaseText != null)
+            {
+                phaseText.text = session != null ? session.GetPhaseLabel() : string.Empty;
+            }
+        }
+
+        private void UpdateDiceText(int diceValue)
+        {
+            if (diceText != null)
+            {
+                diceText.text = diceValue > 0 ? diceValue.ToString() : "–";
+            }
         }
 
         private void UpdateControls()
@@ -225,6 +342,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 if (rollButton != null) rollButton.interactable = false;
                 if (endTurnButton != null) endTurnButton.interactable = false;
+                if (buyButton != null) buyButton.interactable = false;
                 return;
             }
 
@@ -235,69 +353,32 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             if (rollButton != null)
             {
-                rollButton.gameObject.SetActive(true);
                 rollButton.interactable = canRoll;
             }
 
             if (endTurnButton != null)
             {
-                endTurnButton.gameObject.SetActive(true);
                 endTurnButton.interactable = canEnd;
             }
 
-            if (hostHintText != null)
+            if (turnHintText != null)
             {
-                hostHintText.text = isMyTurn
-                    ? "Your turn!"
-                    : $"Waiting for {session.ActivePlayerName}...";
+                turnHintText.text = isMyTurn
+                    ? "Your turn"
+                    : string.IsNullOrWhiteSpace(session.ActivePlayerName)
+                        ? "Waiting for players…"
+                        : $"Waiting for {session.ActivePlayerName}…";
             }
-            
+
             if (buyButton != null)
             {
-                buyButton.gameObject.SetActive(true);
                 buyButton.interactable = session.CanBuyCurrentProperty();
-                
+
                 TextMeshProUGUI buyLabel = buyButton.GetComponentInChildren<TextMeshProUGUI>();
                 if (buyLabel != null)
                 {
                     buyLabel.text = session.GetBuyButtonLabel();
                 }
-            }
-        }
-        
-        private void HandleBuyClicked()
-        {
-            if (session != null)
-            {
-                session.RequestBuyCurrentProperty();
-            }
-        }
-        
-        private void RefreshEconomyTexts()
-        {
-            if (session == null)
-            {
-                return;
-            }
-
-            if (balanceText != null)
-            {
-                balanceText.text = $"Balance: {session.GetLocalPlayerBalance()}";
-            }
-
-            if (propertyText != null)
-            {
-                propertyText.text = $"Property: {session.GetCurrentPropertyLabel()}";
-            }
-
-            if (ownerText != null)
-            {
-                ownerText.text = session.GetCurrentPropertyOwnerLabel();
-            }
-            
-            if (economyMessageText != null)
-            {
-                economyMessageText.text = session.GetLastEconomyMessage();
             }
         }
     }
