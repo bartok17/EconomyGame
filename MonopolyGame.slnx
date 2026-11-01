@@ -5,4 +5,5 @@
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="MonopolyGame.DesignSystem.csproj" />
+  <Project Path="MonopolyGame.Multiplayer.Editor.csproj" />
 </Solution>

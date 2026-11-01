@@ -1,0 +1,496 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61e08e257420d4fb49db119cafbc66dc, type: 3}
+  m_Name: BoardDefinition
+  m_EditorClassIdentifier: MonopolyGame.Multiplayer::MonopolyGame.Board.BoardDefinition
+  template: {fileID: 11400000, guid: 20ad0a7b4a1be4c12909dafb77f0a50d, type: 2}
+  spaces:
+  - index: 0
+    displayName: Start
+    type: 0
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 1
+    displayName: Property
+    type: 1
+    price: 60
+    baseRent: 2
+    houseCost: 50
+    colorGroup: 1
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 2
+    displayName: EventCard
+    type: 3
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 3
+    displayName: Property
+    type: 1
+    price: 60
+    baseRent: 4
+    houseCost: 50
+    colorGroup: 1
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 4
+    displayName: Tax
+    type: 4
+    price: 200
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 5
+    displayName: ActionCard
+    type: 2
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 6
+    displayName: Property
+    type: 1
+    price: 100
+    baseRent: 6
+    houseCost: 50
+    colorGroup: 2
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 7
+    displayName: ActionCard
+    type: 2
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 8
+    displayName: Property
+    type: 1
+    price: 100
+    baseRent: 6
+    houseCost: 50
+    colorGroup: 2
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 9
+    displayName: Property
+    type: 1
+    price: 120
+    baseRent: 8
+    houseCost: 50
+    colorGroup: 2
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 10
+    displayName: Jail
+    type: 6
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 11
+    displayName: Property
+    type: 1
+    price: 140
+    baseRent: 10
+    houseCost: 100
+    colorGroup: 3
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 12
+    displayName: EventCard
+    type: 3
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 13
+    displayName: Property
+    type: 1
+    price: 140
+    baseRent: 10
+    houseCost: 100
+    colorGroup: 3
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 14
+    displayName: Property
+    type: 1
+    price: 160
+    baseRent: 12
+    houseCost: 100
+    colorGroup: 3
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 15
+    displayName: EventCard
+    type: 3
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 16
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 25
+    houseCost: 0
+    colorGroup: 4
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 17
+    displayName: EventCard
+    type: 3
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 18
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 25
+    houseCost: 0
+    colorGroup: 4
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 19
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 25
+    houseCost: 0
+    colorGroup: 4
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 20
+    displayName: Parking
+    type: 5
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 21
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 5
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 22
+    displayName: ActionCard
+    type: 2
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 23
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 5
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 24
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 5
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 25
+    displayName: ActionCard
+    type: 2
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 26
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 6
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 27
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 6
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 28
+    displayName: EventCard
+    type: 3
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 29
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 6
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 30
+    displayName: Go To Jail
+    type: 7
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 31
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 7
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 32
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 7
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 33
+    displayName: EventCard
+    type: 3
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 34
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 7
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 35
+    displayName: ActionCard
+    type: 2
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 36
+    displayName: ActionCard
+    type: 2
+    price: 0
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 37
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 8
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 38
+    displayName: Tax
+    type: 4
+    price: 100
+    baseRent: 0
+    houseCost: 0
+    colorGroup: 0
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
+  - index: 39
+    displayName: Property
+    type: 1
+    price: 200
+    baseRent: 15
+    houseCost: 100
+    colorGroup: 8
+    iconKey: 
+    description: 
+    accentOverride: {r: 1, g: 1, b: 1, a: 1}
+    useAccentOverride: 0
+    prefabOverride: {fileID: 0}
