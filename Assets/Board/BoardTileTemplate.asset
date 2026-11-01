@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb99ad09991204e2cb3e9e536b03d27f, type: 3}
+  m_Name: BoardTileTemplate
+  m_EditorClassIdentifier: MonopolyGame.Multiplayer::MonopolyGame.Board.BoardTileTemplate
+  tilePrefab: {fileID: 148645491128490535, guid: 1f90fcbe0e6114985a7dc3b16ca9a83b, type: 3}
+  cornerPrefabOverride: {fileID: 0}
+  tilePrefabResourcePath: Board/BoardTile
+  cornerPrefabResourcePath: Board/BoardTileCorner
+  edgeSpacesPerSide: 9
+  cornerSize: 2
+  edgeLength: 1.3
+  laneDepth: 1.8
+  tileHeight: 0.12
+  tileGapFactor: 0.92
+  pawnSlotOffsets:
+  - {x: -0.35, y: 0, z: -0.35}
+  - {x: 0.35, y: 0, z: -0.35}
+  - {x: -0.35, y: 0, z: 0.35}
+  - {x: 0.35, y: 0, z: 0.35}
+  cornerPawnSlotOffsets:
+  - {x: -0.45, y: 0, z: -0.45}
+  - {x: 0.45, y: 0, z: -0.45}
+  - {x: -0.45, y: 0, z: 0.45}
+  - {x: 0.45, y: 0, z: 0.45}
+  pawnHeightOffset: 0.45
+  font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  nameFontSize: 0.8
+  priceFontSize: 0.825
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  baseMaterial: {fileID: 2100000, guid: 5cbe0bb9480634218b46775ec630c33d, type: 2}
+  accentMaterial: {fileID: 2100000, guid: f4b6b7f26236a473b8326751a3351e44, type: 2}
+  iconMaterial: {fileID: 2100000, guid: 50d562b894dc2448fb1180253655f190, type: 2}
+  ownerMarkerMaterial: {fileID: 2100000, guid: 8d72ef00c5d7446159b8a22d38cc377d, type: 2}
+  propertyGroupColors:
+  - {r: 0.54, g: 0.35, b: 0.22, a: 1}
+  - {r: 0.48, g: 0.74, b: 0.9, a: 1}
+  - {r: 0.85, g: 0.42, b: 0.68, a: 1}
+  - {r: 0.92, g: 0.58, b: 0.22, a: 1}
+  - {r: 0.84, g: 0.18, b: 0.2, a: 1}
+  - {r: 0.94, g: 0.8, b: 0.18, a: 1}
+  - {r: 0.22, g: 0.68, b: 0.32, a: 1}
+  - {r: 0.14, g: 0.24, b: 0.62, a: 1}
+  ownerColors:
+  - {r: 0.1, g: 0.75, b: 0.25, a: 1}
+  - {r: 0.85, g: 0.12, b: 0.12, a: 1}
+  - {r: 0.12, g: 0.35, b: 0.9, a: 1}
+  - {r: 0.95, g: 0.82, b: 0.15, a: 1}
+  typeStyles:
+  - type: 0
+    baseTint: {r: 0.8, g: 0.8, b: 0.78, a: 1}
+    accentTint: {r: 0.95, g: 0.9, b: 0.65, a: 1}
+    showName: 1
+    showPrice: 0
+    showIcon: 1
+  - type: 1
+    baseTint: {r: 0.34, g: 0.36, b: 0.36, a: 1}
+    accentTint: {r: 1, g: 1, b: 1, a: 1}
+    showName: 1
+    showPrice: 1
+    showIcon: 0
+  - type: 2
+    baseTint: {r: 0.55, g: 0.12, b: 0.18, a: 1}
+    accentTint: {r: 0.92, g: 0.28, b: 0.32, a: 1}
+    showName: 1
+    showPrice: 0
+    showIcon: 1
+  - type: 3
+    baseTint: {r: 0.1, g: 0.36, b: 0.52, a: 1}
+    accentTint: {r: 0.24, g: 0.62, b: 0.82, a: 1}
+    showName: 1
+    showPrice: 0
+    showIcon: 1
+  - type: 4
+    baseTint: {r: 0.55, g: 0.42, b: 0.18, a: 1}
+    accentTint: {r: 0.92, g: 0.76, b: 0.32, a: 1}
+    showName: 1
+    showPrice: 1
+    showIcon: 1
+  - type: 5
+    baseTint: {r: 0.4, g: 0.48, b: 0.42, a: 1}
+    accentTint: {r: 0.64, g: 0.78, b: 0.66, a: 1}
+    showName: 1
+    showPrice: 0
+    showIcon: 1
+  - type: 6
+    baseTint: {r: 0.45, g: 0.45, b: 0.48, a: 1}
+    accentTint: {r: 0.7, g: 0.7, b: 0.76, a: 1}
+    showName: 1
+    showPrice: 0
+    showIcon: 1
+  - type: 7
+    baseTint: {r: 0.42, g: 0.32, b: 0.48, a: 1}
+    accentTint: {r: 0.72, g: 0.56, b: 0.82, a: 1}
+    showName: 1
+    showPrice: 0
+    showIcon: 1
+  - type: 8
+    baseTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    accentTint: {r: 0.72, g: 0.72, b: 0.72, a: 1}
+    showName: 1
+    showPrice: 0
+    showIcon: 0
+  orientations:
+    bottomYaw: 0
+    leftYaw: 90
+    topYaw: 180
+    rightYaw: 270
+    cornerYaws:
+    - 0
+    - 90
+    - 180
+    - 270

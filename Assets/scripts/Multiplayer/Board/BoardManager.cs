@@ -40,7 +40,14 @@ namespace MonopolyGame.Board
             Array.Sort(foundSpaces, (left, right) => left.index.CompareTo(right.index));
             spaces.AddRange(foundSpaces);
 
-            Debug.Log($"[BoardManager] Loaded {spaces.Count} board spaces.");
+            if (spaces.Count > 0)
+            {
+                Debug.Log($"[BoardManager] Loaded {spaces.Count} board spaces.");
+            }
+            else
+            {
+                Debug.Log("[BoardManager] Board is empty; waiting for the board generator.");
+            }
 
             SpacesRefreshed?.Invoke();
         }
@@ -70,10 +77,11 @@ namespace MonopolyGame.Board
             return GetSpace(spaceIndex).GetPawnWorldPosition(pawnSlot);
         }
         
-        public void SetSpaceOwner(int index, string ownerId)
+        public void SetSpaceOwner(int index, string ownerId, int ownerSlot = -1)
         {
             BoardSpaceView space = GetSpace(index);
             space.ownerId = ownerId ?? string.Empty;
+            space.ApplyOwnerVisual(ownerSlot);
         }
 
         public BoardState CaptureBoardState()

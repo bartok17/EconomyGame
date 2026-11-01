@@ -203,7 +203,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 pawnSlot = (int)localClientId;
             }
             
-            if (pawnSlot < 0)
+            if (pawnSlot < 0 || _economyService == null)
             {
                 return 0;
             }
@@ -680,7 +680,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             for (int i = 0; i < propertyOwnershipNet.Count; i++)
             {
                 PropertyOwnershipState owner = propertyOwnershipNet[i];
-                boardManager.SetSpaceOwner(owner.SpaceIndex, owner.OwnerPlayerId.ToString());
+                boardManager.SetSpaceOwner(owner.SpaceIndex, owner.OwnerPlayerId.ToString(), owner.OwnerPawnSlot);
             }
         }
         
