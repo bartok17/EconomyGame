@@ -211,6 +211,19 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return _economyService.GetBalance(pawnSlot);
         }
 
+        public int GetLocalPawnSlot()
+        {
+            ulong localClientId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
+            return GetPawnSlotForClient(localClientId);
+        }
+
+        public IReadOnlyList<PlayerEconomyState> GetPlayerEconomyStates()
+        {
+            return _economyService != null
+                ? _economyService.GetAllEconomyStates()
+                : Array.Empty<PlayerEconomyState>();
+        }
+
         public bool CanBuyCurrentProperty()
         {
             if (!IsInitialized || CurrentPhase != TurnPhase.WaitingForEndTurn)
@@ -260,6 +273,77 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             string message = lastEconomyMessageNet.Value.ToString();
             return string.IsNullOrWhiteSpace(message) ? "No economy action yet." : message;
+        }
+
+        public bool HasEconomyMessage()
+        {
+            return !string.IsNullOrWhiteSpace(lastEconomyMessageNet.Value.ToString());
+        }
+
+        public string GetCurrentPropertyName()
+        {
+            BoardSpaceView space = GetLastResolvedSpace();
+            return space != null ? space.displayName : string.Empty;
+        }
+
+        public string GetCurrentPropertyDetails()
+        {
+            BoardSpaceView space = GetLastResolvedSpace();
+            if (space == null)
+            {
+                return string.Empty;
+            }
+
+            if (space.type == BoardSpaceType.Property)
+            {
+                return $"Price {space.price} · Rent {space.baseRent}";
+            }
+
+            if (space.type == BoardSpaceType.Tax)
+            {
+                return $"Tax {space.price}";
+            }
+
+            return space.type.ToString();
+        }
+
+        public string GetCurrentPropertyOwnerName()
+        {
+            BoardSpaceView space = GetLastResolvedSpace();
+            if (space == null)
+            {
+                return "-";
+            }
+
+            if (space.type != BoardSpaceType.Property)
+            {
+                return "not a property";
+            }
+
+            if (_economyService == null)
+            {
+                return "-";
+            }
+
+            int spaceIndex = lastResolvedSpaceIndexNet.Value;
+            int ownerSlot = _economyService.GetPropertyOwnerPawnSlot(spaceIndex);
+            if (ownerSlot < 0)
+            {
+                return "none";
+            }
+
+            return _economyService.GetPropertyOwnerName(spaceIndex);
+        }
+
+        private BoardSpaceView GetLastResolvedSpace()
+        {
+            int spaceIndex = lastResolvedSpaceIndexNet.Value;
+            if (spaceIndex < 0 || boardManager == null)
+            {
+                return null;
+            }
+
+            return boardManager.GetSpace(spaceIndex);
         }
 
         public string GetCurrentPropertyLabel()
