@@ -165,7 +165,20 @@ namespace MonopolyGame.DesignSystem
         [SerializeField] private float panelHorizontalPadding = 24f;
         [SerializeField] private float elementSpacing         = 10f;
         [SerializeField] private float buttonRowSpacing       = 12f;
-        [SerializeField] private RectOffset panelPadding = new(16, 16, 16, 16);
+        [SerializeField] private RectOffset panelPadding;
+
+        private const int DefaultPanelPadding = 16;
+
+        // RectOffset cannot be constructed in a field initializer (Unity disallows
+        // UnityEngine API calls from ScriptableObject constructors).
+        private void OnEnable()
+        {
+            if (panelPadding == null)
+            {
+                panelPadding = new RectOffset(DefaultPanelPadding, DefaultPanelPadding,
+                                              DefaultPanelPadding, DefaultPanelPadding);
+            }
+        }
 
         // ── Public accessors ──────────────────────────────────────
 
@@ -288,6 +301,8 @@ namespace MonopolyGame.DesignSystem
         public float ElementSpacing         => elementSpacing;
         public float ButtonRowSpacing       => buttonRowSpacing;
         public RectOffset PanelPadding      =>
-            new(panelPadding.left, panelPadding.right, panelPadding.top, panelPadding.bottom);
+            panelPadding != null
+                ? new RectOffset(panelPadding.left, panelPadding.right, panelPadding.top, panelPadding.bottom)
+                : new RectOffset(DefaultPanelPadding, DefaultPanelPadding, DefaultPanelPadding, DefaultPanelPadding);
     }
 }
