@@ -1,5 +1,6 @@
 using System;
 using MonopolyGame.Board;
+using MonopolyGame.Stash;
 using UnityEngine;
 using UnityEngine.EventSystems;
 #if ENABLE_INPUT_SYSTEM
@@ -11,9 +12,9 @@ namespace MonopolyGame.Multiplayer.Camera
     /// <summary>
     /// Orbit-style board camera with support for multiple modes: free orbit,
     /// locked player views, trade framing, and a public API ready for future modes.
-    /// Controls: right-drag = orbit, scroll = zoom, click a tile = focus it,
-    /// click the table = return to overview.
-    /// Attach this to the Main Camera in the Game scene.
+    /// Controls: right-drag = orbit, scroll = zoom, click a tile to focus it,
+    /// click a player stash zone to frame that side, click the table to return
+    /// to overview. Attach this to the Main Camera in the Game scene.
     /// </summary>
     [RequireComponent(typeof(UnityEngine.Camera))]
     public sealed class BoardCameraController : MonoBehaviour
@@ -82,6 +83,7 @@ namespace MonopolyGame.Multiplayer.Camera
         // replaces it — clearing the focus restores the base view.
         private CameraMode baseMode = CameraMode.FreeOrbit;
         private int basePlayerIndex = -1;
+        private Vector3 basePlayerPivot;
         private int baseTradePlayerA = -1;
         private int baseTradePlayerB = -1;
 
@@ -111,6 +113,13 @@ namespace MonopolyGame.Multiplayer.Camera
         public event Action<BoardSpaceView> SpaceClicked;
 
         /// <summary>
+        /// Raised when the user clicks a player's stash zone. Consumed by
+        /// <see cref="BoardFocusCoordinator"/>; when nobody listens the camera
+        /// frames the zone directly.
+        /// </summary>
+        public event Action<PlayerStashZoneView> PlayerStashClicked;
+
+        /// <summary>
         /// The world-space point the camera orbits around.
         /// </summary>
         public Vector3 Pivot
@@ -125,6 +134,7 @@ namespace MonopolyGame.Multiplayer.Camera
         {
             cachedCamera = GetComponent<UnityEngine.Camera>();
             ApplyDefaultOrbitState();
+            basePlayerPivot = pivot;
             currentPivot = pivot;
             targetPivot = pivot;
         }
@@ -147,6 +157,7 @@ namespace MonopolyGame.Multiplayer.Camera
         {
             baseMode = CameraMode.FreeOrbit;
             focusedSpace = null;
+            basePlayerPivot = pivot;
             targetAzimuth = currentAzimuth;
             targetElevation = currentElevation;
             targetDistance = currentDistance;
@@ -160,6 +171,16 @@ namespace MonopolyGame.Multiplayer.Camera
         /// </summary>
         public void SetModePlayerView(int playerIndex)
         {
+            SetModePlayerView(playerIndex, pivot);
+        }
+
+        /// <summary>
+        /// Lock the camera to a preset view for the given player index, framed
+        /// around <paramref name="viewPivot"/> (e.g. the player's stash zone).
+        /// Clears any focus override.
+        /// </summary>
+        public void SetModePlayerView(int playerIndex, Vector3 viewPivot)
+        {
             if (playerViewPresets == null || playerIndex < 0 || playerIndex >= playerViewPresets.Length)
             {
                 Debug.LogWarning($"[BoardCamera] Invalid player index {playerIndex}. Must be 0–{playerViewPresets?.Length - 1 ?? -1}.");
@@ -168,6 +189,7 @@ namespace MonopolyGame.Multiplayer.Camera
 
             baseMode = CameraMode.PlayerView;
             basePlayerIndex = playerIndex;
+            basePlayerPivot = viewPivot;
             focusedSpace = null;
             ApplyPlayerViewTargets(playerIndex);
         }
@@ -178,7 +200,7 @@ namespace MonopolyGame.Multiplayer.Camera
             targetAzimuth = preset.azimuth;
             targetElevation = Mathf.Clamp(preset.elevation, minElevation, maxElevation);
             targetDistance = Mathf.Clamp(preset.distance, minDistance, maxDistance);
-            targetPivot = pivot;
+            targetPivot = basePlayerPivot;
         }
 
         /// <summary>
@@ -298,7 +320,7 @@ namespace MonopolyGame.Multiplayer.Camera
             // Default: 45° elevation, looking from south (azimuth 0°), medium distance
             float defaultAzimuth = 0f;
             float defaultElevation = 45f;
-            float defaultDistance = 18f;
+            float defaultDistance = 22f;
 
             currentAzimuth = defaultAzimuth;
             currentElevation = Mathf.Clamp(defaultElevation, minElevation, maxElevation);
@@ -309,6 +331,7 @@ namespace MonopolyGame.Multiplayer.Camera
 
             baseMode = CameraMode.FreeOrbit;
             basePlayerIndex = -1;
+            basePlayerPivot = pivot;
             baseTradePlayerA = -1;
             baseTradePlayerB = -1;
             focusedSpace = null;
@@ -324,9 +347,23 @@ namespace MonopolyGame.Multiplayer.Camera
 
         private void HandleInput()
         {
-            // User input is allowed in free orbit, and around a focused tile
-            // even when a lock (player view / trade) is the base mode beneath it.
+            // User input is allowed in free orbit, around a focused tile, and
+            // for zooming while a player view is locked.
             bool canUserOrbit = baseMode == CameraMode.FreeOrbit || focusedSpace != null;
+            bool canUserZoom = canUserOrbit || baseMode == CameraMode.PlayerView;
+
+            HandleClickToFocus();
+
+            // ── Scroll-wheel zoom ──────────────────────────────────────────
+            if (canUserZoom)
+            {
+                float scroll = GetScrollDelta();
+                if (!Mathf.Approximately(scroll, 0f))
+                {
+                    targetDistance -= scroll * zoomSensitivity;
+                    targetDistance = Mathf.Clamp(targetDistance, minDistance, maxDistance);
+                }
+            }
 
             if (!canUserOrbit)
             {
@@ -357,17 +394,6 @@ namespace MonopolyGame.Multiplayer.Camera
                 targetElevation += delta.y * orbitSensitivity * 0.1f;
                 targetElevation = Mathf.Clamp(targetElevation, minElevation, maxElevation);
             }
-
-            // ── Scroll-wheel zoom ──────────────────────────────────────────
-            float scroll = GetScrollDelta();
-            if (!Mathf.Approximately(scroll, 0f))
-            {
-                targetDistance -= scroll * zoomSensitivity;
-                targetDistance = Mathf.Clamp(targetDistance, minDistance, maxDistance);
-            }
-
-            // ── Click a tile to focus it, click the table for overview ─────
-            HandleClickToFocus();
         }
 
         private void HandleClickToFocus()
@@ -392,9 +418,30 @@ namespace MonopolyGame.Multiplayer.Camera
             Ray ray = cam.ScreenPointToRay(new Vector3(pointer.x, pointer.y, 0f));
 
             BoardSpaceView space = null;
+            PlayerStashZoneView stashZone = null;
+
             if (Physics.Raycast(ray, out RaycastHit hit, 200f))
             {
                 space = hit.collider.GetComponentInParent<BoardSpaceView>();
+
+                if (space == null)
+                {
+                    stashZone = hit.collider.GetComponentInParent<PlayerStashZoneView>();
+                }
+            }
+
+            if (stashZone != null)
+            {
+                if (PlayerStashClicked != null)
+                {
+                    PlayerStashClicked.Invoke(stashZone);
+                }
+                else
+                {
+                    SetModePlayerView(stashZone.PawnSlot, stashZone.ZoneCenter);
+                }
+
+                return;
             }
 
             if (SpaceClicked != null)
@@ -405,6 +452,11 @@ namespace MonopolyGame.Multiplayer.Camera
             else if (space != null)
             {
                 FocusSpace(space);
+            }
+            else if (baseMode == CameraMode.PlayerView)
+            {
+                SetModeFreeOrbit();
+                ClearFocus();
             }
             else
             {
