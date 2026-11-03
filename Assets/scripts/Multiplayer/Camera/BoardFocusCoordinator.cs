@@ -2,6 +2,7 @@ using System;
 using MonopolyGame.Board;
 using MonopolyGame.Multiplayer.Gameplay;
 using MonopolyGame.Pawns;
+using MonopolyGame.Stash;
 using UnityEngine;
 
 namespace MonopolyGame.Multiplayer.Camera
@@ -22,6 +23,7 @@ namespace MonopolyGame.Multiplayer.Camera
         private BoardCameraController camera;
         private MultiplayerGameSessionController session;
         private BoardManager board;
+        private PlayerStashZoneSystem stashZones;
         private int lastFocusedIndex = -1;
 
         public bool FocusOnAction
@@ -44,6 +46,7 @@ namespace MonopolyGame.Multiplayer.Camera
             camera = cameraController;
             session = sessionController;
             board = boardManager;
+            stashZones = FindAnyObjectByType<PlayerStashZoneSystem>();
 
             if (camera == null)
             {
@@ -53,6 +56,7 @@ namespace MonopolyGame.Multiplayer.Camera
             if (camera != null)
             {
                 camera.SpaceClicked += HandleSpaceClicked;
+                camera.PlayerStashClicked += HandlePlayerStashClicked;
             }
 
             if (session != null)
@@ -76,6 +80,7 @@ namespace MonopolyGame.Multiplayer.Camera
             if (camera != null)
             {
                 camera.SpaceClicked -= HandleSpaceClicked;
+                camera.PlayerStashClicked -= HandlePlayerStashClicked;
             }
 
             if (session != null)
@@ -91,6 +96,7 @@ namespace MonopolyGame.Multiplayer.Camera
             camera = null;
             session = null;
             board = null;
+            stashZones = null;
         }
 
         // ── IBoardFocusCoordinator ─────────────────────────────────────────────
@@ -157,7 +163,24 @@ namespace MonopolyGame.Multiplayer.Camera
         public void ShowPlayerView(int playerIndex)
         {
             lastFocusedIndex = -1;
-            camera?.SetModePlayerView(playerIndex);
+
+            if (camera == null)
+            {
+                return;
+            }
+
+            if (stashZones == null)
+            {
+                stashZones = FindAnyObjectByType<PlayerStashZoneSystem>();
+            }
+
+            if (stashZones != null && stashZones.TryGetZoneCenter(playerIndex, out Vector3 zoneCenter))
+            {
+                camera.SetModePlayerView(playerIndex, zoneCenter);
+                return;
+            }
+
+            camera.SetModePlayerView(playerIndex);
         }
 
         public void ShowTradeView(int playerA, int playerB)
@@ -178,10 +201,29 @@ namespace MonopolyGame.Multiplayer.Camera
             if (space != null)
             {
                 FocusSpace(space);
+                return;
             }
-            else
+
+            if (camera != null && camera.IsFocusOverrideActive)
             {
                 ClearFocus();
+                return;
+            }
+
+            if (camera != null && camera.CurrentMode == CameraMode.PlayerView)
+            {
+                ShowOverview();
+                return;
+            }
+
+            ClearFocus();
+        }
+
+        private void HandlePlayerStashClicked(PlayerStashZoneView zone)
+        {
+            if (zone != null)
+            {
+                ShowPlayerView(zone.PawnSlot);
             }
         }
 
