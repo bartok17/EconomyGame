@@ -38,7 +38,8 @@ namespace MonopolyGame.Multiplayer.Camera
         void ShowOverview();
 
         /// <summary>
-        /// Lock the camera to the given player's table side (0–3).
+        /// Lock the camera to the given player's table side (0–3), framing that
+        /// player's stash zone when the stash system is available.
         /// </summary>
         void ShowPlayerView(int playerIndex);
 
