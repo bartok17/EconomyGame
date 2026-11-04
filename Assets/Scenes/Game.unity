@@ -4916,6 +4916,7 @@ GameObject:
   - component: {fileID: 977633294}
   - component: {fileID: 977633293}
   - component: {fileID: 977633292}
+  - component: {fileID: 510000006}
   m_Layer: 0
   m_Name: HandTray
   m_TagString: Untagged
@@ -8504,6 +8505,7 @@ GameObject:
   - component: {fileID: 1881610960}
   - component: {fileID: 1881610961}
   - component: {fileID: 1881610962}
+  - component: {fileID: 510000007}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -9764,6 +9766,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1246809329}
     - target: {fileID: 2142190109402589789, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: actionCardHud
+      value:
+      objectReference: {fileID: 510000006}
+    - target: {fileID: 2142190109402589789, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
       propertyPath: economyMessagePanel
       value: 
       objectReference: {fileID: 617297994}
@@ -9864,6 +9870,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb4b706db044d46398c465d5a1569387, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonopolyGame.Multiplayer.Gameplay.MultiplayerGameHudPresenter
+--- !u!114 &510000006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 977633290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bec84fca0e344fb8a24a97a7d3fe81a1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: MonopolyGame.Multiplayer::MonopolyGame.Multiplayer.Gameplay.ActionCardHudPresenter
+  handSlotsRoot: {fileID: 595665345}
+  handHeaderText: {fileID: 493398738}
+--- !u!114 &510000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881610957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9e0e9dad5f040418efa49b816b583f4, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: MonopolyGame.Multiplayer::MonopolyGame.Board.ActionCardBoardView
+  actionDeckAnchor: {fileID: 0}
+  boardGenerator: {fileID: 0}
+  cardWidth: 0.85
+  cardDepth: 1
+  pileSpacing: 1.1
+  tableY: 0.05
+  drawPileColor: {r: 0.65, g: 0.06, b: 0.1, a: 1}
+  discardPileColor: {r: 0.88, g: 0.84, b: 0.7, a: 1}
+
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

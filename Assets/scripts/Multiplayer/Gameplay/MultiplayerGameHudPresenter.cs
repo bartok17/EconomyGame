@@ -42,6 +42,9 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [Header("Overlays")]
         [SerializeField] private GameObject cardInspectionPanel;
 
+        [Header("Action Cards")]
+        [SerializeField] private ActionCardHudPresenter actionCardHud;
+
         private readonly List<PlayerHudEntry> playerEntries = new();
 
         private void OnEnable()
@@ -70,6 +73,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public void BindSession(MultiplayerGameSessionController sessionController)
         {
             session = sessionController;
+            actionCardHud?.BindSession(sessionController);
         }
 
         public void ShowCardInspection()
@@ -152,6 +156,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 buyButton.onClick.RemoveListener(HandleBuyClicked);
             }
+
+            actionCardHud?.BindSession(null);
         }
 
         private void HandleRollClicked()
