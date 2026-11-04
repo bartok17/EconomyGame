@@ -83,6 +83,7 @@ MonoBehaviour:
   pawnMoveDuration: 0.45
   resolveDelay: 0.35
   autoAdvanceTurns: 0
+  enableDevGrantCardShortcut: 1
 --- !u!114 &2142190109402589789
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,6 +113,7 @@ MonoBehaviour:
   endTurnButton: {fileID: 0}
   buyButton: {fileID: 0}
   cardInspectionPanel: {fileID: 0}
+  actionCardHud: {fileID: 0}
 --- !u!114 &-5989799859918288946
 MonoBehaviour:
   m_ObjectHideFlags: 0
