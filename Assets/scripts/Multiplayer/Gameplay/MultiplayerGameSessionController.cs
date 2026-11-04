@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using MonopolyGame.Board;
+using MonopolyGame.Cards;
 using MonopolyGame.Multiplayer;
 using MonopolyGame.Pawns;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
@@ -27,11 +29,18 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private float resolveDelay = 0.35f;
         [SerializeField] private bool autoAdvanceTurns;
 
+        [Header("Developer")]
+        [SerializeField] private bool enableDevGrantCardShortcut = true;
+
+        private const Key DevGrantCardKey = Key.F8;
+
         private GameSessionPawnRegistry pawnRegistry;
         private readonly TurnStateMachine turnStateMachine = new TurnStateMachine();
         private readonly BoardRuleResolver boardRuleResolver = new BoardRuleResolver();
         private IPlayerEconomyService _economyService;
         private TurnResolutionService _turnResolution;
+        private ActionCardSessionService _actionCardService;
+        private readonly List<ActionCardHandEntry> localActionCardHand = new List<ActionCardHandEntry>();
 
         private Coroutine bootstrapCoroutine;
         private Coroutine turnCoroutine;
@@ -74,7 +83,13 @@ namespace MonopolyGame.Multiplayer.Gameplay
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
 
+        private readonly NetworkVariable<ActionCardPileState> actionCardPileStateNet = new NetworkVariable<ActionCardPileState>(
+            default,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
+
         public event Action EconomyChanged;
+        public event Action ActionCardsChanged;
 
         // ── Public state ────────────────────────────────────────────────────────────
 
@@ -107,6 +122,20 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 jailSpaceIndex,
                 pawnMoveDuration,
                 () => EconomyChanged?.Invoke());
+            _actionCardService = new ActionCardSessionService(actionCardPileStateNet, HandleActionCardHandChanged);
+        }
+
+        private void Update()
+        {
+            if (!enableDevGrantCardShortcut || Keyboard.current == null)
+            {
+                return;
+            }
+
+            if (Keyboard.current[DevGrantCardKey].wasPressedThisFrame)
+            {
+                RequestDevActionCardGrant();
+            }
         }
 
         public override void OnNetworkSpawn()
@@ -122,6 +151,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             pendingPurchaseSpaceIndexNet.OnValueChanged += HandlePendingPurchaseChanged;
             lastResolvedSpaceIndexNet.OnValueChanged += HandleLastResolvedSpaceChanged;
             lastEconomyMessageNet.OnValueChanged += HandleLastEconomyMessageChanged;
+            actionCardPileStateNet.OnValueChanged += HandleActionCardPileStateChanged;
 
             SyncLocalStateFromNetwork();
 
@@ -144,6 +174,9 @@ namespace MonopolyGame.Multiplayer.Gameplay
             pendingPurchaseSpaceIndexNet.OnValueChanged -= HandlePendingPurchaseChanged;
             lastResolvedSpaceIndexNet.OnValueChanged -= HandleLastResolvedSpaceChanged;
             lastEconomyMessageNet.OnValueChanged -= HandleLastEconomyMessageChanged;
+            actionCardPileStateNet.OnValueChanged -= HandleActionCardPileStateChanged;
+
+            localActionCardHand.Clear();
         }
 
         // ── Dependency wiring ───────────────────────────────────────────────────────
@@ -222,6 +255,67 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return _economyService != null
                 ? _economyService.GetAllEconomyStates()
                 : Array.Empty<PlayerEconomyState>();
+        }
+
+        public int ActionCardDrawPileCount => actionCardPileStateNet.Value.DrawPileCount;
+        public int ActionCardDiscardPileCount => actionCardPileStateNet.Value.DiscardPileCount;
+        public int ActionCardHandCapacity => ActionCardHand.DefaultCapacity;
+
+        public string ActionCardTopDiscardLabel
+        {
+            get
+            {
+                ActionCardPileState state = actionCardPileStateNet.Value;
+                string shortLabel = state.TopDiscardShortLabel.ToString();
+                return string.IsNullOrEmpty(shortLabel)
+                    ? state.TopDiscardDisplayName.ToString()
+                    : shortLabel;
+            }
+        }
+
+        public IReadOnlyList<ActionCardHandEntry> GetLocalActionCardHand()
+        {
+            return localActionCardHand;
+        }
+
+        /// <summary>
+        /// Server-side entry point for granting an action card from any future
+        /// system. Landing on an ActionCard space uses the same path.
+        /// </summary>
+        public ActionCardGrantResult GrantActionCard(int pawnSlot)
+        {
+            if (!IsServer)
+            {
+                Debug.LogWarning("[MultiplayerGameSessionController] Action cards can only be granted by the server.");
+                return new ActionCardGrantResult(ActionCardGrantOutcome.InvalidPlayer);
+            }
+
+            return _actionCardService.GrantCard(pawnSlot);
+        }
+
+        private void RequestDevActionCardGrant()
+        {
+            if (!IsInitialized)
+            {
+                return;
+            }
+
+            int pawnSlot = GetLocalPawnSlot();
+
+            if (pawnSlot < 0)
+            {
+                return;
+            }
+
+            if (IsServer)
+            {
+                ActionCardGrantResult result = GrantActionCard(pawnSlot);
+                Debug.Log($"[Dev] Action card grant for slot {pawnSlot}: {result.Outcome}.");
+            }
+            else
+            {
+                RequestDevGrantActionCardServerRpc();
+            }
         }
 
         public bool CanBuyCurrentProperty()
@@ -444,6 +538,59 @@ namespace MonopolyGame.Multiplayer.Gameplay
             HandleBuyPropertyOnServer(serverRpcParams.Receive.SenderClientId);
         }
 
+        [ServerRpc(RequireOwnership = false)]
+        private void RequestActionCardHandServerRpc(ServerRpcParams serverRpcParams = default)
+        {
+            if (!IsServer)
+            {
+                return;
+            }
+
+            ulong senderClientId = serverRpcParams.Receive.SenderClientId;
+            int pawnSlot = GetPawnSlotForClient(senderClientId);
+
+            if (pawnSlot >= 0)
+            {
+                SendActionCardHandToClient(pawnSlot, _actionCardService.GetHandEntries(pawnSlot), senderClientId);
+            }
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void RequestDevGrantActionCardServerRpc(ServerRpcParams serverRpcParams = default)
+        {
+            int pawnSlot = GetPawnSlotForClient(serverRpcParams.Receive.SenderClientId);
+
+            if (pawnSlot >= 0)
+            {
+                ActionCardGrantResult result = GrantActionCard(pawnSlot);
+                Debug.Log($"[Dev] Action card grant for slot {pawnSlot}: {result.Outcome}.");
+            }
+        }
+
+        [ClientRpc]
+        private void SyncLocalActionCardHandClientRpc(
+            ActionCardHandEntry[] entries,
+            ClientRpcParams clientRpcParams = default)
+        {
+            int localSlot = GetLocalPawnSlot();
+
+            if (entries == null || entries.Length == 0)
+            {
+                localActionCardHand.Clear();
+                ActionCardsChanged?.Invoke();
+                return;
+            }
+
+            if (entries[0].PawnSlot != localSlot)
+            {
+                return;
+            }
+
+            localActionCardHand.Clear();
+            localActionCardHand.AddRange(entries);
+            ActionCardsChanged?.Invoke();
+        }
+
         // ── Bootstrap ───────────────────────────────────────────────────────────────
 
         private IEnumerator BootstrapWhenReady()
@@ -481,10 +628,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 Registry.AssignOwnerships();
                 turnStateMachine.SetParticipants(Registry.BuildParticipants());
                 InitializeEconomyState();
+                _actionCardService.Initialize(Registry.Count);
                 turnStateMachine.StartGame(0);
                 lastResolvedSpaceIndexNet.Value = startSpaceIndex;
                 lastEconomyMessageNet.Value = new FixedString128Bytes("Game started.");
                 SetServerState(turnStateMachine.State);
+                SendInitialActionCardHands();
             }
             else
             {
@@ -497,6 +646,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 IsInitialized    = initializedNet.Value;
                 turnStateMachine.SetState(new TurnState(CurrentTurnIndex, CurrentPhase, LastDiceRoll, ActivePlayerName, ActiveClientId, IsInitialized));
                 PublishTurnState();
+
+                if (IsInitialized)
+                {
+                    RequestActionCardHandServerRpc();
+                }
             }
         }
 
@@ -574,6 +728,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 _turnResolution.ResolveTaxPayment(activePawn, result);
                 _turnResolution.ResolveAutomaticRent(activePawn, result);
                 _turnResolution.ResolveSpecialSpaceMessage(result);
+                ResolveActionCardLanding(activePawn, result);
                 _turnResolution.UpdatePendingPurchase(result, boardManager);
             }
 
@@ -654,7 +809,15 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private void HandleDiceRollChanged(int _, int newValue)     { LastDiceRoll = newValue; DiceRolled?.Invoke(newValue); }
         private void HandleActivePlayerChanged(FixedString64Bytes _, FixedString64Bytes newValue) { ActivePlayerName = newValue.ToString(); PublishTurnState(); }
         private void HandleActiveClientChanged(ulong _, ulong newValue) { ActiveClientId = newValue; PublishTurnState(); }
-        private void HandleInitializedChanged(bool _, bool newValue) { IsInitialized = newValue; }
+        private void HandleInitializedChanged(bool _, bool newValue)
+        {
+            IsInitialized = newValue;
+
+            if (newValue && !IsServer)
+            {
+                RequestActionCardHandServerRpc();
+            }
+        }
 
         private void PublishTurnState()
         {
@@ -696,6 +859,127 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             _turnResolution.InitializeEconomyState(pawns, spaceCount, startingBalance);
+        }
+
+        private void ResolveActionCardLanding(PlayerPawnNetworkSync pawn, BoardLandingResult result)
+        {
+            if (pawn == null || result == null || result.SpaceType != BoardSpaceType.ActionCard)
+            {
+                return;
+            }
+
+            ActionCardGrantResult grant = GrantActionCard(pawn.PawnSlot);
+            string message = BuildActionCardMessage(pawn, grant);
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                _turnResolution.SetEconomyMessage(message);
+            }
+        }
+
+        private static string BuildActionCardMessage(PlayerPawnNetworkSync pawn, ActionCardGrantResult grant)
+        {
+            string playerName = string.IsNullOrWhiteSpace(pawn.DisplayName)
+                ? $"Player {pawn.PawnSlot + 1}"
+                : pawn.DisplayName;
+            string reshufflePrefix = grant.Reshuffled ? "Discard pile reshuffled. " : string.Empty;
+
+            switch (grant.Outcome)
+            {
+                case ActionCardGrantOutcome.Added:
+                    return $"{reshufflePrefix}{playerName} drew {grant.Card.Definition.DisplayName}.";
+
+                case ActionCardGrantOutcome.HandFullDiscarded:
+                    return $"{reshufflePrefix}{playerName}'s hand is full - {grant.Card.Definition.DisplayName} was discarded.";
+
+                case ActionCardGrantOutcome.DeckEmpty:
+                    return $"{reshufflePrefix}No action cards are available.";
+
+                default:
+                    return string.Empty;
+            }
+        }
+
+        private void SendInitialActionCardHands()
+        {
+            if (!IsServer)
+            {
+                return;
+            }
+
+            for (int i = 0; i < Registry.Count; i++)
+            {
+                PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(i);
+
+                if (pawn == null || pawn.NetworkObject == null)
+                {
+                    continue;
+                }
+
+                IReadOnlyList<ActionCardHandEntry> entries = _actionCardService.GetHandEntries(pawn.PawnSlot);
+                SendActionCardHandToClient(pawn.PawnSlot, entries, pawn.NetworkObject.OwnerClientId);
+                ApplyLocalActionCardHandIfOwned(pawn.PawnSlot, entries);
+            }
+        }
+
+        private void HandleActionCardHandChanged(int pawnSlot, IReadOnlyList<ActionCardHandEntry> entries)
+        {
+            if (!IsServer)
+            {
+                return;
+            }
+
+            PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(pawnSlot);
+
+            if (pawn != null && pawn.NetworkObject != null)
+            {
+                SendActionCardHandToClient(pawnSlot, entries, pawn.NetworkObject.OwnerClientId);
+            }
+
+            ApplyLocalActionCardHandIfOwned(pawnSlot, entries);
+        }
+
+        private void SendActionCardHandToClient(
+            int pawnSlot,
+            IReadOnlyList<ActionCardHandEntry> entries,
+            ulong ownerClientId)
+        {
+            var payload = new ActionCardHandEntry[entries != null ? entries.Count : 0];
+
+            for (int i = 0; i < payload.Length; i++)
+            {
+                payload[i] = entries[i];
+            }
+
+            SyncLocalActionCardHandClientRpc(payload, new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new[] { ownerClientId }
+                }
+            });
+        }
+
+        private void ApplyLocalActionCardHandIfOwned(int pawnSlot, IReadOnlyList<ActionCardHandEntry> entries)
+        {
+            if (pawnSlot != GetLocalPawnSlot())
+            {
+                return;
+            }
+
+            localActionCardHand.Clear();
+
+            if (entries != null)
+            {
+                localActionCardHand.AddRange(entries);
+            }
+
+            ActionCardsChanged?.Invoke();
+        }
+
+        private void HandleActionCardPileStateChanged(ActionCardPileState previousValue, ActionCardPileState newValue)
+        {
+            ActionCardsChanged?.Invoke();
         }
 
         private void HandleBuyPropertyOnServer(ulong senderClientId)
