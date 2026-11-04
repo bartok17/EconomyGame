@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using MonopolyGame.Board;
 using MonopolyGame.Multiplayer;
 using MonopolyGame.Pawns;
@@ -26,6 +27,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private float pawnMoveDuration = 0.45f;
         [SerializeField] private float resolveDelay = 0.35f;
         [SerializeField] private bool autoAdvanceTurns;
+        
+        [Header("Disconnect & Reconnect")]
+        [Tooltip("Czas na powrót gracza (w sekundach) przed eliminacją.")]
+        [SerializeField] private float disconnectTimeout = 60f;
 
         private GameSessionPawnRegistry pawnRegistry;
         private readonly TurnStateMachine turnStateMachine = new TurnStateMachine();
@@ -35,6 +40,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         private Coroutine bootstrapCoroutine;
         private Coroutine turnCoroutine;
+        private readonly Dictionary<int, Coroutine> _disconnectCoroutines = new Dictionary<int, Coroutine>();
+        private bool _isEndingGame;
 
         // ── NetworkVariables ────────────────────────────────────────────────────────
 
@@ -78,12 +85,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         // ── Public state ────────────────────────────────────────────────────────────
 
-        public TurnPhase CurrentPhase { get; private set; } = TurnPhase.WaitingForSetup;
-        public int CurrentTurnIndex { get; private set; }
-        public int LastDiceRoll { get; private set; }
-        public string ActivePlayerName { get; private set; } = string.Empty;
-        public ulong ActiveClientId { get; private set; }
-        public bool IsInitialized { get; private set; }
+        public TurnPhase CurrentPhase => currentPhaseNet != null ? (TurnPhase)currentPhaseNet.Value : TurnPhase.WaitingForSetup;
+        public int CurrentTurnIndex => currentTurnIndexNet != null ? currentTurnIndexNet.Value : 0;
+        public int LastDiceRoll => lastDiceRollNet != null ? lastDiceRollNet.Value : 0;
+        public string ActivePlayerName => activePlayerNameNet != null ? activePlayerNameNet.Value.ToString() : string.Empty;
+        public ulong ActiveClientId => activeClientIdNet != null ? activeClientIdNet.Value : 0;
+        public bool IsInitialized => initializedNet != null && initializedNet.Value;
         public bool IsHostAuthority => IsServer;
 
         public event Action<TurnPhase> PhaseChanged;
@@ -122,12 +129,25 @@ namespace MonopolyGame.Multiplayer.Gameplay
             pendingPurchaseSpaceIndexNet.OnValueChanged += HandlePendingPurchaseChanged;
             lastResolvedSpaceIndexNet.OnValueChanged += HandleLastResolvedSpaceChanged;
             lastEconomyMessageNet.OnValueChanged += HandleLastEconomyMessageChanged;
+            
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.OnClientConnectedCallback += HandleClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
+            }
 
             SyncLocalStateFromNetwork();
 
-            if (bootstrapCoroutine == null)
+            if (IsServer)
             {
-                bootstrapCoroutine = StartCoroutine(BootstrapWhenReady());
+                if (bootstrapCoroutine == null)
+                {
+                    bootstrapCoroutine = StartCoroutine(BootstrapWhenReady());
+                }
+            }
+            else
+            {
+                StartCoroutine(ClientReconnectAnnouncementRoutine());
             }
         }
 
@@ -144,6 +164,291 @@ namespace MonopolyGame.Multiplayer.Gameplay
             pendingPurchaseSpaceIndexNet.OnValueChanged -= HandlePendingPurchaseChanged;
             lastResolvedSpaceIndexNet.OnValueChanged -= HandleLastResolvedSpaceChanged;
             lastEconomyMessageNet.OnValueChanged -= HandleLastEconomyMessageChanged;
+            
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.OnClientConnectedCallback -= HandleClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
+            }
+        }
+        
+        private void HandleClientConnected(ulong newClientId)
+        {
+            if (!IsServer) return;
+            if (newClientId == NetworkManager.ServerClientId) return;
+
+            Debug.Log($"[MultiplayerGameSession] Server detected client connected: {newClientId}");
+
+            TurnParticipant disconnectedParticipant = null;
+            if (turnStateMachine != null && turnStateMachine.Participants != null)
+            {
+                disconnectedParticipant = turnStateMachine.Participants.FirstOrDefault(p => !p.IsConnected);
+            }
+
+            if (disconnectedParticipant != null)
+            {
+                Debug.Log($"[MultiplayerGameSession] Auto-reconnecting client {newClientId} to participant {disconnectedParticipant.DisplayName} (slot {disconnectedParticipant.TurnIndex})");
+                HandlePlayerReconnectedOnServer(newClientId, disconnectedParticipant.DisplayName);
+            }
+        }
+        
+        private void HandleClientDisconnected(ulong disconnectedClientId)
+        {
+            if (_isEndingGame) return;
+
+            if (IsServer)
+            {
+                if (disconnectedClientId == NetworkManager.ServerClientId) return;
+
+                int slot = GetPawnSlotForClient(disconnectedClientId);
+                if (slot >= 0)
+                {
+                    HandlePlayerDisconnectedOnServer(slot);
+                }
+            }
+            else
+            {
+                if (disconnectedClientId == NetworkManager.ServerClientId)
+                {
+                    lastEconomyMessageNet.Value = new FixedString128Bytes("Host disconnected. Returning to menu...");
+                    StartCoroutine(ReturnToMenuDelayedRoutine(2.5f));
+                }
+            }
+        }
+
+        private void HandlePlayerDisconnectedOnServer(int slotIndex)
+        {
+            if (_isEndingGame) return;
+            if (!turnStateMachine.IsParticipantConnected(slotIndex) && _disconnectCoroutines.ContainsKey(slotIndex))
+            {
+                return;
+            }
+            turnStateMachine.SetParticipantConnected(slotIndex, false);
+            string pName = turnStateMachine.GetParticipantName(slotIndex);
+            lastEconomyMessageNet.Value = new FixedString128Bytes($"{pName} disconnected! Reconnect time: {disconnectTimeout:0}s...");
+            if (_disconnectCoroutines.TryGetValue(slotIndex, out Coroutine existing) && existing != null)
+            {
+                StopCoroutine(existing);
+            }
+            _disconnectCoroutines[slotIndex] = StartCoroutine(DisconnectedPlayerCountdownRoutine(slotIndex, disconnectTimeout));
+        }
+
+        private IEnumerator DisconnectedPlayerCountdownRoutine(int slotIndex, float duration)
+        {
+            float remaining = duration;
+            string pName = turnStateMachine.GetParticipantName(slotIndex);
+            while (remaining > 0f)
+            {
+                yield return new WaitForSeconds(1f);
+                remaining -= 1f;
+                if (remaining == 45f || remaining == 30f || remaining == 20f || remaining == 15f || (remaining <= 10f && remaining > 0f))
+                {
+                    lastEconomyMessageNet.Value = new FixedString128Bytes($"{pName} offline. Time remaining: {remaining:0}s");
+                }
+            }
+            EliminateDisconnectedPlayer(slotIndex);
+        }
+
+        private void EliminateDisconnectedPlayer(int slotIndex)
+        {
+            if (_disconnectCoroutines.TryGetValue(slotIndex, out Coroutine c) && c != null)
+            {
+                StopCoroutine(c);
+                _disconnectCoroutines.Remove(slotIndex);
+            }
+            string pName = turnStateMachine.GetParticipantName(slotIndex);
+            if (propertyOwnershipNet != null)
+            {
+                for (int i = 0; i < propertyOwnershipNet.Count; i++)
+                {
+                    if (propertyOwnershipNet[i].OwnerPawnSlot == slotIndex)
+                    {
+                        propertyOwnershipNet[i] = new PropertyOwnershipState(propertyOwnershipNet[i].SpaceIndex, -1, string.Empty, string.Empty);
+                    }
+                }
+                ApplyPropertyOwnersToBoard();
+            }
+            PlayerPawnNetworkSync pawnSync = Registry.FindBySlot(slotIndex);
+            if (pawnSync != null)
+            {
+                pawnSync.gameObject.SetActive(false);
+            }
+            turnStateMachine.RemoveParticipant(slotIndex);
+            lastEconomyMessageNet.Value = new FixedString128Bytes($"{pName} eliminated (timeout expired).");
+            if (turnStateMachine.ParticipantCount <= 1)
+            {
+                string winnerName = turnStateMachine.ParticipantCount == 1
+                    ? turnStateMachine.GetParticipantName(0)
+                    : "None";
+                lastEconomyMessageNet.Value = new FixedString128Bytes($"Game Over! Winner: {winnerName}!");
+                StartCoroutine(EndGameDelayedRoutine(4f, winnerName));
+                return;
+            }
+            if (CurrentTurnIndex == slotIndex)
+            {
+                AdvanceTurnServer();
+            }
+        }
+
+        private IEnumerator EndGameDelayedRoutine(float delay, string winnerName)
+        {
+            _isEndingGame = true;
+            NotifyGameEndedClientRpc(winnerName);
+            yield return new WaitForSeconds(delay);
+            ReturnToMenu();
+        }
+
+        public void RequestLeaveGame()
+        {
+            if (IsServer)
+            {
+                lastEconomyMessageNet.Value = new FixedString128Bytes("Host ended the match.");
+                StartCoroutine(EndGameDelayedRoutine(1.5f, "None (Host left)"));
+            }
+            else
+            {
+                NotifyPlayerForfeitServerRpc();
+                ReturnToMenu();
+            }
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void NotifyPlayerForfeitServerRpc(ServerRpcParams serverRpcParams = default)
+        {
+            ulong senderId = serverRpcParams.Receive.SenderClientId;
+            int slot = GetPawnSlotForClient(senderId);
+            if (slot >= 0)
+            {
+                string pName = turnStateMachine.GetParticipantName(slot);
+                lastEconomyMessageNet.Value = new FixedString128Bytes($"{pName} forfeited and left the game.");
+                EliminateDisconnectedPlayer(slot);
+            }
+        }
+
+        [ClientRpc]
+        private void NotifyGameEndedClientRpc(string winnerName)
+        {
+            lastEconomyMessageNet.Value = new FixedString128Bytes($"Game Over! Winner: {winnerName}");
+            if (!IsServer)
+            {
+                StartCoroutine(ReturnToMenuDelayedRoutine(4f));
+            }
+        }
+
+        private IEnumerator ReturnToMenuDelayedRoutine(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            ReturnToMenu();
+        }
+
+        public void ReturnToMenu()
+        {
+            StartCoroutine(ReturnToMenuRoutine());
+        }
+        private IEnumerator ReturnToMenuRoutine()
+        {
+            if (NetworkManager.Singleton != null && (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsServer))
+            {
+                NetworkManager.Singleton.Shutdown();
+            }
+            if (coordinator != null)
+            {
+                System.Threading.Tasks.Task leaveTask = coordinator.LeaveLobbyAsync();
+                while (!leaveTask.IsCompleted)
+                {
+                    yield return null;
+                }
+            }
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Menu", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
+        
+        private IEnumerator ClientReconnectAnnouncementRoutine()
+        {
+            while (!IsSpawned || NetworkManager.Singleton == null || !NetworkManager.Singleton.IsConnectedClient)
+            {
+                yield return null;
+            }
+
+            string myName = string.Empty;
+            if (coordinator != null)
+            {
+                myName = coordinator.LocalDisplayName;
+            }
+            if (string.IsNullOrWhiteSpace(myName) && MultiplayerFlowCoordinator.Instance != null)
+            {
+                myName = MultiplayerFlowCoordinator.Instance.LocalDisplayName;
+            }
+
+            RequestReconnectServerRpc(myName ?? string.Empty);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void RequestReconnectServerRpc(string displayName, ServerRpcParams serverRpcParams = default)
+        {
+            ulong senderClientId = serverRpcParams.Receive.SenderClientId;
+            HandlePlayerReconnectedOnServer(senderClientId, displayName);
+        }
+
+        private void HandlePlayerReconnectedOnServer(ulong newClientId, string displayName)
+        {
+            TurnParticipant participant = null;
+
+            if (!string.IsNullOrWhiteSpace(displayName))
+            {
+                participant = turnStateMachine.FindParticipantByName(displayName);
+            }
+            
+            if (participant == null && turnStateMachine != null && turnStateMachine.Participants != null)
+            {
+                participant = turnStateMachine.Participants.FirstOrDefault(p => !p.IsConnected);
+            }
+
+            if (participant == null)
+            {
+                Debug.LogWarning($"[MultiplayerGameSession] Reconnect from client {newClientId} ('{displayName}') could not be matched!");
+                return;
+            }
+
+            int slot = participant.TurnIndex;
+            
+            if (_disconnectCoroutines.TryGetValue(slot, out Coroutine c) && c != null)
+            {
+                StopCoroutine(c);
+                _disconnectCoroutines.Remove(slot);
+            }
+
+            turnStateMachine.SetParticipantConnected(slot, true);
+            turnStateMachine.UpdateParticipantClientId(slot, newClientId);
+            
+            PlayerPawnNetworkSync pawnSync = Registry.FindBySlot(slot);
+            if (pawnSync != null)
+            {
+                pawnSync.gameObject.SetActive(true);
+                if (pawnSync.NetworkObject != null && pawnSync.NetworkObject.IsSpawned)
+                {
+                    pawnSync.NetworkObject.DontDestroyWithOwner = true;
+                    pawnSync.NetworkObject.ChangeOwnership(newClientId);
+                }
+                pawnSync.ForceSpaceIndex(pawnSync.CurrentSpaceIndex);
+            }
+            
+            if (CurrentTurnIndex == slot)
+            {
+                activeClientIdNet.Value = newClientId;
+            }
+            
+            SetServerState(turnStateMachine.State);
+            lastEconomyMessageNet.Value = new FixedString128Bytes($"{participant.DisplayName} reconnected to the game!");
+            PublishTurnState();
+        }
+
+        public string GetRoomCode()
+        {
+            if (coordinator != null && coordinator.CurrentLobbySnapshot != null && !string.IsNullOrWhiteSpace(coordinator.CurrentLobbySnapshot.LobbyCode))
+            {
+                return coordinator.CurrentLobbySnapshot.LobbyCode;
+            }
+            return coordinator != null ? coordinator.LastActiveLobbyCode : string.Empty;
         }
 
         // ── Dependency wiring ───────────────────────────────────────────────────────
@@ -195,13 +500,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         
         public int GetLocalPlayerBalance()
         {
-            ulong localClientId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
-            int pawnSlot = GetPawnSlotForClient(localClientId);
-
-            if (pawnSlot < 0 && localClientId <= int.MaxValue)
-            {
-                pawnSlot = (int)localClientId;
-            }
+            int pawnSlot = GetLocalPawnSlot();
             
             if (pawnSlot < 0 || _economyService == null)
             {
@@ -213,6 +512,26 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public int GetLocalPawnSlot()
         {
+            foreach (var sync in PlayerPawnNetworkSync.GetSpawnedPawnSyncs())
+            {
+                if (sync != null && sync.IsOwner && sync.PawnSlot >= 0)
+                {
+                    return sync.PawnSlot;
+                }
+            }
+
+            string localName = coordinator != null ? coordinator.LocalDisplayName : string.Empty;
+            if (!string.IsNullOrWhiteSpace(localName) && playerEconomyNet != null)
+            {
+                for (int i = 0; i < playerEconomyNet.Count; i++)
+                {
+                    if (string.Equals(playerEconomyNet[i].DisplayName.ToString(), localName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return playerEconomyNet[i].PawnSlot;
+                    }
+                }
+            }
+            
             ulong localClientId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
             return GetPawnSlotForClient(localClientId);
         }
@@ -450,6 +769,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             while (coordinator == null || boardManager == null || pawnSpawner == null)
             {
+                if (coordinator == null)
+                {
+                    coordinator = MultiplayerFlowCoordinator.Instance ?? FindAnyObjectByType<MultiplayerFlowCoordinator>();
+                }
                 yield return null;
             }
 
@@ -489,12 +812,16 @@ namespace MonopolyGame.Multiplayer.Gameplay
             else
             {
                 Registry.Refresh();
-                CurrentTurnIndex = currentTurnIndexNet.Value;
-                CurrentPhase     = (TurnPhase)currentPhaseNet.Value;
-                LastDiceRoll     = lastDiceRollNet.Value;
-                ActivePlayerName = activePlayerNameNet.Value.ToString();
-                ActiveClientId   = activeClientIdNet.Value;
-                IsInitialized    = initializedNet.Value;
+                if (snapshot.PlayerDisplayNames != null && snapshot.PlayerDisplayNames.Count > 0)
+                {
+                    List<TurnParticipant> clientParticipants = new List<TurnParticipant>();
+                    for (int i = 0; i < snapshot.PlayerDisplayNames.Count; i++)
+                    {
+                        clientParticipants.Add(new TurnParticipant(i, snapshot.PlayerDisplayNames[i], (ulong)i));
+                    }
+                    turnStateMachine.SetParticipants(clientParticipants);
+                }
+                
                 turnStateMachine.SetState(new TurnState(CurrentTurnIndex, CurrentPhase, LastDiceRoll, ActivePlayerName, ActiveClientId, IsInitialized));
                 PublishTurnState();
             }
@@ -506,7 +833,9 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             if (!EnsureReadyForTurn()) return;
             if (CurrentPhase != TurnPhase.AwaitingRoll) return;
-            if (!turnStateMachine.IsAuthorizedTurnRequest(senderClientId)) return;
+            
+            bool isOfflinePlayerTurn = !turnStateMachine.IsParticipantConnected(CurrentTurnIndex);
+            if (!isOfflinePlayerTurn && !turnStateMachine.IsAuthorizedTurnRequest(senderClientId)) return;
 
             PlayerPawnNetworkSync activePawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
             if (activePawn == null) return;
@@ -515,7 +844,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             int rawTargetSpaceIndex = activePawn.CurrentSpaceIndex + dice;
             bool passedStart = boardManager != null && boardManager.SpaceCount > 0 && rawTargetSpaceIndex >= boardManager.SpaceCount;
             int targetSpaceIndex = boardManager.NormalizeIndex(activePawn.CurrentSpaceIndex + dice);
-            ulong activeClientId = turnStateMachine.GetParticipantClientId(CurrentTurnIndex);
 
             turnStateMachine.BeginRoll(dice);
             SetServerState(turnStateMachine.State);
@@ -582,7 +910,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
             turnStateMachine.BeginWaitingForEndTurn();
             SetServerState(turnStateMachine.State);
 
-            if (autoAdvanceTurns) AdvanceTurnServer();
+            if (autoAdvanceTurns)
+            {
+                AdvanceTurnServer();
+            }
 
             turnCoroutine = null;
         }
@@ -592,8 +923,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             if (!IsInitialized || Registry.Count == 0) return;
             
             pendingPurchaseSpaceIndexNet.Value = -1;
-
-            turnStateMachine.SetParticipants(Registry.BuildParticipants());
+            
             turnStateMachine.AdvanceTurn();
             
             PlayerPawnNetworkSync activePawn = Registry.GetAtTurnIndex(turnStateMachine.State.TurnIndex);
@@ -623,21 +953,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         private void SyncLocalStateFromNetwork()
         {
-            CurrentTurnIndex = currentTurnIndexNet.Value;
-            CurrentPhase     = (TurnPhase)currentPhaseNet.Value;
-            LastDiceRoll     = lastDiceRollNet.Value;
-            ActivePlayerName = activePlayerNameNet.Value.ToString();
-            ActiveClientId   = activeClientIdNet.Value;
-            IsInitialized    = initializedNet.Value;
             turnStateMachine.SetState(new TurnState(CurrentTurnIndex, CurrentPhase, LastDiceRoll, ActivePlayerName, ActiveClientId, IsInitialized));
 
             PublishTurnState();
         }
 
-        private void HandleTurnIndexChanged(int _, int newValue)    { CurrentTurnIndex = newValue; PublishTurnState(); }
+        private void HandleTurnIndexChanged(int _, int newValue)    { PublishTurnState(); }
         private void HandlePhaseChanged(int _, int newValue)
         {
-            CurrentPhase = (TurnPhase)newValue;
             PhaseChanged?.Invoke(CurrentPhase);
 
             // Server fires PawnMoved directly in ResolveAfterMoveRoutine; on
@@ -651,10 +974,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 }
             }
         }
-        private void HandleDiceRollChanged(int _, int newValue)     { LastDiceRoll = newValue; DiceRolled?.Invoke(newValue); }
-        private void HandleActivePlayerChanged(FixedString64Bytes _, FixedString64Bytes newValue) { ActivePlayerName = newValue.ToString(); PublishTurnState(); }
-        private void HandleActiveClientChanged(ulong _, ulong newValue) { ActiveClientId = newValue; PublishTurnState(); }
-        private void HandleInitializedChanged(bool _, bool newValue) { IsInitialized = newValue; }
+        private void HandleDiceRollChanged(int _, int newValue)     { DiceRolled?.Invoke(newValue); }
+        private void HandleActivePlayerChanged(FixedString64Bytes _, FixedString64Bytes newValue) { PublishTurnState(); }
+        private void HandleActiveClientChanged(ulong _, ulong newValue) { PublishTurnState(); }
+        private void HandleInitializedChanged(bool _, bool newValue) { }
 
         private void PublishTurnState()
         {
@@ -715,16 +1038,16 @@ namespace MonopolyGame.Multiplayer.Gameplay
         
         private int GetPawnSlotForClient(ulong clientId)
         {
-            IReadOnlyList<TurnParticipant> participants = Registry.BuildParticipants();
-
-            for (int i = 0; i < participants.Count; i++)
+            if (turnStateMachine != null && turnStateMachine.Participants != null)
             {
-                if (participants[i].ClientId == clientId)
+                for (int i = 0; i < turnStateMachine.Participants.Count; i++)
                 {
-                    return participants[i].TurnIndex;
+                    if (turnStateMachine.Participants[i].ClientId == clientId)
+                    {
+                        return turnStateMachine.Participants[i].TurnIndex;
+                    }
                 }
             }
-
             return -1;
         }
         

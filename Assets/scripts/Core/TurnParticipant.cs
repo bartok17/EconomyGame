@@ -7,10 +7,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
             TurnIndex = turnIndex;
             DisplayName = displayName ?? string.Empty;
             ClientId = clientId;
+            IsConnected = true;
         }
 
-        public int TurnIndex { get; }
+        public int TurnIndex { get; set; }
         public string DisplayName { get; }
-        public ulong ClientId { get; }
+        public ulong ClientId { get; set;  }
+        public bool IsConnected { get; set; }
     }
 }

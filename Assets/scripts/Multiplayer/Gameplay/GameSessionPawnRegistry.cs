@@ -49,6 +49,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 {
                     continue;
                 }
+                
+                pawnSync.NetworkObject.DontDestroyWithOwner = true;
 
                 ulong ownerClientId = (ulong)i;
 

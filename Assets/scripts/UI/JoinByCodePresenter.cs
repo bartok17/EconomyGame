@@ -21,22 +21,23 @@ namespace MonopolyGame.Multiplayer.UI
         private void OnEnable()
         {
             _instructionThemed = instructionText != null ? instructionText.GetComponent<ThemedText>() : null;
-
             if (codeInputField != null)
             {
                 codeInputField.onValueChanged.AddListener(OnCodeInputChanged);
             }
-
             if (joinButton != null)
             {
                 joinButton.onClick.AddListener(HandleJoinByCode);
             }
-
             if (codeInputField != null)
             {
+                string savedCode = PlayerPrefs.GetString("LastActiveLobbyCode", string.Empty);
+                if (!string.IsNullOrWhiteSpace(savedCode))
+                {
+                    codeInputField.text = savedCode;
+                }
                 codeInputField.ActivateInputField();
             }
-
             OnCodeInputChanged(codeInputField != null ? codeInputField.text : string.Empty);
         }
 

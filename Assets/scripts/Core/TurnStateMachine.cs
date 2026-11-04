@@ -13,6 +13,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
         }
 
         public TurnState State { get; private set; }
+        public int ParticipantCount => participants.Count;
+        public IReadOnlyList<TurnParticipant> Participants => participants;
 
         public void SetParticipants(IEnumerable<TurnParticipant> turnParticipants)
         {
@@ -75,6 +77,63 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 GetParticipantClientId(nextIndex),
                 true);
         }
+        
+        public void SetParticipantConnected(int turnIndex, bool isConnected)
+        {
+            if (participants.Count == 0) return;
+            int idx = Normalize(turnIndex);
+            if (idx >= 0 && idx < participants.Count)
+            {
+                participants[idx].IsConnected = isConnected;
+            }
+        }
+
+        public bool IsParticipantConnected(int turnIndex)
+        {
+            if (participants.Count == 0) return true;
+            int idx = Normalize(turnIndex);
+            return idx >= 0 && idx < participants.Count && participants[idx].IsConnected;
+        }
+
+        public void UpdateParticipantClientId(int turnIndex, ulong newClientId)
+        {
+            if (participants.Count == 0) return;
+            int idx = Normalize(turnIndex);
+            if (idx >= 0 && idx < participants.Count)
+            {
+                participants[idx].ClientId = newClientId;
+                participants[idx].IsConnected = true;
+                
+                if (State != null && State.TurnIndex == idx)
+                {
+                    State = new TurnState(State.TurnIndex, State.Phase, State.DiceRoll, State.ActivePlayerName, newClientId, State.IsInitialized);
+                }
+            }
+        }
+
+        public TurnParticipant FindParticipantByName(string displayName)
+        {
+            if (string.IsNullOrWhiteSpace(displayName)) return null;
+            return participants.FirstOrDefault(p => string.Equals(p.DisplayName, displayName, System.StringComparison.OrdinalIgnoreCase));
+        }
+
+        public void RemoveParticipant(int turnIndex)
+        {
+            int idx = Normalize(turnIndex);
+            if (idx >= 0 && idx < participants.Count)
+            {
+                participants.RemoveAt(idx);
+                for (int i = 0; i < participants.Count; i++)
+                {
+                    participants[i].TurnIndex = i;
+                }
+
+                if (participants.Count > 0 && State.TurnIndex >= participants.Count)
+                {
+                    State = new TurnState(0, State.Phase, State.DiceRoll, GetParticipantName(0), GetParticipantClientId(0), State.IsInitialized);
+                }
+            }
+        }
 
         public bool IsAuthorizedTurnRequest(ulong senderClientId)
         {
@@ -111,6 +170,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         private int Normalize(int turnIndex)
         {
+            if (participants.Count == 0) return 0;
             int n = turnIndex % participants.Count;
             return n < 0 ? n + participants.Count : n;
         }

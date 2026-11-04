@@ -153,8 +153,13 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             {
                 _ = coordinator.LeaveLobbyAsync();
             }
+            
+            if (NetworkManager.Singleton != null && (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsServer))
+            {
+                NetworkManager.Singleton.Shutdown();
+            }
 
-            SceneManager.LoadScene("AuthLobbyHub", LoadSceneMode.Single);
+            SceneManager.LoadScene("Menu", LoadSceneMode.Single);
         }
 
         public static MultiplayerSceneManager Instance => _instance;

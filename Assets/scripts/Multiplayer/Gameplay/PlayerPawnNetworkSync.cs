@@ -21,6 +21,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private int pendingPawnSlot = -1;
         private string pendingPlayerId = string.Empty;
         private string pendingDisplayName = string.Empty;
+        private bool _isStateApplied = false;
 
         private readonly NetworkVariable<int> pawnSlotNet = new NetworkVariable<int>(
             -1,
@@ -71,6 +72,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public override void OnNetworkSpawn()
         {
+            if (NetworkObject != null)
+            {
+                NetworkObject.DontDestroyWithOwner = true;
+            }
+            
             syncedSpaceIndex.OnValueChanged += HandleSyncedSpaceIndexChanged;
             isMovingNet.OnValueChanged += HandleIsMovingChanged;
             pawnSlotNet.OnValueChanged += HandlePawnSlotChanged;
@@ -92,6 +98,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private void Start()
         {
             if (pawn == null || boardManager == null)
+            {
+                TryApplyPawnState();
+            }
+        }
+        
+        private void Update()
+        {
+            if (!_isStateApplied)
             {
                 TryApplyPawnState();
             }
@@ -183,16 +197,19 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         private void HandlePawnSlotChanged(int previousValue, int newValue)
         {
+            _isStateApplied = false;
             TryApplyPawnState();
         }
 
         private void HandlePlayerIdChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
         {
+            _isStateApplied = false;
             TryApplyPawnState();
         }
 
         private void HandleDisplayNameChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
         {
+            _isStateApplied = false;
             TryApplyPawnState();
         }
 
@@ -235,6 +252,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             pawn.Initialize(resolvedPlayerId, resolvedDisplayName, resolvedPawnSlot, syncedSpaceIndex.Value, boardManager);
             ApplyVisualStyleFromConfig(resolvedPawnSlot);
+            pawn.PlaceOnSpace(syncedSpaceIndex.Value);
+            _isStateApplied = true;
 
             Debug.Log($"[PlayerPawnNetworkSync] {gameObject.name}: pawn initialized. slot={resolvedPawnSlot}, player={resolvedDisplayName}, space={syncedSpaceIndex.Value}, isServer={IsServer}");
         }
@@ -245,8 +264,9 @@ namespace MonopolyGame.Multiplayer.Gameplay
             float radius = pawnVisualConfig != null ? pawnVisualConfig.PawnRadius : 0.28f;
             gameObject.transform.localScale = new Vector3(radius, height / 2f, radius);
 
-            Color color = pawnVisualConfig != null ? pawnVisualConfig.GetPawnColor(pawnSlot) : Color.white;
+            Color color = pawnVisualConfig != null ? pawnVisualConfig.GetPawnColor(pawnSlot) : GetFallbackColor(pawnSlot);
             Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>(true);
+            
             Material material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             material.color = color;
 
@@ -254,9 +274,25 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 if (r != null)
                 {
-                    r.sharedMaterial = material;
+                    r.enabled = true;
+                    if (material != null)
+                    {
+                        r.sharedMaterial = material;
+                    }
                 }
             }
+        }
+        
+        private Color GetFallbackColor(int slot)
+        {
+            return slot switch
+            {
+                0 => new Color(0.85f, 0.2f, 0.2f),
+                1 => new Color(0.2f, 0.5f, 0.9f),
+                2 => new Color(0.2f, 0.8f, 0.3f),
+                3 => new Color(0.95f, 0.75f, 0.1f),
+                _ => Color.white
+            };
         }
 
         private void ResolveLocalReferences()

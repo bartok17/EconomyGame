@@ -36,6 +36,11 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void OnEnable()
         {
+            if (MultiplayerFlowCoordinator.Instance != null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance;
+            }
+            
             _readyThemed = readyButton != null ? readyButton.GetComponent<ThemedButton>() : null;
             _roleBadgeThemed = roleBadgeText != null ? roleBadgeText.GetComponent<ThemedText>() : null;
 
@@ -104,8 +109,10 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void DisplayLobbyInfo(LobbySnapshot lobby)
         {
+            string codeSuffix = !string.IsNullOrWhiteSpace(lobby.LobbyCode) ? $"  ·  CODE: {lobby.LobbyCode}" : string.Empty;
+            
             if (lobbyNameText != null)
-                lobbyNameText.text = lobby.Name;
+                lobbyNameText.text = $"{lobby.Name}{codeSuffix}";
 
             if (variantText != null)
             {
@@ -119,7 +126,7 @@ namespace MonopolyGame.Multiplayer.UI
                 maxPlayersText.text = $"Max Players: {lobby.MaxPlayers}";
 
             if (privateStatusText != null)
-                privateStatusText.text = lobby.IsPrivate ? "Private" : "Public";
+                privateStatusText.text = (lobby.IsPrivate ? "Private" : "Public") + codeSuffix;
         }
 
         private void UpdatePlayerList(LobbySnapshot lobby)

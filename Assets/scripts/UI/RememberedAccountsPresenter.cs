@@ -22,9 +22,22 @@ namespace MonopolyGame.Multiplayer.UI
         [SerializeField] private Toggle rememberToggle;
 
         private readonly List<RememberedAccountItem> _activeItems = new();
+        
+        private void Awake()
+        {
+            if (coordinator == null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance ?? FindAnyObjectByType<MultiplayerFlowCoordinator>();
+            }
+        }
 
         private void OnEnable()
         {
+            if (MultiplayerFlowCoordinator.Instance != null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance;
+            }
+            
             if (coordinator == null)
             {
                 Debug.LogError("[RememberedAccountsPresenter] MultiplayerFlowCoordinator not assigned. Wire it in the inspector.");

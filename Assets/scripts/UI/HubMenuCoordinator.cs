@@ -20,11 +20,7 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void OnEnable()
         {
-            if (coordinator == null)
-            {
-                Debug.LogWarning("[HubMenuCoordinator] MultiplayerFlowCoordinator not found. Panel transitions will not react to lobby events.");
-                return;
-            }
+            EnsureCoordinator();
 
             if (coordinator != null)
             {
@@ -46,8 +42,30 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void Awake()
         {
+            EnsureCoordinator();
             InitializePanelMap();
             SetInitialPanelState();
+        }
+        
+        private void Start()
+        {
+            EnsureCoordinator();
+            if (coordinator != null && coordinator.Status == MultiplayerStatus.SignedIn)
+            {
+                ShowPanel("hub");
+            }
+        }
+
+        private void EnsureCoordinator()
+        {
+            if (MultiplayerFlowCoordinator.Instance != null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance;
+            }
+            else if (coordinator == null)
+            {
+                coordinator = FindAnyObjectByType<MultiplayerFlowCoordinator>();
+            }
         }
 
         private void InitializePanelMap()
@@ -65,15 +83,18 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void SetInitialPanelState()
         {
+            EnsureCoordinator();
             HideAllPanelsImmediate();
-
-            if (_panelMap.TryGetValue("auth", out CanvasGroup authPanel) && authPanel != null)
+            string defaultPanel = (coordinator != null && coordinator.Status == MultiplayerStatus.SignedIn)
+                ? "hub"
+                : "auth";
+            if (_panelMap.TryGetValue(defaultPanel, out CanvasGroup initialPanel) && initialPanel != null)
             {
-                authPanel.gameObject.SetActive(true);
-                authPanel.alpha = 1f;
-                authPanel.interactable = true;
-                authPanel.blocksRaycasts = true;
-                _currentActivePanel = authPanel;
+                initialPanel.gameObject.SetActive(true);
+                initialPanel.alpha = 1f;
+                initialPanel.interactable = true;
+                initialPanel.blocksRaycasts = true;
+                _currentActivePanel = initialPanel;
             }
         }
 
@@ -128,7 +149,7 @@ namespace MonopolyGame.Multiplayer.UI
 
         public void ShowPanel(string panelName)
         {
-            if (!_panelMap.ContainsKey(panelName))
+            if (_panelMap == null || !_panelMap.ContainsKey(panelName))
             {
                 Debug.LogWarning($"[HubMenuCoordinator] Panel '{panelName}' not found in map");
                 return;

@@ -53,8 +53,24 @@ namespace MonopolyGame.Multiplayer
             {
                 Player = BuildPlayer(displayName)
             };
-
-            CurrentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinOptions);
+            try
+            {
+                CurrentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinOptions);
+            }
+            catch (LobbyServiceException ex) when (ex.Reason == LobbyExceptionReason.LobbyConflict || ex.ErrorCode == 16003)
+            {
+                Debug.Log("[LobbyClient] Player already in lobby in UGS. Re-fetching lobby directly.");
+                var queryResponse = await LobbyService.Instance.QueryLobbiesAsync();
+                var matching = queryResponse.Results.Find(l => l.LobbyCode == lobbyCode);
+                if (matching != null)
+                {
+                    CurrentLobby = await LobbyService.Instance.GetLobbyAsync(matching.Id);
+                }
+                else
+                {
+                    throw;
+                }
+            }
             Debug.Log($"[LobbyClient] Joined lobby: id={CurrentLobby.Id}, code={CurrentLobby.LobbyCode}, name={CurrentLobby.Name}, players={CurrentLobby.Players?.Count ?? 0}/{CurrentLobby.MaxPlayers}");
             LobbyUpdated?.Invoke(CurrentLobby);
             return CurrentLobby;

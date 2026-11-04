@@ -36,9 +36,22 @@ namespace MonopolyGame.Multiplayer.UI
             MultiplayerStatus.RelayJoining,
             MultiplayerStatus.NetworkStarting
         };
+        
+        private void Awake()
+        {
+            if (coordinator == null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance ?? FindAnyObjectByType<MultiplayerFlowCoordinator>();
+            }
+        }
 
         private void OnEnable()
         {
+            if (MultiplayerFlowCoordinator.Instance != null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance;
+            }
+            
             if (coordinator == null)
             {
                 Debug.LogError("[MultiplayerUiCommands] MultiplayerFlowCoordinator not assigned. Wire it in the inspector.");
