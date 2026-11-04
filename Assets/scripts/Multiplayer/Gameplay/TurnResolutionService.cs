@@ -173,10 +173,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
                     SetEconomyMessage($"{result.DisplayName}: no action.");
                     break;
 
-                case BoardSpaceType.ActionCard:
-                    SetEconomyMessage($"{result.DisplayName}: action cards are not implemented yet.");
-                    break;
-
                 case BoardSpaceType.EventCard:
                     SetEconomyMessage($"{result.DisplayName}: event cards are not implemented yet.");
                     break;
