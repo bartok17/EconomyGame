@@ -172,10 +172,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 case BoardSpaceType.Parking:
                     SetEconomyMessage($"{result.DisplayName}: no action.");
                     break;
-
-                case BoardSpaceType.EventCard:
-                    SetEconomyMessage($"{result.DisplayName}: event cards are not implemented yet.");
-                    break;
             }
         }
 

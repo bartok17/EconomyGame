@@ -14,7 +14,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
     {
         public const int MaxPlayers = 4;
 
-        private readonly NetworkVariable<ActionCardPileState> pileStateNet;
+        private readonly NetworkVariable<CardPileState> pileStateNet;
         private readonly Action<int, IReadOnlyList<ActionCardHandEntry>> handChanged;
         private readonly ActionCardHand[] hands = new ActionCardHand[MaxPlayers];
 
@@ -22,7 +22,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private bool initialized;
 
         public ActionCardSessionService(
-            NetworkVariable<ActionCardPileState> pileStateNet,
+            NetworkVariable<CardPileState> pileStateNet,
             Action<int, IReadOnlyList<ActionCardHandEntry>> handChanged)
         {
             this.pileStateNet = pileStateNet ?? throw new ArgumentNullException(nameof(pileStateNet));
@@ -120,8 +120,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             ActionCardInstance topDiscard = deck.TopDiscard;
 
             pileStateNet.Value = topDiscard == null
-                ? new ActionCardPileState(deck.DrawPileCount, deck.DiscardPileCount)
-                : new ActionCardPileState(
+                ? new CardPileState(deck.DrawPileCount, deck.DiscardPileCount)
+                : new CardPileState(
                     deck.DrawPileCount,
                     deck.DiscardPileCount,
                     topDiscard.Definition.CardId,
