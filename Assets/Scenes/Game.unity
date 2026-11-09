@@ -8506,6 +8506,7 @@ GameObject:
   - component: {fileID: 1881610961}
   - component: {fileID: 1881610962}
   - component: {fileID: 510000007}
+  - component: {fileID: 510000008}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -9896,13 +9897,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9e0e9dad5f040418efa49b816b583f4, type: 3}
   m_Name:
   m_EditorClassIdentifier: MonopolyGame.Multiplayer::MonopolyGame.Board.ActionCardBoardView
-  actionDeckAnchor: {fileID: 0}
+  deckAnchor: {fileID: 0}
   boardGenerator: {fileID: 0}
   cardWidth: 0.85
   cardDepth: 1
   pileSpacing: 1.1
   tableY: 0.05
   drawPileColor: {r: 0.65, g: 0.06, b: 0.1, a: 1}
+  discardPileColor: {r: 0.88, g: 0.84, b: 0.7, a: 1}
+
+--- !u!114 &510000008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881610957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ef40bf08490414b844dda3f2b3d4100, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: MonopolyGame.Multiplayer::MonopolyGame.Board.EventCardBoardView
+  deckAnchor: {fileID: 0}
+  boardGenerator: {fileID: 0}
+  cardWidth: 0.85
+  cardDepth: 1
+  pileSpacing: 1.1
+  tableY: 0.05
+  drawPileColor: {r: 0.1, g: 0.36, b: 0.62, a: 1}
   discardPileColor: {r: 0.88, g: 0.84, b: 0.7, a: 1}
 
 --- !u!1660057539 &9223372036854775807

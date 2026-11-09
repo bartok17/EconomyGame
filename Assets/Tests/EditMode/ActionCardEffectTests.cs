@@ -32,7 +32,7 @@ namespace MonopolyGame.Core.Tests
             Assert.AreEqual(WindfallActionCard.Amount, actions.FundsAdded);
         }
 
-        private sealed class RecordingActions : IActionCardGameActions
+        private sealed class RecordingActions : ICardGameActions
         {
             public string MovedPlayerId { get; private set; }
             public int MovedSpaces { get; private set; }
@@ -49,6 +49,10 @@ namespace MonopolyGame.Core.Tests
             {
                 FundedPlayerId = playerId;
                 FundsAdded = amount;
+            }
+
+            public void DeductFunds(string playerId, int amount)
+            {
             }
 
             public void TransferFunds(string fromPlayerId, string toPlayerId, int amount)

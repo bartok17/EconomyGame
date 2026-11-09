@@ -1,5 +1,3 @@
-using System;
-
 namespace MonopolyGame.Cards
 {
     /// <summary>
@@ -8,7 +6,7 @@ namespace MonopolyGame.Cards
     /// Adding a card means adding a subclass and registering it in
     /// <see cref="ActionCardCatalog"/>.
     /// </summary>
-    public abstract class ActionCardDefinition
+    public abstract class ActionCardDefinition : CardDefinition
     {
         protected ActionCardDefinition(
             string cardId,
@@ -16,29 +14,9 @@ namespace MonopolyGame.Cards
             string description,
             string shortLabel,
             int quantity)
+            : base(cardId, displayName, description, shortLabel, quantity)
         {
-            if (string.IsNullOrWhiteSpace(cardId))
-            {
-                throw new ArgumentException("A card id is required.", nameof(cardId));
-            }
-
-            if (quantity < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(quantity), "Card quantity cannot be negative.");
-            }
-
-            CardId = cardId;
-            DisplayName = displayName ?? string.Empty;
-            Description = description ?? string.Empty;
-            ShortLabel = shortLabel ?? string.Empty;
-            Quantity = quantity;
         }
-
-        public string CardId { get; }
-        public string DisplayName { get; }
-        public string Description { get; }
-        public string ShortLabel { get; }
-        public int Quantity { get; }
 
         public abstract void Play(ActionCardPlayContext context);
     }
