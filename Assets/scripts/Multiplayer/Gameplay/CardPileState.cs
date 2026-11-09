@@ -4,8 +4,8 @@ using Unity.Netcode;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
-    /// <summary>Public deck information replicated to every client.</summary>
-    public struct ActionCardPileState : INetworkSerializable, IEquatable<ActionCardPileState>
+    /// <summary>Public pile information for one deck, replicated to every client.</summary>
+    public struct CardPileState : INetworkSerializable, IEquatable<CardPileState>
     {
         public int DrawPileCount;
         public int DiscardPileCount;
@@ -13,7 +13,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public FixedString64Bytes TopDiscardDisplayName;
         public FixedString64Bytes TopDiscardShortLabel;
 
-        public ActionCardPileState(
+        public CardPileState(
             int drawPileCount,
             int discardPileCount,
             string topDiscardCardId = "",
@@ -36,7 +36,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             serializer.SerializeValue(ref TopDiscardShortLabel);
         }
 
-        public bool Equals(ActionCardPileState other)
+        public bool Equals(CardPileState other)
         {
             return DrawPileCount == other.DrawPileCount &&
                    DiscardPileCount == other.DiscardPileCount &&
