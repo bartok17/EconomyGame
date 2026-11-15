@@ -1,17 +1,13 @@
-using System;
-
 namespace MonopolyGame.Cards
 {
-    /// <summary>One physical card in a deck or hand.</summary>
-    public sealed class ActionCardInstance
+    /// <summary>One physical action card in a deck or hand.</summary>
+    public sealed class ActionCardInstance : CardInstance
     {
         public ActionCardInstance(int instanceId, ActionCardDefinition definition)
+            : base(instanceId, definition)
         {
-            InstanceId = instanceId;
-            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        public int InstanceId { get; }
-        public ActionCardDefinition Definition { get; }
+        public new ActionCardDefinition Definition => (ActionCardDefinition)base.Definition;
     }
 }
