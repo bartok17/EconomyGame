@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using MonopolyGame.Multiplayer.Camera;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -39,11 +40,15 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private Button endTurnButton;
         [SerializeField] private Button buyButton;
 
+        private Button payButton;
+
         [Header("Overlays")]
         [SerializeField] private GameObject cardInspectionPanel;
 
         [Header("Action Cards")]
         [SerializeField] private ActionCardHudPresenter actionCardHud;
+        [SerializeField] private ActionCardActivationPresenter actionCardActivation;
+        [SerializeField] private BoardFocusCoordinator boardFocusCoordinator;
 
         private readonly List<PlayerHudEntry> playerEntries = new();
 
@@ -66,6 +71,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             ResolvePlayerEntries();
+            EnsurePayButton();
             BindSession();
             RefreshFromSession();
         }
@@ -74,6 +80,27 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             session = sessionController;
             actionCardHud?.BindSession(sessionController);
+            actionCardActivation?.BindSession(sessionController, boardFocusCoordinator);
+
+            if (actionCardHud != null)
+            {
+                actionCardHud.CardActivated -= HandleCardActivated;
+                actionCardHud.CardActivated += HandleCardActivated;
+            }
+        }
+
+        private void HandleCardActivated(ActionCardHandEntry entry)
+        {
+            if (actionCardActivation != null)
+            {
+                actionCardActivation.Open(entry);
+            }
+        }
+
+        /// <summary>Lets the composition root hand over the board click router.</summary>
+        public void BindFocusCoordinator(BoardFocusCoordinator coordinator)
+        {
+            boardFocusCoordinator = coordinator;
         }
 
         public void ShowCardInspection()
@@ -104,6 +131,37 @@ namespace MonopolyGame.Multiplayer.Gameplay
             playerEntries.AddRange(playerRailRoot.GetComponentsInChildren<PlayerHudEntry>(includeInactive: true));
         }
 
+        /// <summary>
+        /// Payments to other players are confirmed by the payer, so the action
+        /// bar needs a Pay button. It is cloned from the Buy button to inherit
+        /// the themed styling and layout without duplicating UI assets.
+        /// </summary>
+        private void EnsurePayButton()
+        {
+            if (payButton != null || buyButton == null)
+            {
+                return;
+            }
+
+            GameObject clone = Instantiate(buyButton.gameObject, buyButton.transform.parent);
+            clone.name = "PayButton";
+            clone.transform.SetSiblingIndex(buyButton.transform.GetSiblingIndex() + 1);
+
+            payButton = clone.GetComponent<Button>();
+
+            if (payButton != null)
+            {
+                payButton.onClick.RemoveAllListeners();
+            }
+
+            TextMeshProUGUI label = clone.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (label != null)
+            {
+                label.text = "Pay";
+            }
+        }
+
         private void BindSession()
         {
             if (session == null)
@@ -115,6 +173,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             session.TurnChanged += HandleTurnChanged;
             session.DiceRolled += HandleDiceRolled;
             session.EconomyChanged += HandleEconomyChanged;
+            session.CardResolutionChanged += HandleCardResolutionChanged;
+            session.PaymentsChanged += HandlePaymentsChanged;
 
             if (rollButton != null)
             {
@@ -130,6 +190,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 buyButton.onClick.AddListener(HandleBuyClicked);
             }
+
+            if (payButton != null)
+            {
+                payButton.onClick.AddListener(HandlePayClicked);
+            }
         }
 
         private void UnbindSession()
@@ -140,6 +205,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 session.TurnChanged -= HandleTurnChanged;
                 session.DiceRolled -= HandleDiceRolled;
                 session.EconomyChanged -= HandleEconomyChanged;
+                session.CardResolutionChanged -= HandleCardResolutionChanged;
+                session.PaymentsChanged -= HandlePaymentsChanged;
             }
 
             if (rollButton != null)
@@ -157,7 +224,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 buyButton.onClick.RemoveListener(HandleBuyClicked);
             }
 
+            if (payButton != null)
+            {
+                payButton.onClick.RemoveListener(HandlePayClicked);
+            }
+
             actionCardHud?.BindSession(null);
+
+            if (actionCardHud != null)
+            {
+                actionCardHud.CardActivated -= HandleCardActivated;
+            }
         }
 
         private void HandleRollClicked()
@@ -184,6 +261,20 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
+        private void HandlePayClicked()
+        {
+            if (session != null)
+            {
+                session.RequestPayPendingPayment();
+            }
+        }
+
+        private void HandlePaymentsChanged()
+        {
+            UpdateControls();
+            UpdatePhaseText();
+        }
+
         private void HandlePhaseChanged(TurnPhase phase)
         {
             UpdatePhaseText();
@@ -207,6 +298,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             RefreshDashboard();
             UpdateControls();
+        }
+
+        private void HandleCardResolutionChanged()
+        {
+            UpdateControls();
+            UpdatePhaseText();
         }
 
         private void RefreshFromSession()
@@ -354,8 +451,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             ulong localClientId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : ulong.MaxValue;
             bool isMyTurn = session.IsInitialized && session.ActiveClientId == localClientId;
-            bool canRoll = isMyTurn && session.CurrentPhase == TurnPhase.AwaitingRoll;
-            bool canEnd = isMyTurn && session.CurrentPhase == TurnPhase.WaitingForEndTurn;
+            bool resolvingCard = session.IsResolvingCardAction;
+            bool paying = session.HasPendingPayment;
+            bool canRoll = isMyTurn && !resolvingCard && !paying && session.CurrentPhase == TurnPhase.AwaitingRoll;
+            bool canEnd = isMyTurn && !resolvingCard && !paying && session.CurrentPhase == TurnPhase.WaitingForEndTurn;
 
             if (rollButton != null)
             {
@@ -384,6 +483,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 if (buyLabel != null)
                 {
                     buyLabel.text = session.GetBuyButtonLabel();
+                }
+            }
+
+            if (payButton != null)
+            {
+                payButton.interactable = session.CanPayPendingPayment;
+
+                TextMeshProUGUI payLabel = payButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (payLabel != null)
+                {
+                    payLabel.text = session.GetPayButtonLabel();
                 }
             }
         }

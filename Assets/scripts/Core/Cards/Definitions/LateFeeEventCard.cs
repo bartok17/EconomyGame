@@ -17,7 +17,7 @@ namespace MonopolyGame.Cards.Definitions
 
         public override void Trigger(EventCardTriggerContext context)
         {
-            if (!context.TryGetNextAfter(context.DrawingPawnSlot, out EventCardPlayerState target))
+            if (!context.TryGetNextAfter(context.DrawingPawnSlot, out CardPlayerState target))
             {
                 context.Report("No other player to charge.");
                 return;
