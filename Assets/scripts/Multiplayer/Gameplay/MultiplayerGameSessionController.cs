@@ -31,8 +31,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         [Header("Developer")]
         [SerializeField] private bool enableDevGrantCardShortcut = true;
+        [SerializeField] private bool enableDevTriggerEventShortcut = true;
 
         private const Key DevGrantCardKey = Key.F8;
+        private const Key DevTriggerEventKey = Key.F9;
 
         private GameSessionPawnRegistry pawnRegistry;
         private readonly TurnStateMachine turnStateMachine = new TurnStateMachine();
@@ -40,6 +42,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private IPlayerEconomyService _economyService;
         private TurnResolutionService _turnResolution;
         private ActionCardSessionService _actionCardService;
+        private EventCardSessionService _eventCardService;
+        private EventCardGameActions _eventCardActions;
         private readonly List<ActionCardHandEntry> localActionCardHand = new List<ActionCardHandEntry>();
 
         private Coroutine bootstrapCoroutine;
@@ -83,13 +87,19 @@ namespace MonopolyGame.Multiplayer.Gameplay
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
 
-        private readonly NetworkVariable<ActionCardPileState> actionCardPileStateNet = new NetworkVariable<ActionCardPileState>(
+        private readonly NetworkVariable<CardPileState> actionCardPileStateNet = new NetworkVariable<CardPileState>(
+            default,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
+
+        private readonly NetworkVariable<CardPileState> eventCardPileStateNet = new NetworkVariable<CardPileState>(
             default,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
 
         public event Action EconomyChanged;
         public event Action ActionCardsChanged;
+        public event Action EventCardsChanged;
 
         // ── Public state ────────────────────────────────────────────────────────────
 
@@ -123,18 +133,25 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 pawnMoveDuration,
                 () => EconomyChanged?.Invoke());
             _actionCardService = new ActionCardSessionService(actionCardPileStateNet, HandleActionCardHandChanged);
+            _eventCardService = new EventCardSessionService(eventCardPileStateNet);
+            _eventCardActions = new EventCardGameActions(_economyService, () => EconomyChanged?.Invoke());
         }
 
         private void Update()
         {
-            if (!enableDevGrantCardShortcut || Keyboard.current == null)
+            if (Keyboard.current == null)
             {
                 return;
             }
 
-            if (Keyboard.current[DevGrantCardKey].wasPressedThisFrame)
+            if (enableDevGrantCardShortcut && Keyboard.current[DevGrantCardKey].wasPressedThisFrame)
             {
                 RequestDevActionCardGrant();
+            }
+
+            if (enableDevTriggerEventShortcut && Keyboard.current[DevTriggerEventKey].wasPressedThisFrame)
+            {
+                RequestDevEventCardTrigger();
             }
         }
 
@@ -152,6 +169,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             lastResolvedSpaceIndexNet.OnValueChanged += HandleLastResolvedSpaceChanged;
             lastEconomyMessageNet.OnValueChanged += HandleLastEconomyMessageChanged;
             actionCardPileStateNet.OnValueChanged += HandleActionCardPileStateChanged;
+            eventCardPileStateNet.OnValueChanged += HandleEventCardPileStateChanged;
 
             SyncLocalStateFromNetwork();
 
@@ -175,6 +193,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             lastResolvedSpaceIndexNet.OnValueChanged -= HandleLastResolvedSpaceChanged;
             lastEconomyMessageNet.OnValueChanged -= HandleLastEconomyMessageChanged;
             actionCardPileStateNet.OnValueChanged -= HandleActionCardPileStateChanged;
+            eventCardPileStateNet.OnValueChanged -= HandleEventCardPileStateChanged;
 
             localActionCardHand.Clear();
         }
@@ -265,7 +284,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             get
             {
-                ActionCardPileState state = actionCardPileStateNet.Value;
+                CardPileState state = actionCardPileStateNet.Value;
                 string shortLabel = state.TopDiscardShortLabel.ToString();
                 return string.IsNullOrEmpty(shortLabel)
                     ? state.TopDiscardDisplayName.ToString()
@@ -315,6 +334,82 @@ namespace MonopolyGame.Multiplayer.Gameplay
             else
             {
                 RequestDevGrantActionCardServerRpc();
+            }
+        }
+
+        public int EventCardDrawPileCount => eventCardPileStateNet.Value.DrawPileCount;
+        public int EventCardDiscardPileCount => eventCardPileStateNet.Value.DiscardPileCount;
+
+        public string EventCardTopDiscardLabel
+        {
+            get
+            {
+                CardPileState state = eventCardPileStateNet.Value;
+                string shortLabel = state.TopDiscardShortLabel.ToString();
+                return string.IsNullOrEmpty(shortLabel)
+                    ? state.TopDiscardDisplayName.ToString()
+                    : shortLabel;
+            }
+        }
+
+        /// <summary>
+        /// Server-side entry point for triggering an event card from any future
+        /// system. Landing on an EventCard space uses the same path.
+        /// </summary>
+        public EventCardDrawResult TriggerEventCard(int pawnSlot)
+        {
+            if (!IsServer)
+            {
+                Debug.LogWarning("[MultiplayerGameSessionController] Event cards can only be triggered by the server.");
+                return new EventCardDrawResult(EventCardOutcome.DeckEmpty);
+            }
+
+            return _eventCardService.TriggerCard(BuildEventCardTriggerContext(pawnSlot));
+        }
+
+        private EventCardTriggerContext BuildEventCardTriggerContext(int drawingPawnSlot)
+        {
+            IReadOnlyList<PlayerEconomyState> states = _economyService != null
+                ? _economyService.GetAllEconomyStates()
+                : Array.Empty<PlayerEconomyState>();
+            var players = new List<EventCardPlayerState>(states.Count);
+
+            for (int i = 0; i < states.Count; i++)
+            {
+                PlayerEconomyState state = states[i];
+                players.Add(new EventCardPlayerState(
+                    state.PawnSlot,
+                    state.PawnSlot,
+                    state.PlayerId.ToString(),
+                    state.DisplayName.ToString(),
+                    state.Balance));
+            }
+
+            return new EventCardTriggerContext(drawingPawnSlot, players, _eventCardActions);
+        }
+
+        private void RequestDevEventCardTrigger()
+        {
+            if (!IsInitialized)
+            {
+                return;
+            }
+
+            int pawnSlot = GetLocalPawnSlot();
+
+            if (pawnSlot < 0)
+            {
+                return;
+            }
+
+            if (IsServer)
+            {
+                EventCardDrawResult result = TriggerEventCard(pawnSlot);
+                Debug.Log($"[Dev] Event card trigger for slot {pawnSlot}: {result.Outcome}.");
+            }
+            else
+            {
+                RequestDevTriggerEventCardServerRpc();
             }
         }
 
@@ -567,6 +662,18 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
+        [ServerRpc(RequireOwnership = false)]
+        private void RequestDevTriggerEventCardServerRpc(ServerRpcParams serverRpcParams = default)
+        {
+            int pawnSlot = GetPawnSlotForClient(serverRpcParams.Receive.SenderClientId);
+
+            if (pawnSlot >= 0)
+            {
+                EventCardDrawResult result = TriggerEventCard(pawnSlot);
+                Debug.Log($"[Dev] Event card trigger for slot {pawnSlot}: {result.Outcome}.");
+            }
+        }
+
         [ClientRpc]
         private void SyncLocalActionCardHandClientRpc(
             ActionCardHandEntry[] entries,
@@ -629,6 +736,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 turnStateMachine.SetParticipants(Registry.BuildParticipants());
                 InitializeEconomyState();
                 _actionCardService.Initialize(Registry.Count);
+                _eventCardService.Initialize();
                 turnStateMachine.StartGame(0);
                 lastResolvedSpaceIndexNet.Value = startSpaceIndex;
                 lastEconomyMessageNet.Value = new FixedString128Bytes("Game started.");
@@ -729,6 +837,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 _turnResolution.ResolveAutomaticRent(activePawn, result);
                 _turnResolution.ResolveSpecialSpaceMessage(result);
                 ResolveActionCardLanding(activePawn, result);
+                ResolveEventCardLanding(activePawn, result);
                 _turnResolution.UpdatePendingPurchase(result, boardManager);
             }
 
@@ -900,6 +1009,39 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
+        private void ResolveEventCardLanding(PlayerPawnNetworkSync pawn, BoardLandingResult result)
+        {
+            if (pawn == null || result == null || result.SpaceType != BoardSpaceType.EventCard)
+            {
+                return;
+            }
+
+            EventCardDrawResult draw = TriggerEventCard(pawn.PawnSlot);
+            string message = BuildEventCardMessage(pawn, draw);
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                _turnResolution.SetEconomyMessage(message);
+            }
+        }
+
+        private static string BuildEventCardMessage(PlayerPawnNetworkSync pawn, EventCardDrawResult draw)
+        {
+            string reshufflePrefix = draw.Reshuffled ? "Discard pile reshuffled. " : string.Empty;
+
+            if (draw.Outcome == EventCardOutcome.DeckEmpty)
+            {
+                return $"{reshufflePrefix}No event cards are available.";
+            }
+
+            string playerName = string.IsNullOrWhiteSpace(pawn.DisplayName)
+                ? $"Player {pawn.PawnSlot + 1}"
+                : pawn.DisplayName;
+            string effect = draw.Messages.Count > 0 ? string.Join(" ", draw.Messages) : string.Empty;
+
+            return $"{reshufflePrefix}{playerName} drew {draw.Card.Definition.DisplayName}. {effect}".Trim();
+        }
+
         private void SendInitialActionCardHands()
         {
             if (!IsServer)
@@ -977,9 +1119,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
             ActionCardsChanged?.Invoke();
         }
 
-        private void HandleActionCardPileStateChanged(ActionCardPileState previousValue, ActionCardPileState newValue)
+        private void HandleActionCardPileStateChanged(CardPileState previousValue, CardPileState newValue)
         {
             ActionCardsChanged?.Invoke();
+        }
+
+        private void HandleEventCardPileStateChanged(CardPileState previousValue, CardPileState newValue)
+        {
+            EventCardsChanged?.Invoke();
         }
 
         private void HandleBuyPropertyOnServer(ulong senderClientId)
