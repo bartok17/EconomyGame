@@ -17,7 +17,7 @@ namespace MonopolyGame.Cards.Definitions
 
         public override void Trigger(EventCardTriggerContext context)
         {
-            if (!context.TryGetPoorest(out EventCardPlayerState target))
+            if (!context.TryGetPoorest(out CardPlayerState target))
             {
                 return;
             }

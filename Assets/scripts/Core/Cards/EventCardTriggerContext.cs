@@ -14,22 +14,22 @@ namespace MonopolyGame.Cards
 
         public EventCardTriggerContext(
             int drawingPawnSlot,
-            IReadOnlyList<EventCardPlayerState> players,
+            IReadOnlyList<CardPlayerState> players,
             ICardGameActions actions)
         {
             DrawingPawnSlot = drawingPawnSlot;
-            Players = players ?? Array.Empty<EventCardPlayerState>();
+            Players = players ?? Array.Empty<CardPlayerState>();
             Actions = actions ?? throw new ArgumentNullException(nameof(actions));
         }
 
         public int DrawingPawnSlot { get; }
-        public IReadOnlyList<EventCardPlayerState> Players { get; }
+        public IReadOnlyList<CardPlayerState> Players { get; }
         public ICardGameActions Actions { get; }
 
         /// <summary>Human-readable lines produced by the card while resolving.</summary>
         public IReadOnlyList<string> Messages => messages;
 
-        public bool TryGetPlayer(int pawnSlot, out EventCardPlayerState player)
+        public bool TryGetPlayer(int pawnSlot, out CardPlayerState player)
         {
             for (int i = 0; i < Players.Count; i++)
             {
@@ -44,43 +44,43 @@ namespace MonopolyGame.Cards
             return false;
         }
 
-        public bool TryGetDrawingPlayer(out EventCardPlayerState player)
+        public bool TryGetDrawingPlayer(out CardPlayerState player)
         {
             return TryGetPlayer(DrawingPawnSlot, out player);
         }
 
         /// <summary>Lowest balance; the lowest seat wins ties.</summary>
-        public bool TryGetPoorest(out EventCardPlayerState player)
+        public bool TryGetPoorest(out CardPlayerState player)
         {
             return TryGetExtreme(out player, findHighest: false);
         }
 
         /// <summary>Highest balance; the lowest seat wins ties.</summary>
-        public bool TryGetRichest(out EventCardPlayerState player)
+        public bool TryGetRichest(out CardPlayerState player)
         {
             return TryGetExtreme(out player, findHighest: true);
         }
 
         /// <summary>Next player in seat order, wrapping around; false when alone.</summary>
-        public bool TryGetNextAfter(int pawnSlot, out EventCardPlayerState player)
+        public bool TryGetNextAfter(int pawnSlot, out CardPlayerState player)
         {
             player = default;
 
-            if (Players.Count < 2 || !TryGetPlayer(pawnSlot, out EventCardPlayerState current))
+            if (Players.Count < 2 || !TryGetPlayer(pawnSlot, out CardPlayerState current))
             {
                 return false;
             }
 
             bool hasNext = false;
-            EventCardPlayerState next = default;
+            CardPlayerState next = default;
             int nextSeat = int.MaxValue;
             bool hasFirst = false;
-            EventCardPlayerState first = default;
+            CardPlayerState first = default;
             int firstSeat = int.MaxValue;
 
             for (int i = 0; i < Players.Count; i++)
             {
-                EventCardPlayerState candidate = Players[i];
+                CardPlayerState candidate = Players[i];
 
                 if (candidate.PawnSlot == pawnSlot)
                 {
@@ -119,14 +119,14 @@ namespace MonopolyGame.Cards
             }
         }
 
-        private bool TryGetExtreme(out EventCardPlayerState player, bool findHighest)
+        private bool TryGetExtreme(out CardPlayerState player, bool findHighest)
         {
             player = default;
             bool found = false;
 
             for (int i = 0; i < Players.Count; i++)
             {
-                EventCardPlayerState candidate = Players[i];
+                CardPlayerState candidate = Players[i];
 
                 if (!found)
                 {

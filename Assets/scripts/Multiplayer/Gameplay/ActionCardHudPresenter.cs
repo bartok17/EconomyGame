@@ -1,13 +1,17 @@
+using System;
 using System.Collections.Generic;
+using MonopolyGame.Cards;
 using MonopolyGame.DesignSystem;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
     /// <summary>
-    /// Passive HUD view for the local player's action-card hand. The draw and
-    /// discard piles are represented physically on the board.
+    /// Passive HUD view for the local player's action-card hand. Slots are
+    /// buttons: clicking an active card opens <see cref="ActionCardActivationPresenter"/>.
+    /// The draw and discard piles are represented physically on the board.
     /// </summary>
     public sealed class ActionCardHudPresenter : MonoBehaviour
     {
@@ -15,12 +19,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private Transform handSlotsRoot;
         [SerializeField] private TextMeshProUGUI handHeaderText;
 
-        private readonly List<TextMeshProUGUI> handSlotLabels = new List<TextMeshProUGUI>();
+        /// <summary>Raised when the local player clicks a card in the hand.</summary>
+        public event Action<ActionCardHandEntry> CardActivated;
+
+        private readonly List<SlotView> slots = new List<SlotView>();
 
         private MultiplayerGameSessionController session;
         private bool subscribed;
         private Color filledTextColor = Color.white;
         private Color emptyTextColor = new Color(0.65f, 0.65f, 0.65f);
+        private Color activeCardColor = new Color(0.14f, 0.16f, 0.2f, 0.92f);
+        private Color passiveCardColor = new Color(0.16f, 0.24f, 0.34f, 0.95f);
 
         private void Awake()
         {
@@ -68,6 +77,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             Refresh();
         }
 
+        private void HandleTurnStateChanged()
+        {
+            RefreshInteractable();
+        }
+
         private void Subscribe()
         {
             if (subscribed || session == null)
@@ -76,6 +90,9 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             session.ActionCardsChanged += HandleActionCardsChanged;
+            session.PhaseChanged += HandlePhaseChanged;
+            session.TurnChanged += HandleTurnChanged;
+            session.CardResolutionChanged += HandleTurnStateChanged;
             subscribed = true;
         }
 
@@ -87,7 +104,20 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             session.ActionCardsChanged -= HandleActionCardsChanged;
+            session.PhaseChanged -= HandlePhaseChanged;
+            session.TurnChanged -= HandleTurnChanged;
+            session.CardResolutionChanged -= HandleTurnStateChanged;
             subscribed = false;
+        }
+
+        private void HandlePhaseChanged(TurnPhase _)
+        {
+            RefreshInteractable();
+        }
+
+        private void HandleTurnChanged(int _, string __)
+        {
+            RefreshInteractable();
         }
 
         private void Refresh()
@@ -96,7 +126,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             int capacity = session != null
                 ? session.ActionCardHandCapacity
-                : MonopolyGame.Cards.ActionCardHand.DefaultCapacity;
+                : ActionCardHand.DefaultCapacity;
             IReadOnlyList<ActionCardHandEntry> hand = session != null
                 ? session.GetLocalActionCardHand()
                 : null;
@@ -109,33 +139,96 @@ namespace MonopolyGame.Multiplayer.Gameplay
                     : "ACTION CARDS";
             }
 
-            for (int i = 0; i < handSlotLabels.Count; i++)
+            for (int i = 0; i < slots.Count; i++)
             {
-                TextMeshProUGUI label = handSlotLabels[i];
+                SlotView slot = slots[i];
 
-                if (label == null)
+                if (slot.Label == null)
                 {
                     continue;
                 }
 
                 bool occupied = hand != null && i < hand.Count;
-                label.text = occupied ? hand[i].ShortLabel.ToString() : "?";
-                label.color = occupied ? filledTextColor : emptyTextColor;
+                slot.Entry = occupied ? hand[i] : default;
+                slot.HasCard = occupied;
+                slot.Definition = occupied ? ResolveDefinition(hand[i]) : null;
+                slot.Label.text = occupied ? hand[i].ShortLabel.ToString() : "?";
+                slot.Label.color = occupied ? filledTextColor : emptyTextColor;
+
+                if (slot.Background != null)
+                {
+                    slot.Background.color = occupied && !slot.IsActiveCard
+                        ? passiveCardColor
+                        : activeCardColor;
+                }
             }
+
+            RefreshInteractable();
+        }
+
+        private void RefreshInteractable()
+        {
+            for (int i = 0; i < slots.Count; i++)
+            {
+                SlotView slot = slots[i];
+                bool playable = session != null && slot.IsActiveCard && slot.HasCard &&
+                                session.IsActionCardWindowOpen(slot.ActivationWindow);
+
+                if (slot.Button != null)
+                {
+                    slot.Button.interactable = playable;
+                }
+
+                if (slot.HasCard && slot.Label != null)
+                {
+                    slot.Label.color = playable ? filledTextColor : emptyTextColor;
+                }
+            }
+        }
+
+        private static ActionCardDefinition ResolveDefinition(ActionCardHandEntry entry)
+        {
+            return ActionCardCatalog.TryGetDefinition(entry.CardId.ToString(), out ActionCardDefinition definition)
+                ? definition
+                : null;
+        }
+
+        private void HandleSlotClicked(int index)
+        {
+            if (index < 0 || index >= slots.Count)
+            {
+                return;
+            }
+
+            SlotView slot = slots[index];
+
+            if (!slot.HasCard || !slot.IsActiveCard)
+            {
+                return;
+            }
+
+            CardActivated?.Invoke(slot.Entry);
         }
 
         private void ResolveColors()
         {
             UIStyleSheet sheet = UIStyleSheetLocator.Instance;
-            filledTextColor = sheet != null ? sheet.GetTextColor(TextStyle.Body) : Color.white;
-            emptyTextColor = sheet != null
-                ? sheet.GetTextColor(TextStyle.Muted)
-                : new Color(0.65f, 0.65f, 0.65f);
+
+            if (sheet == null)
+            {
+                return;
+            }
+
+            filledTextColor = sheet.GetTextColor(TextStyle.Body);
+            emptyTextColor = sheet.GetTextColor(TextStyle.Muted);
+            activeCardColor = sheet.GetImageColor(ImageRole.CardBackground);
+            passiveCardColor = sheet.GetTextColor(TextStyle.Accent);
+            passiveCardColor.a = 0.35f;
         }
 
         private void ResolveHandSlots()
         {
-            if (handSlotLabels.Count > 0)
+            if (slots.Count > 0)
             {
                 return;
             }
@@ -153,6 +246,13 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 {
                     handHeaderText = header.GetComponent<TextMeshProUGUI>();
                 }
+            }
+
+            UIStyleSheet sheet = UIStyleSheetLocator.Instance;
+
+            if (sheet != null && handHeaderText != null)
+            {
+                sheet.ApplyOutline(handHeaderText);
             }
 
             if (handSlotsRoot == null)
@@ -179,8 +279,57 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 label.fontSizeMax = 14f;
                 label.textWrappingMode = TextWrappingModes.Normal;
                 label.alignment = TextAlignmentOptions.Center;
-                handSlotLabels.Add(label);
+
+                UIStyleSheet slotSheet = UIStyleSheetLocator.Instance;
+
+                if (slotSheet != null)
+                {
+                    slotSheet.ApplyOutline(label);
+                }
+
+                Image background = slot.GetComponent<Image>();
+                Button button = slot.GetComponent<Button>();
+
+                if (button == null)
+                {
+                    button = slot.gameObject.AddComponent<Button>();
+                }
+
+                button.transition = Selectable.Transition.None;
+
+                if (background != null)
+                {
+                    background.raycastTarget = true;
+                    button.targetGraphic = background;
+                }
+
+                int capturedIndex = slots.Count;
+                button.onClick.AddListener(() => HandleSlotClicked(capturedIndex));
+
+                slots.Add(new SlotView
+                {
+                    Label = label,
+                    Background = background,
+                    Button = button
+                });
             }
+        }
+
+        private sealed class SlotView
+        {
+            public TextMeshProUGUI Label;
+            public Image Background;
+            public Button Button;
+            public ActionCardHandEntry Entry;
+            public ActionCardDefinition Definition;
+            public bool HasCard;
+
+            public CardActivationWindow ActivationWindow => Definition != null
+                ? Definition.ActivationWindow
+                : CardActivationWindow.AnyTime;
+
+            public bool IsActiveCard => HasCard &&
+                (Definition == null || Definition.Timing == CardTiming.Active);
         }
     }
 }

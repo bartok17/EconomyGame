@@ -43,8 +43,25 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private TurnResolutionService _turnResolution;
         private ActionCardSessionService _actionCardService;
         private EventCardSessionService _eventCardService;
-        private EventCardGameActions _eventCardActions;
+        private CardGameActions _cardGameActions;
         private readonly List<ActionCardHandEntry> localActionCardHand = new List<ActionCardHandEntry>();
+        private readonly List<CardMoveRequest> pendingCardMoves = new List<CardMoveRequest>();
+        private readonly List<PendingPaymentState> queuedPayments = new List<PendingPaymentState>();
+
+        private bool isResolvingCard;
+        private Coroutine cardResolutionCoroutine;
+
+        private readonly struct CardMoveRequest
+        {
+            public CardMoveRequest(int pawnSlot, int spaces)
+            {
+                PawnSlot = pawnSlot;
+                Spaces = spaces;
+            }
+
+            public int PawnSlot { get; }
+            public int Spaces { get; }
+        }
 
         private Coroutine bootstrapCoroutine;
         private Coroutine turnCoroutine;
@@ -97,9 +114,21 @@ namespace MonopolyGame.Multiplayer.Gameplay
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
 
+        private readonly NetworkVariable<bool> cardResolutionNet = new NetworkVariable<bool>(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
+
+        private readonly NetworkVariable<PendingPaymentState> pendingPaymentNet = new NetworkVariable<PendingPaymentState>(
+            default,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
+
         public event Action EconomyChanged;
         public event Action ActionCardsChanged;
         public event Action EventCardsChanged;
+        public event Action CardResolutionChanged;
+        public event Action PaymentsChanged;
 
         // ── Public state ────────────────────────────────────────────────────────────
 
@@ -131,10 +160,15 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 passStartReward,
                 jailSpaceIndex,
                 pawnMoveDuration,
-                () => EconomyChanged?.Invoke());
+                () => EconomyChanged?.Invoke(),
+                QueuePendingPayment);
             _actionCardService = new ActionCardSessionService(actionCardPileStateNet, HandleActionCardHandChanged);
             _eventCardService = new EventCardSessionService(eventCardPileStateNet);
-            _eventCardActions = new EventCardGameActions(_economyService, () => EconomyChanged?.Invoke());
+            _cardGameActions = new CardGameActions(
+                _economyService,
+                () => EconomyChanged?.Invoke(),
+                QueueCardPawnMove,
+                QueuePendingPayment);
         }
 
         private void Update()
@@ -170,6 +204,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             lastEconomyMessageNet.OnValueChanged += HandleLastEconomyMessageChanged;
             actionCardPileStateNet.OnValueChanged += HandleActionCardPileStateChanged;
             eventCardPileStateNet.OnValueChanged += HandleEventCardPileStateChanged;
+            cardResolutionNet.OnValueChanged += HandleCardResolutionChanged;
+            pendingPaymentNet.OnValueChanged += HandlePendingPaymentChanged;
 
             SyncLocalStateFromNetwork();
 
@@ -194,6 +230,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             lastEconomyMessageNet.OnValueChanged -= HandleLastEconomyMessageChanged;
             actionCardPileStateNet.OnValueChanged -= HandleActionCardPileStateChanged;
             eventCardPileStateNet.OnValueChanged -= HandleEventCardPileStateChanged;
+            cardResolutionNet.OnValueChanged -= HandleCardResolutionChanged;
+            pendingPaymentNet.OnValueChanged -= HandlePendingPaymentChanged;
 
             localActionCardHand.Clear();
         }
@@ -369,15 +407,20 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         private EventCardTriggerContext BuildEventCardTriggerContext(int drawingPawnSlot)
         {
+            return new EventCardTriggerContext(drawingPawnSlot, BuildCardPlayerStates(), _cardGameActions);
+        }
+
+        private IReadOnlyList<CardPlayerState> BuildCardPlayerStates()
+        {
             IReadOnlyList<PlayerEconomyState> states = _economyService != null
                 ? _economyService.GetAllEconomyStates()
                 : Array.Empty<PlayerEconomyState>();
-            var players = new List<EventCardPlayerState>(states.Count);
+            var players = new List<CardPlayerState>(states.Count);
 
             for (int i = 0; i < states.Count; i++)
             {
                 PlayerEconomyState state = states[i];
-                players.Add(new EventCardPlayerState(
+                players.Add(new CardPlayerState(
                     state.PawnSlot,
                     state.PawnSlot,
                     state.PlayerId.ToString(),
@@ -385,7 +428,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                     state.Balance));
             }
 
-            return new EventCardTriggerContext(drawingPawnSlot, players, _eventCardActions);
+            return players;
         }
 
         private void RequestDevEventCardTrigger()
@@ -413,9 +456,173 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
+        // ── Action card activation ──────────────────────────────────────────────────
+
+        /// <summary>True while a card is resolving; the turn is paused meanwhile.</summary>
+        public bool IsResolvingCardAction => cardResolutionNet.Value;
+
+        /// <summary>
+        /// True when the card's activation window covers the current phase and
+        /// it is this client's turn. The server re-checks everything.
+        /// </summary>
+        public bool IsActionCardWindowOpen(CardActivationWindow window)
+        {
+            if (!IsInitialized || IsResolvingCardAction)
+            {
+                return false;
+            }
+
+            ulong localClientId = NetworkManager.Singleton != null
+                ? NetworkManager.Singleton.LocalClientId
+                : ulong.MaxValue;
+
+            if (ActiveClientId != localClientId)
+            {
+                return false;
+            }
+
+            return CardActivationWindows.IsOpen(
+                window,
+                CurrentPhase == TurnPhase.AwaitingRoll,
+                CurrentPhase == TurnPhase.WaitingForEndTurn);
+        }
+
+        // ── Pending payments ────────────────────────────────────────────────────────
+
+        public PendingPaymentState PendingPayment => pendingPaymentNet.Value;
+
+        public bool HasPendingPayment => pendingPaymentNet.Value.HasPayment;
+
+        public bool CanPayPendingPayment
+        {
+            get
+            {
+                PendingPaymentState payment = pendingPaymentNet.Value;
+
+                return payment.HasPayment &&
+                       !IsResolvingCardAction &&
+                       payment.PayerPawnSlot == GetLocalPawnSlot();
+            }
+        }
+
+        public string GetPayButtonLabel()
+        {
+            PendingPaymentState payment = pendingPaymentNet.Value;
+
+            if (!payment.HasPayment)
+            {
+                return "Pay";
+            }
+
+            return $"Pay {payment.Amount}";
+        }
+
+        /// <summary>Confirms the pending payment for the local player.</summary>
+        public void RequestPayPendingPayment()
+        {
+            if (!CanPayPendingPayment)
+            {
+                return;
+            }
+
+            if (IsServer)
+            {
+                HandlePayPendingPaymentServer(NetworkManager.Singleton != null
+                    ? NetworkManager.Singleton.LocalClientId
+                    : 0);
+                return;
+            }
+
+            PayPendingPaymentServerRpc();
+        }
+
+        /// <summary>Snapshot of every player, used by the activation UI.</summary>
+        public IReadOnlyList<CardPlayerState> GetCardPlayers()
+        {
+            return BuildCardPlayerStates();
+        }
+
+        public int GetPlayerSpaceIndex(int pawnSlot)
+        {
+            PlayerPawnNetworkSync pawn = Registry.FindBySlot(pawnSlot);
+            return pawn != null ? pawn.CurrentSpaceIndex : -1;
+        }
+
+        public int NormalizeBoardIndex(int spaceIndex)
+        {
+            return boardManager != null ? boardManager.NormalizeIndex(spaceIndex) : -1;
+        }
+
+        public string GetBoardSpaceName(int spaceIndex)
+        {
+            if (boardManager == null || spaceIndex < 0 || spaceIndex >= boardManager.SpaceCount)
+            {
+                return string.Empty;
+            }
+
+            BoardSpaceView space = boardManager.GetSpace(spaceIndex);
+            return space != null ? space.displayName : string.Empty;
+        }
+
+        /// <summary>
+        /// Plays a card from the local player's hand. Returns false when the
+        /// card's activation window is closed or it is not this client's turn.
+        /// </summary>
+        public bool RequestPlayActionCard(int instanceId, ActionCardParameters parameters)
+        {
+            if (!TryGetLocalCardDefinition(instanceId, out ActionCardDefinition definition))
+            {
+                return false;
+            }
+
+            if (definition.Timing != CardTiming.Active ||
+                !IsActionCardWindowOpen(definition.ActivationWindow))
+            {
+                return false;
+            }
+
+            int pawnSlot = GetLocalPawnSlot();
+
+            if (pawnSlot < 0)
+            {
+                return false;
+            }
+
+            if (IsServer)
+            {
+                HandlePlayActionCardServer(pawnSlot, instanceId, parameters);
+            }
+            else
+            {
+                PlayActionCardServerRpc(instanceId, parameters.TargetPawnSlot, parameters.Amount);
+            }
+
+            return true;
+        }
+
+        private bool TryGetLocalCardDefinition(int instanceId, out ActionCardDefinition definition)
+        {
+            definition = null;
+
+            for (int i = 0; i < localActionCardHand.Count; i++)
+            {
+                if (localActionCardHand[i].InstanceId == instanceId)
+                {
+                    return ActionCardCatalog.TryGetDefinition(localActionCardHand[i].CardId.ToString(), out definition);
+                }
+            }
+
+            return false;
+        }
+
         public bool CanBuyCurrentProperty()
         {
-            if (!IsInitialized || CurrentPhase != TurnPhase.WaitingForEndTurn)
+            if (!IsInitialized || IsResolvingCardAction)
+            {
+                return false;
+            }
+
+            if (CurrentPhase != TurnPhase.WaitingForEndTurn && CurrentPhase != TurnPhase.AwaitingRoll)
             {
                 return false;
             }
@@ -593,6 +800,16 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public string GetPhaseLabel()
         {
+            if (IsResolvingCardAction)
+            {
+                return "Resolving card";
+            }
+
+            if (pendingPaymentNet.Value.HasPayment)
+            {
+                return "Payment due";
+            }
+
             return CurrentPhase switch
             {
                 TurnPhase.WaitingForSetup   => "Setting up",
@@ -672,6 +889,179 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 EventCardDrawResult result = TriggerEventCard(pawnSlot);
                 Debug.Log($"[Dev] Event card trigger for slot {pawnSlot}: {result.Outcome}.");
             }
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void PlayActionCardServerRpc(
+            int instanceId,
+            int targetPawnSlot,
+            int amount,
+            ServerRpcParams serverRpcParams = default)
+        {
+            int pawnSlot = GetPawnSlotForClient(serverRpcParams.Receive.SenderClientId);
+
+            if (pawnSlot < 0)
+            {
+                return;
+            }
+
+            HandlePlayActionCardServer(pawnSlot, instanceId, new ActionCardParameters(targetPawnSlot, amount));
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void PayPendingPaymentServerRpc(ServerRpcParams serverRpcParams = default)
+        {
+            HandlePayPendingPaymentServer(serverRpcParams.Receive.SenderClientId);
+        }
+
+        /// <summary>
+        /// Server-authoritative card play. Rejects everything the client should
+        /// not be able to do: wrong turn, wrong phase, resolution in flight.
+        /// </summary>
+        private void HandlePlayActionCardServer(int actingPawnSlot, int instanceId, ActionCardParameters parameters)
+        {
+            if (!IsServer || !IsInitialized || isResolvingCard)
+            {
+                return;
+            }
+
+            bool beforeRoll = CurrentPhase == TurnPhase.AwaitingRoll;
+            bool afterRoll = CurrentPhase == TurnPhase.WaitingForEndTurn;
+
+            if (!beforeRoll && !afterRoll)
+            {
+                return;
+            }
+
+            PlayerPawnNetworkSync actingPawn = Registry.FindBySlot(actingPawnSlot);
+
+            if (actingPawn == null || actingPawn.NetworkObject == null)
+            {
+                return;
+            }
+
+            if (!turnStateMachine.IsAuthorizedTurnRequest(actingPawn.NetworkObject.OwnerClientId))
+            {
+                return;
+            }
+
+            isResolvingCard = true;
+            cardResolutionNet.Value = true;
+            pendingCardMoves.Clear();
+
+            ActionCardPlayResult result;
+
+            try
+            {
+                result = _actionCardService.TryPlayCard(
+                    actingPawnSlot,
+                    instanceId,
+                    parameters,
+                    BuildCardPlayerStates(),
+                    _cardGameActions,
+                    beforeRoll,
+                    afterRoll);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                pendingCardMoves.Clear();
+                EndCardResolution();
+                return;
+            }
+
+            if (!result.Succeeded)
+            {
+                pendingCardMoves.Clear();
+                EndCardResolution();
+                Debug.LogWarning($"[Cards] Play rejected: {result.Outcome} {result.Error}".Trim());
+                return;
+            }
+
+            string message = BuildActionCardPlayMessage(actingPawnSlot, result);
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                _turnResolution.SetEconomyMessage(message);
+            }
+
+            if (pendingCardMoves.Count == 0)
+            {
+                EndCardResolution();
+                return;
+            }
+
+            cardResolutionCoroutine = StartCoroutine(ResolveCardMovesRoutine());
+        }
+
+        private void EndCardResolution()
+        {
+            isResolvingCard = false;
+            cardResolutionNet.Value = false;
+            cardResolutionCoroutine = null;
+        }
+
+        private void QueueCardPawnMove(string playerId, int spaces)
+        {
+            if (!isResolvingCard)
+            {
+                Debug.LogWarning("[Cards] Movement outside a card resolution is not supported yet.");
+                return;
+            }
+
+            if (!_cardGameActions.TryGetPawnSlot(playerId, out int pawnSlot))
+            {
+                Debug.LogWarning($"[Cards] Cannot move unknown player '{playerId}'.");
+                return;
+            }
+
+            pendingCardMoves.Add(new CardMoveRequest(pawnSlot, spaces));
+        }
+
+        /// <summary>
+        /// Runs the moves a card asked for, one at a time, resolving each
+        /// landing exactly like a dice move without touching the turn phase.
+        /// </summary>
+        private IEnumerator ResolveCardMovesRoutine()
+        {
+            try
+            {
+                while (pendingCardMoves.Count > 0)
+                {
+                    CardMoveRequest request = pendingCardMoves[0];
+                    pendingCardMoves.RemoveAt(0);
+
+                    PlayerPawnNetworkSync pawn = Registry.FindBySlot(request.PawnSlot);
+
+                    if (pawn == null || boardManager == null || boardManager.SpaceCount <= 0)
+                    {
+                        continue;
+                    }
+
+                    int rawTarget = pawn.CurrentSpaceIndex + request.Spaces;
+                    bool passedStart = rawTarget >= boardManager.SpaceCount;
+                    int targetSpaceIndex = boardManager.NormalizeIndex(rawTarget);
+
+                    MovePawnClientRpc(pawn.PawnSlot, targetSpaceIndex, pawnMoveDuration);
+                    yield return ResolveLandingEffectsRoutine(pawn, targetSpaceIndex, passedStart, changeTurnPhase: false);
+                }
+            }
+            finally
+            {
+                pendingCardMoves.Clear();
+                EndCardResolution();
+            }
+        }
+
+        private string BuildActionCardPlayMessage(int actingPawnSlot, ActionCardPlayResult result)
+        {
+            PlayerPawnNetworkSync actor = Registry.FindBySlot(actingPawnSlot);
+            string actorName = actor != null && !string.IsNullOrWhiteSpace(actor.DisplayName)
+                ? actor.DisplayName
+                : $"Player {actingPawnSlot + 1}";
+            string cardName = result.Card != null ? result.Card.Definition.DisplayName : "a card";
+            string effect = result.Messages.Count > 0 ? string.Join(" ", result.Messages) : string.Empty;
+            return $"{actorName} played {cardName}. {effect}".Trim();
         }
 
         [ClientRpc]
@@ -767,11 +1157,15 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private void HandleRollOnServer(ulong senderClientId)
         {
             if (!EnsureReadyForTurn()) return;
+            if (isResolvingCard) return;
+            if (HasPendingPayment) return;
             if (CurrentPhase != TurnPhase.AwaitingRoll) return;
             if (!turnStateMachine.IsAuthorizedTurnRequest(senderClientId)) return;
 
             PlayerPawnNetworkSync activePawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
             if (activePawn == null) return;
+
+            pendingPurchaseSpaceIndexNet.Value = -1;
 
             int dice = UnityEngine.Random.Range(1, 7);
             int rawTargetSpaceIndex = activePawn.CurrentSpaceIndex + dice;
@@ -792,6 +1186,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private void HandleEndTurnOnServer(ulong senderClientId)
         {
             if (!EnsureReadyForTurn()) return;
+            if (isResolvingCard) return;
+            if (HasPendingPayment) return;
             if (CurrentPhase != TurnPhase.WaitingForEndTurn) return;
             if (!turnStateMachine.IsAuthorizedTurnRequest(senderClientId)) return;
 
@@ -799,6 +1195,28 @@ namespace MonopolyGame.Multiplayer.Gameplay
         }
 
         private IEnumerator ResolveAfterMoveRoutine(PlayerPawnNetworkSync activePawn, int targetSpaceIndex, bool passedStart)
+        {
+            yield return ResolveLandingEffectsRoutine(activePawn, targetSpaceIndex, passedStart, changeTurnPhase: true);
+
+            turnStateMachine.BeginWaitingForEndTurn();
+            SetServerState(turnStateMachine.State);
+
+            if (autoAdvanceTurns) AdvanceTurnServer();
+
+            turnCoroutine = null;
+        }
+
+        /// <summary>
+        /// Resolves everything that happens when a pawn finishes a move: the
+        /// landing effects, jail, card spaces and the purchase prompt. Shared
+        /// by dice moves (which change the turn phase) and card-driven moves
+        /// (which leave the turn where it was).
+        /// </summary>
+        private IEnumerator ResolveLandingEffectsRoutine(
+            PlayerPawnNetworkSync activePawn,
+            int targetSpaceIndex,
+            bool passedStart,
+            bool changeTurnPhase)
         {
             yield return new WaitForSeconds(pawnMoveDuration);
 
@@ -811,8 +1229,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             // the equivalent notification from HandlePhaseChanged below.
             PawnMoved?.Invoke(activePawn != null ? activePawn.Pawn : null, targetSpaceIndex);
 
-            turnStateMachine.BeginResolve();
-            SetServerState(turnStateMachine.State);
+            if (changeTurnPhase)
+            {
+                turnStateMachine.BeginResolve();
+                SetServerState(turnStateMachine.State);
+            }
 
             BoardState boardState = boardManager != null ? boardManager.CaptureBoardState() : null;
             BoardLandingResult result = boardRuleResolver.Resolve(boardState, targetSpaceIndex, activePawn.PlayerId);
@@ -834,7 +1255,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             else
             {
                 _turnResolution.ResolveTaxPayment(activePawn, result);
-                _turnResolution.ResolveAutomaticRent(activePawn, result);
+                _turnResolution.ResolveRent(activePawn, result);
                 _turnResolution.ResolveSpecialSpaceMessage(result);
                 ResolveActionCardLanding(activePawn, result);
                 ResolveEventCardLanding(activePawn, result);
@@ -842,13 +1263,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             yield return new WaitForSeconds(resolveDelay);
-
-            turnStateMachine.BeginWaitingForEndTurn();
-            SetServerState(turnStateMachine.State);
-
-            if (autoAdvanceTurns) AdvanceTurnServer();
-
-            turnCoroutine = null;
         }
 
         private void AdvanceTurnServer()
@@ -856,6 +1270,19 @@ namespace MonopolyGame.Multiplayer.Gameplay
             if (!IsInitialized || Registry.Count == 0) return;
             
             pendingPurchaseSpaceIndexNet.Value = -1;
+            pendingCardMoves.Clear();
+            queuedPayments.Clear();
+            pendingPaymentNet.Value = default;
+
+            if (cardResolutionCoroutine != null)
+            {
+                StopCoroutine(cardResolutionCoroutine);
+            }
+
+            if (isResolvingCard || cardResolutionNet.Value)
+            {
+                EndCardResolution();
+            }
 
             turnStateMachine.SetParticipants(Registry.BuildParticipants());
             turnStateMachine.AdvanceTurn();
@@ -1129,10 +1556,108 @@ namespace MonopolyGame.Multiplayer.Gameplay
             EventCardsChanged?.Invoke();
         }
 
+        private void HandleCardResolutionChanged(bool previousValue, bool newValue)
+        {
+            CardResolutionChanged?.Invoke();
+        }
+
+        private void HandlePendingPaymentChanged(PendingPaymentState previousValue, PendingPaymentState newValue)
+        {
+            PaymentsChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Queues a payment another player owes. Payments stay pending until the
+        /// payer confirms, so reactions (future cards) can happen first.
+        /// </summary>
+        private void QueuePendingPayment(int payerPawnSlot, int recipientPawnSlot, int amount, string reason)
+        {
+            if (!IsServer || amount <= 0 || payerPawnSlot < 0)
+            {
+                return;
+            }
+
+            var payment = new PendingPaymentState(payerPawnSlot, recipientPawnSlot, amount, reason);
+            queuedPayments.Add(payment);
+
+            if (!pendingPaymentNet.Value.HasPayment)
+            {
+                PromoteNextPayment();
+            }
+        }
+
+        private void PromoteNextPayment()
+        {
+            if (queuedPayments.Count == 0)
+            {
+                pendingPaymentNet.Value = default;
+                return;
+            }
+
+            PendingPaymentState next = queuedPayments[0];
+            queuedPayments.RemoveAt(0);
+            pendingPaymentNet.Value = next;
+        }
+
+        private void HandlePayPendingPaymentServer(ulong senderClientId)
+        {
+            if (!IsServer)
+            {
+                return;
+            }
+
+            PendingPaymentState payment = pendingPaymentNet.Value;
+
+            if (!payment.HasPayment)
+            {
+                return;
+            }
+
+            int payerSlot = GetPawnSlotForClient(senderClientId);
+
+            if (payerSlot != payment.PayerPawnSlot)
+            {
+                return;
+            }
+
+            int amount = Mathf.Min(payment.Amount, _economyService.GetBalance(payerSlot));
+
+            if (amount > 0)
+            {
+                _economyService.DeductBalance(payerSlot, amount);
+
+                if (payment.RecipientPawnSlot >= 0)
+                {
+                    _economyService.AddBalance(payment.RecipientPawnSlot, amount);
+                }
+            }
+
+            PlayerEconomyState payer = _economyService.GetPlayerState(payerSlot);
+            string payerName = string.IsNullOrWhiteSpace(payer.DisplayName.ToString())
+                ? $"Player {payerSlot + 1}"
+                : payer.DisplayName.ToString();
+
+            string message = payment.RecipientPawnSlot >= 0
+                ? $"{payerName} paid {amount} to {RecipientName(payment.RecipientPawnSlot)}. {payment.Reason}"
+                : $"{payerName} paid {amount}. {payment.Reason}";
+            _turnResolution.SetEconomyMessage(message);
+            EconomyChanged?.Invoke();
+            PromoteNextPayment();
+        }
+
+        private string RecipientName(int pawnSlot)
+        {
+            PlayerEconomyState recipient = _economyService.GetPlayerState(pawnSlot);
+            return string.IsNullOrWhiteSpace(recipient.DisplayName.ToString())
+                ? $"Player {pawnSlot + 1}"
+                : recipient.DisplayName.ToString();
+        }
+
         private void HandleBuyPropertyOnServer(ulong senderClientId)
         {
             if (!EnsureReadyForTurn()) return;
-            if (CurrentPhase != TurnPhase.WaitingForEndTurn) return;
+            if (isResolvingCard) return;
+            if (CurrentPhase != TurnPhase.WaitingForEndTurn && CurrentPhase != TurnPhase.AwaitingRoll) return;
             if (!turnStateMachine.IsAuthorizedTurnRequest(senderClientId)) return;
 
             int spaceIndex = pendingPurchaseSpaceIndexNet.Value;
