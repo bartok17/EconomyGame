@@ -116,6 +116,11 @@ namespace MonopolyGame.DesignSystem
         [SerializeField] private float errorSize    = 16f;
         [SerializeField] private float infoSize     = 16f;
 
+        [Header("Text Outline")]
+        [Tooltip("Dark rim around every styled label, for readability over the 3D board. Set to 0 to disable.")]
+        [SerializeField, Range(0f, 1f)] private float textOutlineWidth = 0.15f;
+        [SerializeField] private Color textOutlineColor = new Color(0f, 0f, 0f, 0.9f);
+
         [Header("Button Colors")]
         [SerializeField] private Color buttonPrimaryColor = new(0.22f, 0.52f, 0.92f);
         [SerializeField] private Color buttonDangerColor  = new(0.88f, 0.46f, 0.15f);
@@ -183,6 +188,42 @@ namespace MonopolyGame.DesignSystem
         // ── Public accessors ──────────────────────────────────────
 
         public TMPro.TMP_FontAsset DefaultFont => defaultFont;
+
+        public float TextOutlineWidth => textOutlineWidth;
+        public Color TextOutlineColor => textOutlineColor;
+
+        /// <summary>
+        /// Single place that maps a style token onto a TMP component: font, size,
+        /// colour and the readability outline. Works for world and UI text.
+        /// </summary>
+        public void ApplyTextStyle(TMPro.TMP_Text text, TextStyle style)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            if (defaultFont != null)
+            {
+                text.font = defaultFont;
+            }
+
+            text.fontSize = GetTextSize(style);
+            text.color = GetTextColor(style);
+            ApplyOutline(text);
+        }
+
+        /// <summary>Applies only the outline, for text that manages its own size.</summary>
+        public void ApplyOutline(TMPro.TMP_Text text)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            text.outlineColor = textOutlineColor;
+            text.outlineWidth = textOutlineWidth;
+        }
 
         public Color GetTextColor(TextStyle style) => style switch
         {

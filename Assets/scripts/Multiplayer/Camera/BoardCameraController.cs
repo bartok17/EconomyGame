@@ -120,6 +120,13 @@ namespace MonopolyGame.Multiplayer.Camera
         public event Action<PlayerStashZoneView> PlayerStashClicked;
 
         /// <summary>
+        /// Raised when the user clicks a pawn. Consumed by
+        /// <see cref="BoardFocusCoordinator"/> so features such as card
+        /// targeting can select a player without owning their own raycast.
+        /// </summary>
+        public event Action<int> PawnClicked;
+
+        /// <summary>
         /// The world-space point the camera orbits around.
         /// </summary>
         public Vector3 Pivot
@@ -419,6 +426,7 @@ namespace MonopolyGame.Multiplayer.Camera
 
             BoardSpaceView space = null;
             PlayerStashZoneView stashZone = null;
+            int pawnSlot = -1;
 
             if (Physics.Raycast(ray, out RaycastHit hit, 200f))
             {
@@ -428,6 +436,22 @@ namespace MonopolyGame.Multiplayer.Camera
                 {
                     stashZone = hit.collider.GetComponentInParent<PlayerStashZoneView>();
                 }
+
+                if (space == null && stashZone == null)
+                {
+                    Gameplay.PlayerPawnNetworkSync pawn = hit.collider.GetComponentInParent<Gameplay.PlayerPawnNetworkSync>();
+
+                    if (pawn != null)
+                    {
+                        pawnSlot = pawn.PawnSlot;
+                    }
+                }
+            }
+
+            if (pawnSlot >= 0 && PawnClicked != null)
+            {
+                PawnClicked.Invoke(pawnSlot);
+                return;
             }
 
             if (stashZone != null)

@@ -62,14 +62,14 @@ namespace MonopolyGame.Core.Tests
         private static EventCardTriggerContext BuildContext(
             TestCardActions actions,
             int drawingSlot,
-            params EventCardPlayerState[] players)
+            params CardPlayerState[] players)
         {
             return new EventCardTriggerContext(drawingSlot, players, actions);
         }
 
-        private static EventCardPlayerState Player(int slot, int balance)
+        private static CardPlayerState Player(int slot, int balance)
         {
-            return new EventCardPlayerState(slot, slot, $"player-{slot}", $"Player {slot + 1}", balance);
+            return new CardPlayerState(slot, slot, $"player-{slot}", $"Player {slot + 1}", balance);
         }
     }
 }

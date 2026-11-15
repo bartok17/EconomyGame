@@ -26,6 +26,9 @@ namespace MonopolyGame.Multiplayer.Camera
         private PlayerStashZoneSystem stashZones;
         private int lastFocusedIndex = -1;
 
+        /// <summary>Raised when the user clicks a pawn on the table.</summary>
+        public event Action<int> PawnClicked;
+
         public bool FocusOnAction
         {
             get => focusOnAction;
@@ -57,6 +60,7 @@ namespace MonopolyGame.Multiplayer.Camera
             {
                 camera.SpaceClicked += HandleSpaceClicked;
                 camera.PlayerStashClicked += HandlePlayerStashClicked;
+                camera.PawnClicked += HandlePawnClicked;
             }
 
             if (session != null)
@@ -81,6 +85,7 @@ namespace MonopolyGame.Multiplayer.Camera
             {
                 camera.SpaceClicked -= HandleSpaceClicked;
                 camera.PlayerStashClicked -= HandlePlayerStashClicked;
+                camera.PawnClicked -= HandlePawnClicked;
             }
 
             if (session != null)
@@ -225,6 +230,15 @@ namespace MonopolyGame.Multiplayer.Camera
             {
                 ShowPlayerView(zone.PawnSlot);
             }
+        }
+
+        /// <summary>
+        /// Pawn clicks do not move the camera; interested systems (card
+        /// targeting) subscribe to <see cref="PawnClicked"/>.
+        /// </summary>
+        private void HandlePawnClicked(int pawnSlot)
+        {
+            PawnClicked?.Invoke(pawnSlot);
         }
 
         private void HandlePawnMoved(PlayerPawn pawn, int spaceIndex)

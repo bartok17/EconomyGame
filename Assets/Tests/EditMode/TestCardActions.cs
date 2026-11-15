@@ -9,11 +9,11 @@ namespace MonopolyGame.Core.Tests
         public List<EffectCall> FundsAdded { get; } = new List<EffectCall>();
         public List<EffectCall> FundsDeducted { get; } = new List<EffectCall>();
         public List<EffectCall> Transfers { get; } = new List<EffectCall>();
-        public List<string> MovedPlayers { get; } = new List<string>();
+        public List<EffectCall> Moves { get; } = new List<EffectCall>();
 
         public void MovePlayer(string playerId, int spaces)
         {
-            MovedPlayers.Add(playerId);
+            Moves.Add(new EffectCall(playerId, spaces));
         }
 
         public void AddFunds(string playerId, int amount)

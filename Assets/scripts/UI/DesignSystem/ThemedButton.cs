@@ -101,6 +101,7 @@ namespace MonopolyGame.UI.DesignSystem
                     _label.color     = sheet.ButtonTextColor;
                     _label.fontSize  = sheet.ButtonFontSize;
                     _label.alignment = TMPro.TextAlignmentOptions.Center;
+                    sheet.ApplyOutline(_label);
                 }
             }
         }
