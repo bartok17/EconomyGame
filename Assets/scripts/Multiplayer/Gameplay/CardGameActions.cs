@@ -5,24 +5,44 @@ using UnityEngine;
 namespace MonopolyGame.Multiplayer.Gameplay
 {
     /// <summary>
-    /// Server-side implementation of the card effect surface for event cards.
-    /// Movement and payment redirection are reserved for later event cards; they
-    /// log a warning instead of silently doing nothing.
+    /// Server-side implementation of the card effect surface, shared by action
+    /// and event cards. Movement is delegated to the session controller so the
+    /// pawn animates for every client and resolves the landing normally.
+    /// Payment redirection is reserved for a later card.
     /// </summary>
-    public sealed class EventCardGameActions : ICardGameActions
+    public sealed class CardGameActions : ICardGameActions
     {
         private readonly IPlayerEconomyService economy;
         private readonly Action onEconomyChanged;
+        private readonly Action<string, int> movePlayer;
+        private readonly Action<int, int, int, string> queuePayment;
 
-        public EventCardGameActions(IPlayerEconomyService economy, Action onEconomyChanged)
+        public CardGameActions(
+            IPlayerEconomyService economy,
+            Action onEconomyChanged,
+            Action<string, int> movePlayer,
+            Action<int, int, int, string> queuePayment = null)
         {
             this.economy = economy ?? throw new ArgumentNullException(nameof(economy));
             this.onEconomyChanged = onEconomyChanged;
+            this.movePlayer = movePlayer;
+            this.queuePayment = queuePayment;
         }
 
         public void MovePlayer(string playerId, int spaces)
         {
-            Debug.LogWarning($"[Events] Moving {playerId} by {spaces} spaces is not supported by event cards yet.");
+            if (spaces == 0)
+            {
+                return;
+            }
+
+            if (movePlayer == null)
+            {
+                Debug.LogWarning("[Cards] No pawn mover is bound; movement effects are ignored.");
+                return;
+            }
+
+            movePlayer(playerId, spaces);
         }
 
         public void AddFunds(string playerId, int amount)
@@ -70,6 +90,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
+            if (queuePayment != null)
+            {
+                queuePayment(fromSlot, toSlot, transfer, "Card payment");
+                return;
+            }
+
             economy.DeductBalance(fromSlot, transfer);
             economy.AddBalance(toSlot, transfer);
             onEconomyChanged?.Invoke();
@@ -77,10 +103,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public void RedirectNextPayment(string payerPlayerId, string recipientPlayerId)
         {
-            Debug.LogWarning("[Events] Payment redirection is not supported by event cards yet.");
+            Debug.LogWarning("[Cards] Payment redirection is not supported yet.");
         }
 
-        private bool TryGetPawnSlot(string playerId, out int pawnSlot)
+        public bool TryGetPawnSlot(string playerId, out int pawnSlot)
         {
             pawnSlot = -1;
 

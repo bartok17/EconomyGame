@@ -18,6 +18,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private readonly int _jailSpaceIndex;
         private readonly float _pawnMoveDuration;
         private readonly Action _onEconomyChanged;
+        private readonly Action<int, int, int, string> _onPaymentDue;
 
         public TurnResolutionService(
             IPlayerEconomyService economy,
@@ -27,7 +28,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             int passStartReward,
             int jailSpaceIndex,
             float pawnMoveDuration,
-            Action onEconomyChanged)
+            Action onEconomyChanged,
+            Action<int, int, int, string> onPaymentDue)
         {
             _economy = economy ?? throw new ArgumentNullException(nameof(economy));
             _pendingPurchaseSpaceIndexNet = pendingPurchaseSpaceIndexNet ?? throw new ArgumentNullException(nameof(pendingPurchaseSpaceIndexNet));
@@ -37,6 +39,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             _jailSpaceIndex = jailSpaceIndex;
             _pawnMoveDuration = pawnMoveDuration;
             _onEconomyChanged = onEconomyChanged;
+            _onPaymentDue = onPaymentDue;
         }
 
         // ── Initialization ──────────────────────────────────────────────────────────
@@ -125,7 +128,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             _onEconomyChanged?.Invoke();
         }
 
-        public void ResolveAutomaticRent(PlayerPawnNetworkSync pawn, BoardLandingResult result)
+        /// <summary>
+        /// Rent owed to another player is queued as a pending payment instead of
+        /// being transferred immediately, so the payer can react first.
+        /// </summary>
+        public void ResolveRent(PlayerPawnNetworkSync pawn, BoardLandingResult result)
         {
             if (pawn == null || result == null || result.SpaceType != BoardSpaceType.Property || result.BaseRent <= 0)
             {
@@ -147,13 +154,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            _economy.DeductBalance(pawn.PawnSlot, rentToPay);
-            _economy.AddBalance(ownerSlot, rentToPay);
+            string reason = $"Rent for {result.DisplayName}";
+            _onPaymentDue?.Invoke(pawn.PawnSlot, ownerSlot, rentToPay, reason);
 
-            SetEconomyMessage($"{payer.DisplayName} paid {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
-            Debug.Log($"[Economy] {payer.DisplayName} paid {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
-
-            _onEconomyChanged?.Invoke();
+            SetEconomyMessage($"{payer.DisplayName} owes {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
+            Debug.Log($"[Economy] {payer.DisplayName} owes {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
         }
 
         public void ResolveSpecialSpaceMessage(BoardLandingResult result)
