@@ -54,11 +54,7 @@ namespace MonopolyGame.UI.DesignSystem
             _text ??= GetComponent<TextMeshProUGUI>();
             if (_text == null) return;
 
-            if (sheet.DefaultFont != null)
-                _text.font = sheet.DefaultFont;
-
-            _text.fontSize = sheet.GetTextSize(textStyle);
-            _text.color    = sheet.GetTextColor(textStyle);
+            sheet.ApplyTextStyle(_text, textStyle);
         }
 
         // ── Context menu (editor convenience) ──────────

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MonopolyGame.DesignSystem;
 using TMPro;
 using UnityEngine;
 
@@ -137,13 +138,21 @@ namespace MonopolyGame.Board
             label.text = caption;
             label.fontSize = 4.5f;
             label.enableAutoSizing = true;
-            label.fontSizeMin = 2.5f;
+            label.fontSizeMin = 1.5f;
             label.fontSizeMax = 5.5f;
             label.alignment = TextAlignmentOptions.Center;
             label.textWrappingMode = TextWrappingModes.Normal;
             label.raycastTarget = false;
             label.color = Color.white;
-            label.rectTransform.sizeDelta = new Vector2(1.8f, 1.0f);
+            label.rectTransform.sizeDelta = new Vector2(3.0f, 1.4f);
+
+            UIStyleSheet sheet = UIStyleSheetLocator.Instance;
+
+            if (sheet != null)
+            {
+                sheet.ApplyOutline(label);
+            }
+
             label.ForceMeshUpdate();
             return label;
         }

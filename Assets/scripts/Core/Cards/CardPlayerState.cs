@@ -1,13 +1,13 @@
 namespace MonopolyGame.Cards
 {
     /// <summary>
-    /// Snapshot of one player as an event card sees them. <see cref="SeatIndex"/>
-    /// drives "next player" style conditions; <see cref="PawnSlot"/> identifies
-    /// the player for game operations.
+    /// Snapshot of one player as a card sees them. <see cref="SeatIndex"/> drives
+    /// "next player" style conditions; <see cref="PawnSlot"/> identifies the
+    /// player for game operations.
     /// </summary>
-    public readonly struct EventCardPlayerState
+    public readonly struct CardPlayerState
     {
-        public EventCardPlayerState(int pawnSlot, int seatIndex, string playerId, string displayName, int balance)
+        public CardPlayerState(int pawnSlot, int seatIndex, string playerId, string displayName, int balance)
         {
             PawnSlot = pawnSlot;
             SeatIndex = seatIndex;
