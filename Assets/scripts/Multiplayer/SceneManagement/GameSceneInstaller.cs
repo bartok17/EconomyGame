@@ -79,6 +79,11 @@ namespace MonopolyGame.Multiplayer.SceneManagement
 
             if (hudPresenter != null)
             {
+                if (focusCoordinator != null)
+                {
+                    hudPresenter.BindFocusCoordinator(focusCoordinator);
+                }
+
                 hudPresenter.BindSession(sessionController);
             }
 

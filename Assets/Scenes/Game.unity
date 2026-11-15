@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!29 &1
 OcclusionCullingSettings:
@@ -1373,6 +1373,7 @@ RectTransform:
   - {fileID: 617297995}
   - {fileID: 977633291}
   - {fileID: 1246809333}
+  - {fileID: 510000011}
   m_Father: {fileID: 1781657316}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -6806,7 +6807,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 32}
-  m_SizeDelta: {x: 680, y: 96}
+  m_SizeDelta: {x: 820, y: 96}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1440164721
 MonoBehaviour:
@@ -9771,6 +9772,10 @@ PrefabInstance:
       value:
       objectReference: {fileID: 510000006}
     - target: {fileID: 2142190109402589789, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
+      propertyPath: actionCardActivation
+      value:
+      objectReference: {fileID: 510000009}
+    - target: {fileID: 2142190109402589789, guid: 31f165a2173d14e8a8204693ffab8938, type: 3}
       propertyPath: economyMessagePanel
       value: 
       objectReference: {fileID: 617297994}
@@ -9926,6 +9931,118 @@ MonoBehaviour:
   tableY: 0.05
   drawPileColor: {r: 0.1, g: 0.36, b: 0.62, a: 1}
   discardPileColor: {r: 0.88, g: 0.84, b: 0.7, a: 1}
+
+--- !u!1 &510000010
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 510000011}
+  - component: {fileID: 510000012}
+  - component: {fileID: 510000013}
+  - component: {fileID: 510000014}
+  - component: {fileID: 510000015}
+  - component: {fileID: 510000009}
+  m_Layer: 0
+  m_Name: ActionCardActivation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &510000011
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510000010}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137957799}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 640, y: 460}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &510000012
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510000010}
+  m_CullTransparentMesh: 1
+--- !u!114 &510000013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510000010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.1, g: 0.12, b: 0.15, a: 0.95}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 14549ccb200e34d4fbe20559c593e481, type: 3}
+  m_Type: 1
+--- !u!114 &510000014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510000010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074ab58ee428040169eadda60f49ee7b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: MonopolyGame.UI::MonopolyGame.UI.DesignSystem.ThemedImage
+  styleSheet: {fileID: 0}
+  imageRole: 0
+  usePlayerColor: 0
+  playerColorRole: 0
+--- !u!225 &510000015
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510000010}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &510000009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510000010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 787804aad54349a08cdb6f83c86c1910, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: MonopolyGame.Multiplayer::MonopolyGame.Multiplayer.Gameplay.ActionCardActivationPresenter
+  boardFocus: {fileID: 1941726233275368985}
 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

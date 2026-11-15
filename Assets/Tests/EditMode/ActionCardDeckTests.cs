@@ -86,13 +86,22 @@ namespace MonopolyGame.Core.Tests
         }
 
         [Test]
-        public void DefaultCatalog_ContainsBothPlaceholderCards()
+        public void DefaultCatalog_ContainsThePlaceholderCards()
         {
             var definitions = ActionCardCatalog.CreateDefaultDefinitions();
 
-            Assert.AreEqual(2, definitions.Count);
+            Assert.AreEqual(3, definitions.Count);
             Assert.IsTrue(Contains(definitions, "sprinter"));
             Assert.IsTrue(Contains(definitions, "windfall"));
+            Assert.IsTrue(Contains(definitions, "guard"));
+        }
+
+        [Test]
+        public void DefaultCatalog_LooksUpDefinitionsById()
+        {
+            Assert.IsTrue(ActionCardCatalog.TryGetDefinition("windfall", out ActionCardDefinition definition));
+            Assert.AreEqual("Windfall", definition.DisplayName);
+            Assert.IsFalse(ActionCardCatalog.TryGetDefinition("missing", out _));
         }
 
         private static bool Contains(IReadOnlyList<ActionCardDefinition> definitions, string cardId)
