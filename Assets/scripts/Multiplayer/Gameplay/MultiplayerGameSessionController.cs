@@ -8,12 +8,11 @@ using MonopolyGame.Pawns;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace MonopolyGame.Multiplayer.Gameplay
 {
     [RequireComponent(typeof(NetworkObject))]
-    public sealed class MultiplayerGameSessionController : NetworkBehaviour
+    public sealed partial class MultiplayerGameSessionController : NetworkBehaviour
     {
         [Header("Dependencies")]
         [SerializeField] private MultiplayerFlowCoordinator coordinator;
@@ -28,13 +27,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private float pawnMoveDuration = 0.45f;
         [SerializeField] private float resolveDelay = 0.35f;
         [SerializeField] private bool autoAdvanceTurns;
-
-        [Header("Developer")]
-        [SerializeField] private bool enableDevGrantCardShortcut = true;
-        [SerializeField] private bool enableDevTriggerEventShortcut = true;
-
-        private const Key DevGrantCardKey = Key.F8;
-        private const Key DevTriggerEventKey = Key.F9;
 
         private GameSessionPawnRegistry pawnRegistry;
         private readonly TurnStateMachine turnStateMachine = new TurnStateMachine();
@@ -169,24 +161,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 () => EconomyChanged?.Invoke(),
                 QueueCardPawnMove,
                 QueuePendingPayment);
-        }
-
-        private void Update()
-        {
-            if (Keyboard.current == null)
-            {
-                return;
-            }
-
-            if (enableDevGrantCardShortcut && Keyboard.current[DevGrantCardKey].wasPressedThisFrame)
-            {
-                RequestDevActionCardGrant();
-            }
-
-            if (enableDevTriggerEventShortcut && Keyboard.current[DevTriggerEventKey].wasPressedThisFrame)
-            {
-                RequestDevEventCardTrigger();
-            }
         }
 
         public override void OnNetworkSpawn()
@@ -350,31 +324,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return _actionCardService.GrantCard(pawnSlot);
         }
 
-        private void RequestDevActionCardGrant()
-        {
-            if (!IsInitialized)
-            {
-                return;
-            }
-
-            int pawnSlot = GetLocalPawnSlot();
-
-            if (pawnSlot < 0)
-            {
-                return;
-            }
-
-            if (IsServer)
-            {
-                ActionCardGrantResult result = GrantActionCard(pawnSlot);
-                Debug.Log($"[Dev] Action card grant for slot {pawnSlot}: {result.Outcome}.");
-            }
-            else
-            {
-                RequestDevGrantActionCardServerRpc();
-            }
-        }
-
         public int EventCardDrawPileCount => eventCardPileStateNet.Value.DrawPileCount;
         public int EventCardDiscardPileCount => eventCardPileStateNet.Value.DiscardPileCount;
 
@@ -429,31 +378,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             return players;
-        }
-
-        private void RequestDevEventCardTrigger()
-        {
-            if (!IsInitialized)
-            {
-                return;
-            }
-
-            int pawnSlot = GetLocalPawnSlot();
-
-            if (pawnSlot < 0)
-            {
-                return;
-            }
-
-            if (IsServer)
-            {
-                EventCardDrawResult result = TriggerEventCard(pawnSlot);
-                Debug.Log($"[Dev] Event card trigger for slot {pawnSlot}: {result.Outcome}.");
-            }
-            else
-            {
-                RequestDevTriggerEventCardServerRpc();
-            }
         }
 
         // ── Action card activation ──────────────────────────────────────────────────
@@ -868,30 +792,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         }
 
         [ServerRpc(RequireOwnership = false)]
-        private void RequestDevGrantActionCardServerRpc(ServerRpcParams serverRpcParams = default)
-        {
-            int pawnSlot = GetPawnSlotForClient(serverRpcParams.Receive.SenderClientId);
-
-            if (pawnSlot >= 0)
-            {
-                ActionCardGrantResult result = GrantActionCard(pawnSlot);
-                Debug.Log($"[Dev] Action card grant for slot {pawnSlot}: {result.Outcome}.");
-            }
-        }
-
-        [ServerRpc(RequireOwnership = false)]
-        private void RequestDevTriggerEventCardServerRpc(ServerRpcParams serverRpcParams = default)
-        {
-            int pawnSlot = GetPawnSlotForClient(serverRpcParams.Receive.SenderClientId);
-
-            if (pawnSlot >= 0)
-            {
-                EventCardDrawResult result = TriggerEventCard(pawnSlot);
-                Debug.Log($"[Dev] Event card trigger for slot {pawnSlot}: {result.Outcome}.");
-            }
-        }
-
-        [ServerRpc(RequireOwnership = false)]
         private void PlayActionCardServerRpc(
             int instanceId,
             int targetPawnSlot,
@@ -945,9 +845,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return;
             }
 
-            isResolvingCard = true;
-            cardResolutionNet.Value = true;
-            pendingCardMoves.Clear();
+            BeginCardResolution();
 
             ActionCardPlayResult result;
 
@@ -999,6 +897,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
             isResolvingCard = false;
             cardResolutionNet.Value = false;
             cardResolutionCoroutine = null;
+        }
+
+        /// <summary>Blocks roll, end turn and further card plays until the resolution ends.</summary>
+        private void BeginCardResolution()
+        {
+            isResolvingCard = true;
+            cardResolutionNet.Value = true;
+            pendingCardMoves.Clear();
         }
 
         private void QueueCardPawnMove(string playerId, int spaces)
@@ -1167,7 +1073,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             pendingPurchaseSpaceIndexNet.Value = -1;
 
-            int dice = UnityEngine.Random.Range(1, 7);
+            int dice = debugForcedDice > 0 ? debugForcedDice : UnityEngine.Random.Range(1, 7);
+            debugForcedDice = 0;
             int rawTargetSpaceIndex = activePawn.CurrentSpaceIndex + dice;
             bool passedStart = boardManager != null && boardManager.SpaceCount > 0 && rawTargetSpaceIndex >= boardManager.SpaceCount;
             int targetSpaceIndex = boardManager.NormalizeIndex(activePawn.CurrentSpaceIndex + dice);
