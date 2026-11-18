@@ -83,8 +83,7 @@ MonoBehaviour:
   pawnMoveDuration: 0.45
   resolveDelay: 0.35
   autoAdvanceTurns: 0
-  enableDevGrantCardShortcut: 1
-  enableDevTriggerEventShortcut: 1
+  enableDebugConsole: 1
 --- !u!114 &2142190109402589789
 MonoBehaviour:
   m_ObjectHideFlags: 0

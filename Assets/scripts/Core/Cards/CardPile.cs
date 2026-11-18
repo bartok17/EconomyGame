@@ -62,6 +62,41 @@ namespace MonopolyGame.Cards
             }
         }
 
+        /// <summary>
+        /// Takes the first card matching <paramref name="match"/> out of the draw
+        /// pile, reshuffling the discard pile first when needed.
+        /// </summary>
+        public bool TryTakeFromDraw(Predicate<TCard> match, out TCard card)
+        {
+            card = null;
+
+            if (match == null)
+            {
+                return false;
+            }
+
+            LastDrawReshuffled = false;
+
+            if (drawPile.Count == 0 && discardPile.Count > 0)
+            {
+                LastDrawReshuffled = ReshuffleDiscardIntoDraw();
+            }
+
+            for (int i = drawPile.Count - 1; i >= 0; i--)
+            {
+                if (!match(drawPile[i]))
+                {
+                    continue;
+                }
+
+                card = drawPile[i];
+                drawPile.RemoveAt(i);
+                return true;
+            }
+
+            return false;
+        }
+
         public bool ReshuffleDiscardIntoDraw()
         {
             if (discardPile.Count == 0)
