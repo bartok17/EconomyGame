@@ -56,7 +56,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         /// </summary>
         public ActionCardGrantResult GrantCard(int pawnSlot)
         {
-            if (!initialized || pawnSlot < 0 || pawnSlot >= hands.Length || hands[pawnSlot] == null)
+            if (!IsValidHand(pawnSlot))
             {
                 return new ActionCardGrantResult(ActionCardGrantOutcome.InvalidPlayer);
             }
@@ -70,18 +70,80 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return new ActionCardGrantResult(ActionCardGrantOutcome.DeckEmpty, null, reshuffled);
             }
 
+            return AddToHand(pawnSlot, card, reshuffled);
+        }
+
+        /// <summary>Pulls one named card out of the draw pile; an empty id falls back to a normal draw.</summary>
+        public ActionCardGrantResult GrantSpecificCard(int pawnSlot, string cardId)
+        {
+            if (!IsValidHand(pawnSlot))
+            {
+                return new ActionCardGrantResult(ActionCardGrantOutcome.InvalidPlayer);
+            }
+
+            if (string.IsNullOrWhiteSpace(cardId))
+            {
+                return GrantCard(pawnSlot);
+            }
+
+            bool taken = deck.TryTake(cardId, out ActionCardInstance card);
+            bool reshuffled = deck.LastDrawReshuffled;
+
+            if (!taken || card == null)
+            {
+                SyncPileState();
+                return new ActionCardGrantResult(ActionCardGrantOutcome.DeckEmpty, null, reshuffled);
+            }
+
+            return AddToHand(pawnSlot, card, reshuffled);
+        }
+
+        /// <summary>Sends every card in a hand to the discard pile.</summary>
+        public bool ClearHand(int pawnSlot)
+        {
+            if (!IsValidHand(pawnSlot))
+            {
+                return false;
+            }
+
             ActionCardHand hand = hands[pawnSlot];
 
-            if (!hand.TryAdd(card))
+            for (int i = 0; i < hand.Cards.Count; i++)
             {
-                deck.Discard(card);
-                SyncPileState();
-                return new ActionCardGrantResult(ActionCardGrantOutcome.HandFullDiscarded, card, reshuffled);
+                deck.Discard(hand.Cards[i]);
+            }
+
+            hand.Clear();
+            SyncPileState();
+            handChanged?.Invoke(pawnSlot, BuildHandEntries(pawnSlot));
+            return true;
+        }
+
+        /// <summary>Rebuilds the deck and empties every seated hand (debug console only).</summary>
+        public void ResetDeck()
+        {
+            deck = ActionCardCatalog.CreateDefaultDeck();
+            initialized = true;
+
+            for (int slot = 0; slot < hands.Length; slot++)
+            {
+                if (hands[slot] == null)
+                {
+                    continue;
+                }
+
+                hands[slot].Clear();
             }
 
             SyncPileState();
-            handChanged?.Invoke(pawnSlot, BuildHandEntries(pawnSlot));
-            return new ActionCardGrantResult(ActionCardGrantOutcome.Added, card, reshuffled);
+
+            for (int slot = 0; slot < hands.Length; slot++)
+            {
+                if (hands[slot] != null)
+                {
+                    handChanged?.Invoke(slot, BuildHandEntries(slot));
+                }
+            }
         }
 
         public IReadOnlyList<ActionCardHandEntry> GetHandEntries(int pawnSlot)
@@ -241,6 +303,31 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             return false;
+        }
+
+        private bool IsValidHand(int pawnSlot)
+        {
+            return initialized &&
+                   pawnSlot >= 0 &&
+                   pawnSlot < hands.Length &&
+                   hands[pawnSlot] != null &&
+                   deck != null;
+        }
+
+        private ActionCardGrantResult AddToHand(int pawnSlot, ActionCardInstance card, bool reshuffled)
+        {
+            ActionCardHand hand = hands[pawnSlot];
+
+            if (!hand.TryAdd(card))
+            {
+                deck.Discard(card);
+                SyncPileState();
+                return new ActionCardGrantResult(ActionCardGrantOutcome.HandFullDiscarded, card, reshuffled);
+            }
+
+            SyncPileState();
+            handChanged?.Invoke(pawnSlot, BuildHandEntries(pawnSlot));
+            return new ActionCardGrantResult(ActionCardGrantOutcome.Added, card, reshuffled);
         }
 
         private static bool TryFindCard(ActionCardHand hand, int instanceId, out ActionCardInstance card)

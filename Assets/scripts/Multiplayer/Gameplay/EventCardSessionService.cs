@@ -35,6 +35,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
             SyncPileState();
         }
 
+        /// <summary>Rebuilds the deck; only the debug console should call this mid-session.</summary>
+        public void ResetDeck()
+        {
+            deck = EventCardCatalog.CreateDefaultDeck();
+            initialized = true;
+            SyncPileState();
+        }
+
         /// <summary>
         /// Draws the next event card, triggers it against the supplied context and
         /// discards it. Public so future systems (other board spaces, rewards, a
