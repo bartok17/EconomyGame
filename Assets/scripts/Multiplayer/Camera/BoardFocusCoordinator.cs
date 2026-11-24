@@ -26,7 +26,6 @@ namespace MonopolyGame.Multiplayer.Camera
         private PlayerStashZoneSystem stashZones;
         private int lastFocusedIndex = -1;
 
-        /// <summary>Raised when the user clicks a pawn on the table.</summary>
         public event Action<int> PawnClicked;
 
         public bool FocusOnAction
@@ -36,8 +35,6 @@ namespace MonopolyGame.Multiplayer.Camera
         }
 
         public bool IsBound => camera != null;
-
-        // ── Wiring ─────────────────────────────────────────────────────────────
 
         public void Bind(
             BoardCameraController cameraController,
@@ -103,8 +100,6 @@ namespace MonopolyGame.Multiplayer.Camera
             board = null;
             stashZones = null;
         }
-
-        // ── IBoardFocusCoordinator ─────────────────────────────────────────────
 
         public void FocusSpace(int boardIndex)
         {
@@ -199,8 +194,6 @@ namespace MonopolyGame.Multiplayer.Camera
             camera?.SetModeFreeOrbit();
         }
 
-        // ── Event handlers ─────────────────────────────────────────────────────
-
         private void HandleSpaceClicked(BoardSpaceView space)
         {
             if (space != null)
@@ -232,10 +225,7 @@ namespace MonopolyGame.Multiplayer.Camera
             }
         }
 
-        /// <summary>
-        /// Pawn clicks do not move the camera; interested systems (card
-        /// targeting) subscribe to <see cref="PawnClicked"/>.
-        /// </summary>
+        // Pawn clicks never move the camera; interested systems (card targeting) subscribe instead.
         private void HandlePawnClicked(int pawnSlot)
         {
             PawnClicked?.Invoke(pawnSlot);

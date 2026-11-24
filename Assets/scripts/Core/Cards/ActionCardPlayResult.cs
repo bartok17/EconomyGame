@@ -38,10 +38,8 @@ namespace MonopolyGame.Cards
         /// <summary>Why the play was rejected; empty when it succeeded.</summary>
         public string Error { get; }
 
-        /// <summary>Human-readable lines produced by the card and any reaction.</summary>
         public IReadOnlyList<string> Messages { get; }
 
-        /// <summary>True when a passive card cancelled the play.</summary>
         public bool Cancelled { get; }
 
         public string CancelledByCardId { get; }

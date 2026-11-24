@@ -46,8 +46,6 @@ namespace MonopolyGame.Multiplayer.Debugging
 
         public bool IsOpen => isOpen;
 
-        // ── Lifecycle ───────────────────────────────────────────────────────────────
-
         private void Awake()
         {
             if (!Application.isEditor && !Debug.isDebugBuild)
@@ -177,8 +175,6 @@ namespace MonopolyGame.Multiplayer.Debugging
             scrollRect.verticalNormalizedPosition = 0f;
         }
 
-        // ── Open / close ────────────────────────────────────────────────────────────
-
         private bool IsTogglePressed()
         {
             if (Keyboard.current[toggleKey].wasPressedThisFrame)
@@ -255,8 +251,6 @@ namespace MonopolyGame.Multiplayer.Debugging
                 EventSystem.current.SetSelectedGameObject(inputField.gameObject);
             }
         }
-
-        // ── Execution ───────────────────────────────────────────────────────────────
 
         private void HandleSubmit(string text)
         {
@@ -408,8 +402,6 @@ namespace MonopolyGame.Multiplayer.Debugging
             return prefix;
         }
 
-        // ── Output ──────────────────────────────────────────────────────────────────
-
         private void AppendLines(IReadOnlyList<string> lines, Color color)
         {
             if (lines == null)
@@ -467,8 +459,6 @@ namespace MonopolyGame.Multiplayer.Debugging
         {
             return $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{line}</color>";
         }
-
-        // ── Construction ────────────────────────────────────────────────────────────
 
         private void BuildWindow()
         {
@@ -663,8 +653,6 @@ namespace MonopolyGame.Multiplayer.Debugging
             inputField = input;
             inputRoot.gameObject.SetActive(true);
         }
-
-        // ── UI helpers ──────────────────────────────────────────────────────────────
 
         private static RectTransform CreateChild(Transform parent, string name)
         {

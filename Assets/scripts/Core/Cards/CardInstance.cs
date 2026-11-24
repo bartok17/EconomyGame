@@ -2,7 +2,6 @@ using System;
 
 namespace MonopolyGame.Cards
 {
-    /// <summary>One physical card in a deck or hand.</summary>
     public abstract class CardInstance
     {
         protected CardInstance(int instanceId, CardDefinition definition)

@@ -26,12 +26,10 @@ namespace MonopolyGame.Cards
         public ActionCardDefinition IncomingCard { get; }
         public ActionCardParameters IncomingParameters { get; }
 
-        /// <summary>True when the incoming card names the reacting player as its target.</summary>
         public bool TargetsReactingPlayer { get; }
 
         public bool IsCancelled { get; private set; }
 
-        /// <summary>Message describing what the passive card did.</summary>
         public string Message { get; private set; } = string.Empty;
 
         public void Cancel(string message)

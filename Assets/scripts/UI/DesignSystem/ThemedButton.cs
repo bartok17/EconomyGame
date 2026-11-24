@@ -22,8 +22,6 @@ namespace MonopolyGame.UI.DesignSystem
         public ButtonRole Role => buttonRole;
         public ButtonSize Size => buttonSize;
 
-        // ── Unity lifecycle ────────────────────────────
-
         private void Awake()
         {
             ApplyStyle();
@@ -43,8 +41,6 @@ namespace MonopolyGame.UI.DesignSystem
         {
             ApplyStyle();
         }
-
-        // ── Public API ─────────────────────────────────
 
         public void SetRole(ButtonRole role)
         {
@@ -68,13 +64,11 @@ namespace MonopolyGame.UI.DesignSystem
 
             Color baseColor = sheet.GetButtonColor(buttonRole);
 
-            // -- Image fill --
             // The fill stays white; the token lives in the ColorBlock so the
             // Selectable tint is applied exactly once (Image.color * tint).
             if (_image != null)
                 _image.color = Color.white;
 
-            // -- Button color block --
             if (_button != null)
             {
                 ColorBlock cb = _button.colors;
@@ -88,7 +82,6 @@ namespace MonopolyGame.UI.DesignSystem
 
             ApplySize(sheet);
 
-            // -- Child label --
             if (styleLabel)
             {
                 _label ??= FindDirectChildLabel();

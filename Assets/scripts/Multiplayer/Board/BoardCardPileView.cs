@@ -5,10 +5,8 @@ using UnityEngine;
 
 namespace MonopolyGame.Board
 {
-    /// <summary>
-    /// One physical action-card pile on the table. Cards are thin cubes stacked
-    /// upward; the root collider is the future hover target for pile info.
-    /// </summary>
+    // One physical action-card pile: cards are thin cubes stacked upward; the root
+    // collider is the future hover target for pile info.
     internal sealed class BoardCardPileView
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");

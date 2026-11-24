@@ -3,10 +3,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Board
 {
-    /// <summary>
-    /// Replaces the blue event-deck placeholder on the table with two physical
-    /// card piles and live count labels.
-    /// </summary>
     public sealed class EventCardBoardView : CardPileBoardView
     {
         protected override string DeckAnchorPath => "Decor/EventDeck";

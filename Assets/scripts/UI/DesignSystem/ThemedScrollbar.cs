@@ -20,14 +20,10 @@ namespace MonopolyGame.UI.DesignSystem
         private Image     _track;
         private Image     _handle;
 
-        // ── Unity lifecycle ────────────────────────────
-
         private void Awake()    => ApplyStyle();
         private void OnEnable() => ApplyStyle();
         private void OnValidate() => ApplyStyle();
         private void Reset()    => ApplyStyle();
-
-        // ── Public API ─────────────────────────────────
 
         public void ApplyStyle()
         {
