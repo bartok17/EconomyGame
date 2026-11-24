@@ -36,8 +36,6 @@ namespace MonopolyGame.Multiplayer.Debugging
             return console;
         }
 
-        // ── Command groups ─────────────────────────────────────────────────────────
-
         private static void AddConsoleCommands(
             DebugConsole console,
             Func<string, DebugCommandResult> scenarioDispatch,
@@ -281,8 +279,6 @@ namespace MonopolyGame.Multiplayer.Debugging
                 DebugCommandExecutionMode.Server,
                 args => Reset(session, args)));
         }
-
-        // ── Handlers ───────────────────────────────────────────────────────────────
 
         private static DebugCommandResult ChangeMoney(
             MultiplayerGameSessionController session,
@@ -652,8 +648,6 @@ namespace MonopolyGame.Multiplayer.Debugging
 
             return DebugCommandResult.Fail(string.Join("\n", failure));
         }
-
-        // ── Argument helpers ───────────────────────────────────────────────────────
 
         private static DebugCommandDefinition Command(
             string name,

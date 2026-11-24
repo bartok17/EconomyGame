@@ -3,11 +3,6 @@ using System.Collections.Generic;
 
 namespace MonopolyGame.Cards
 {
-    /// <summary>
-    /// State handed to an action card when it resolves: who played it, the
-    /// choices the player made, the current players and the operations it may
-    /// perform.
-    /// </summary>
     public sealed class ActionCardPlayContext
     {
         private static readonly CardPlayerState[] NoPlayers = new CardPlayerState[0];
@@ -33,7 +28,6 @@ namespace MonopolyGame.Cards
         public IReadOnlyList<CardPlayerState> Players { get; }
         public ICardGameActions Actions { get; }
 
-        /// <summary>Human-readable lines produced while the card resolves.</summary>
         public IReadOnlyList<string> Messages => messages;
 
         /// <summary>

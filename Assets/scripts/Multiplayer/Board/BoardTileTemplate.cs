@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Board
 {
-    /// <summary>Per-type visual defaults used by <see cref="BoardTileView"/>.</summary>
     [Serializable]
     public sealed class BoardTypeStyle
     {

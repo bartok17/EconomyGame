@@ -26,7 +26,6 @@ namespace MonopolyGame.Cards
         public IReadOnlyList<CardPlayerState> Players { get; }
         public ICardGameActions Actions { get; }
 
-        /// <summary>Human-readable lines produced by the card while resolving.</summary>
         public IReadOnlyList<string> Messages => messages;
 
         public bool TryGetPlayer(int pawnSlot, out CardPlayerState player)

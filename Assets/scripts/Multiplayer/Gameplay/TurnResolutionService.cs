@@ -42,8 +42,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             _onPaymentDue = onPaymentDue;
         }
 
-        // ── Initialization ──────────────────────────────────────────────────────────
-
         public void InitializeEconomyState(IReadOnlyList<PlayerPawnNetworkSync> pawns, int spaceCount, int startingBalance)
         {
             _economy.Clear();
@@ -64,8 +62,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             _pendingPurchaseSpaceIndexNet.Value = -1;
         }
-
-        // ── Resolution steps (called by host-only coroutine in the controller) ──────
 
         public void ResolvePassStartReward(PlayerPawnNetworkSync pawn, bool passedStart)
         {
@@ -195,8 +191,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        // ── Purchase ────────────────────────────────────────────────────────────────
-
         public bool TryBuyProperty(int spaceIndex, PlayerPawnNetworkSync pawn, BoardManager boardManager)
         {
             if (spaceIndex < 0 || pawn == null || boardManager == null)
@@ -234,8 +228,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return true;
         }
 
-        // ── Board helpers ───────────────────────────────────────────────────────────
-
         public int FindFirstSpaceIndexByType(BoardManager boardManager, BoardSpaceType type, int fallbackIndex)
         {
             if (boardManager == null)
@@ -254,8 +246,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             return boardManager.NormalizeIndex(fallbackIndex);
         }
-
-        // ── Economy messaging ───────────────────────────────────────────────────────
 
         public void SetEconomyMessage(string message)
         {

@@ -16,8 +16,6 @@ namespace MonopolyGame.UI.DesignSystem
 
         public TextStyle Style => textStyle;
 
-        // ── Unity lifecycle ────────────────────────────
-
         private void Awake()
         {
             ApplyStyle();
@@ -38,8 +36,6 @@ namespace MonopolyGame.UI.DesignSystem
             ApplyStyle();
         }
 
-        // ── Public API ─────────────────────────────────
-
         public void SetTextStyle(TextStyle style)
         {
             textStyle = style;
@@ -56,8 +52,6 @@ namespace MonopolyGame.UI.DesignSystem
 
             sheet.ApplyTextStyle(_text, textStyle);
         }
-
-        // ── Context menu (editor convenience) ──────────
 
 #if UNITY_EDITOR
         [ContextMenu("Apply Style Now")]
