@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Stash
 {
-    /// <summary>Computed placement for the four outer player stash zones.</summary>
     public readonly struct PlayerStashMetrics
     {
         public PlayerStashMetrics(float outerHalfSize, float zoneWidth, float zoneDepth, float zoneGap)

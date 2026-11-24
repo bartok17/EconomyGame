@@ -46,7 +46,6 @@ namespace MonopolyGame.DesignSystem
             }
         }
 
-        /// <summary>Clears the cache and re-resolves on the next access (editor convenience).</summary>
         public static void Invalidate()
         {
             _cached = null;
