@@ -40,7 +40,6 @@ namespace MonopolyGame.Cards
             return TryTake(instanceId, out _);
         }
 
-        /// <summary>Removes a card and hands it back so it can be discarded or resolved.</summary>
         public bool TryTake(int instanceId, out ActionCardInstance card)
         {
             for (int i = 0; i < cards.Count; i++)

@@ -52,8 +52,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public bool IsOpen => isOpen;
 
-        // ── Lifecycle ───────────────────────────────────────────────────────────
-
         private void Awake()
         {
             panelRoot = transform as RectTransform;
@@ -95,8 +93,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 boardFocus = focusCoordinator;
             }
         }
-
-        // ── Open / close ────────────────────────────────────────────────────────
 
         public void Open(ActionCardHandEntry handEntry)
         {
@@ -164,8 +160,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             SetVisible(false);
         }
 
-        // ── UI construction ─────────────────────────────────────────────────────
-
         private void BuildUi()
         {
             UIStyleSheet sheet = UIStyleSheetLocator.Instance;
@@ -231,7 +225,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        /// <summary>Creates a layout-managed section with a fixed preferred height.</summary>
         private RectTransform CreateRow(string name, float height)
         {
             RectTransform rect = CreateChild(panelRoot, name);
@@ -349,8 +342,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return button;
         }
 
-        // ── Player chips ────────────────────────────────────────────────────────
-
         private void BuildChips()
         {
             for (int i = chips.Count - 1; i >= 0; i--)
@@ -460,8 +451,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             };
         }
 
-        // ── Interaction ─────────────────────────────────────────────────────────
-
         private void HandleChipClicked(int pawnSlot)
         {
             parameters = parameters.WithTarget(pawnSlot);
@@ -567,8 +556,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             errorText.text = "You cannot play a card right now.";
         }
 
-        // ── Helpers ─────────────────────────────────────────────────────────────
-
         private ActionCardParameters BuildDefaultParameters(ActionCardDefinition card)
         {
             int target = ActionCardParameters.NoTarget;
@@ -642,8 +629,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 boardFocus.PawnClicked -= HandlePawnClicked;
             }
         }
-
-        // ── ICardPreviewBoard ───────────────────────────────────────────────────
 
         public int GetPlayerSpaceIndex(int pawnSlot)
         {

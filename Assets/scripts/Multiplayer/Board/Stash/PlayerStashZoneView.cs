@@ -34,7 +34,6 @@ namespace MonopolyGame.Stash
         public bool IsOccupied => isOccupied;
         public int PileCount => piles.Length;
 
-        /// <summary>World-space point the camera should frame for this zone.</summary>
         public Vector3 ZoneCenter => transform.position + Vector3.up * 0.15f;
 
         public MoneyPileView GetPile(int index)

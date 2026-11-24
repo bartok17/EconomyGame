@@ -185,17 +185,11 @@ namespace MonopolyGame.DesignSystem
             }
         }
 
-        // ── Public accessors ──────────────────────────────────────
-
         public TMPro.TMP_FontAsset DefaultFont => defaultFont;
 
         public float TextOutlineWidth => textOutlineWidth;
         public Color TextOutlineColor => textOutlineColor;
 
-        /// <summary>
-        /// Single place that maps a style token onto a TMP component: font, size,
-        /// colour and the readability outline. Works for world and UI text.
-        /// </summary>
         public void ApplyTextStyle(TMPro.TMP_Text text, TextStyle style)
         {
             if (text == null)
