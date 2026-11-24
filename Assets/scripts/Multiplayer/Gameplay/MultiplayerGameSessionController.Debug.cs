@@ -38,8 +38,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return _economyService != null ? _economyService.GetBalance(pawnSlot) : 0;
         }
 
-        // ── Console transport ───────────────────────────────────────────────────────
-
         public void SendDebugCommandToServer(string line)
         {
             if (IsServer || string.IsNullOrWhiteSpace(line))
@@ -81,10 +79,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 });
         }
 
-        /// <summary>
-        /// The output travels as one newline-joined string: Netcode's ILPP cannot
-        /// serialize string arrays, but plain strings are supported.
-        /// </summary>
+        // The payload travels as one newline-joined string: Netcode's ILPP cannot
+        // serialize string arrays, but plain strings are supported.
         [ClientRpc]
         private void DebugConsoleResultClientRpc(
             string line,
@@ -102,8 +98,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             DebugConsoleResponded?.Invoke(line, result);
         }
-
-        // ── Economy ────────────────────────────────────────────────────────────────
 
         public DebugCommandResult DebugSetBalance(int pawnSlot, int amount)
         {
@@ -158,8 +152,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             EconomyChanged?.Invoke();
             return DebugCommandResult.Ok($"Every balance is back to {startingBalance}.");
         }
-
-        // ── Cards ──────────────────────────────────────────────────────────────────
 
         public DebugCommandResult DebugGrantCard(int pawnSlot, string cardId)
         {
@@ -251,8 +243,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             _eventCardService.ResetDeck();
             return DebugCommandResult.Ok("Both decks were rebuilt and every hand was emptied.");
         }
-
-        // ── Movement ───────────────────────────────────────────────────────────────
 
         public DebugCommandResult DebugTeleport(int pawnSlot, int spaceIndex)
         {
@@ -370,8 +360,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        // ── Property ───────────────────────────────────────────────────────────────
-
         public DebugCommandResult DebugSetPropertyOwner(int spaceIndex, int ownerPawnSlot)
         {
             if (!TryPrepareDebug(out string error))
@@ -452,8 +440,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             return DebugCommandResult.Ok($"{ownerName} now owns all {granted} properties.");
         }
-
-        // ── Turn control ───────────────────────────────────────────────────────────
 
         public DebugCommandResult DebugSetActiveTurn(int pawnSlot)
         {
@@ -587,8 +573,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return DebugCommandResult.Ok("Every property is back with the bank.");
         }
 
-        // ── Inspection ─────────────────────────────────────────────────────────────
-
         public DebugCommandResult DebugDescribeState()
         {
             if (!TryPrepareDebug(out string error))
@@ -717,8 +701,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return DebugCommandResult.OkLines(lines);
         }
 
-        // ── Shared helpers ─────────────────────────────────────────────────────────
-
         private bool TryPrepareDebug(out string error)
         {
             if (!IsServer)
@@ -824,7 +806,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return $"Player {pawnSlot + 1}";
         }
 
-        /// <summary>Clears anything left over mid-turn so a debug command starts settled.</summary>
         private void ResetTransientTurnState()
         {
             pendingPurchaseSpaceIndexNet.Value = -1;

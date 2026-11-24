@@ -16,14 +16,8 @@ namespace MonopolyGame.Multiplayer.Camera
         /// </summary>
         bool FocusOnAction { get; set; }
 
-        /// <summary>
-        /// Resolve the tile by index and glide the camera onto it.
-        /// </summary>
         void FocusSpace(int boardIndex);
 
-        /// <summary>
-        /// Glide the camera onto an already-resolved tile.
-        /// </summary>
         void FocusSpace(BoardSpaceView space);
 
         /// <summary>
@@ -32,9 +26,6 @@ namespace MonopolyGame.Multiplayer.Camera
         /// </summary>
         void ClearFocus();
 
-        /// <summary>
-        /// Switch to free orbit centred on the board.
-        /// </summary>
         void ShowOverview();
 
         /// <summary>
@@ -43,14 +34,8 @@ namespace MonopolyGame.Multiplayer.Camera
         /// </summary>
         void ShowPlayerView(int playerIndex);
 
-        /// <summary>
-        /// Frame a trade between two players.
-        /// </summary>
         void ShowTradeView(int playerA, int playerB);
 
-        /// <summary>
-        /// Leave the trade framing and return to free orbit.
-        /// </summary>
         void EndTradeView();
     }
 }

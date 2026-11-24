@@ -27,10 +27,8 @@ namespace MonopolyGame.Cards
 
         public virtual CardTiming Timing => CardTiming.Active;
 
-        /// <summary>When this card may be activated during its owner's turn.</summary>
         public virtual CardActivationWindow ActivationWindow => CardActivationWindow.AnyTime;
 
-        /// <summary>Choices the player makes before the card resolves.</summary>
         public virtual IReadOnlyList<ActionCardParameterSpec> Parameters => NoParameters;
 
         /// <summary>

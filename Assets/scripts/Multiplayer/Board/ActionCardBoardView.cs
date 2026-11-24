@@ -2,10 +2,6 @@ using MonopolyGame.Multiplayer.Gameplay;
 
 namespace MonopolyGame.Board
 {
-    /// <summary>
-    /// Replaces the red action-deck placeholder on the table with two physical
-    /// card piles and live count labels.
-    /// </summary>
     public sealed class ActionCardBoardView : CardPileBoardView
     {
         protected override string DeckAnchorPath => "Decor/ActionDeck";

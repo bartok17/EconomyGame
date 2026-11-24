@@ -19,7 +19,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private Transform handSlotsRoot;
         [SerializeField] private TextMeshProUGUI handHeaderText;
 
-        /// <summary>Raised when the local player clicks a card in the hand.</summary>
         public event Action<ActionCardHandEntry> CardActivated;
 
         private readonly List<SlotView> slots = new List<SlotView>();
