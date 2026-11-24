@@ -6,13 +6,10 @@ namespace MonopolyGame.Multiplayer.Camera
     /// </summary>
     public enum CameraMode
     {
-        /// <summary>Player freely orbits and zooms around the board.</summary>
         FreeOrbit,
 
-        /// <summary>Camera locked to a specific player's table side.</summary>
         PlayerView,
 
-        /// <summary>Special framing for a trade between two players.</summary>
         Trade
     }
 }
