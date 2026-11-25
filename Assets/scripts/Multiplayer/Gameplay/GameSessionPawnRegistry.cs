@@ -50,6 +50,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
                     continue;
                 }
 
+                pawnSync.NetworkObject.DontDestroyWithOwner = true;
+
                 ulong ownerClientId = (ulong)i;
 
                 if (pawnSync.NetworkObject.OwnerClientId != ownerClientId)
@@ -59,9 +61,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        public IReadOnlyList<TurnParticipant> BuildParticipants()
+        public IReadOnlyList<TurnParticipant> BuildParticipants(LobbySnapshot snapshot = null)
         {
             List<TurnParticipant> participants = new List<TurnParticipant>();
+            IReadOnlyList<string> authIds = snapshot?.PlayerAuthIds;
 
             for (int i = 0; i < pawnSyncs.Count; i++)
             {
@@ -73,7 +76,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 }
 
                 ulong clientId = pawnSync.NetworkObject != null ? pawnSync.NetworkObject.OwnerClientId : (ulong)i;
-                participants.Add(new TurnParticipant(i, pawnSync.DisplayName, clientId));
+                string authId = authIds != null && i < authIds.Count ? authIds[i] : string.Empty;
+                participants.Add(new TurnParticipant(i, pawnSync.DisplayName, clientId, authId));
             }
 
             return participants;

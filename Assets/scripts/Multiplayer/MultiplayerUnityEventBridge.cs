@@ -56,8 +56,25 @@ namespace MonopolyGame.Multiplayer
         public ErrorEvent ErrorOccurred = new ErrorEvent();
         public StringEvent ErrorMessage = new StringEvent();
 
+        private void Awake()
+        {
+            if (MultiplayerFlowCoordinator.Instance != null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance;
+            }
+            else if (coordinator == null)
+            {
+                coordinator = FindAnyObjectByType<MultiplayerFlowCoordinator>();
+            }
+        }
+        
         private void OnEnable()
         {
+            if (MultiplayerFlowCoordinator.Instance != null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance;
+            }
+            
             if (coordinator == null)
             {
                 Debug.LogError("[MultiplayerUnityEventBridge] MultiplayerFlowCoordinator not assigned. Wire it in the inspector.");

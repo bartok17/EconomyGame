@@ -18,6 +18,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private TextMeshProUGUI phaseText;
         [SerializeField] private TextMeshProUGUI diceText;
         [SerializeField] private TextMeshProUGUI turnHintText;
+        [SerializeField] private TextMeshProUGUI roomCodeText;
 
         [Header("Local Player")]
         [SerializeField] private TextMeshProUGUI localPlayerNameText;
@@ -39,6 +40,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private Button rollButton;
         [SerializeField] private Button endTurnButton;
         [SerializeField] private Button buyButton;
+        [SerializeField] private Button leaveButton;
 
         private Button payButton;
 
@@ -51,6 +53,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private BoardFocusCoordinator boardFocusCoordinator;
 
         private readonly List<PlayerHudEntry> playerEntries = new();
+        private bool isSessionBound;
 
         private void OnEnable()
         {
@@ -67,11 +70,13 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             while (session == null)
             {
+                session = FindAnyObjectByType<MultiplayerGameSessionController>();
                 yield return null;
             }
 
             ResolvePlayerEntries();
             EnsurePayButton();
+            EnsureLeaveButton();
             BindSession();
             RefreshFromSession();
         }
@@ -157,13 +162,51 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 label.text = "Pay";
             }
         }
-
-        private void BindSession()
+        
+        private void EnsureLeaveButton()
         {
-            if (session == null)
+            if (leaveButton != null)
             {
                 return;
             }
+
+            Transform found = transform.Find("LeaveButton") ??
+                              transform.Find("ActionBar/LeaveButton") ??
+                              transform.Find("TopBar/LeaveButton");
+            if (found != null)
+            {
+                leaveButton = found.GetComponent<Button>();
+                return;
+            }
+
+            if (endTurnButton != null && endTurnButton.transform.parent != null)
+            {
+                GameObject clone = Instantiate(endTurnButton.gameObject, endTurnButton.transform.parent);
+                clone.name = "LeaveButton";
+                leaveButton = clone.GetComponent<Button>();
+
+                if (leaveButton != null)
+                {
+                    leaveButton.onClick.RemoveAllListeners();
+                    leaveButton.interactable = true;
+                }
+
+                TextMeshProUGUI label = clone.GetComponentInChildren<TextMeshProUGUI>();
+                if (label != null)
+                {
+                    label.text = "Leave";
+                }
+            }
+        }
+
+        private void BindSession()
+        {
+            if (session == null || isSessionBound)
+            {
+                return;
+            }
+
+            isSessionBound = true;
 
             session.PhaseChanged += HandlePhaseChanged;
             session.TurnChanged += HandleTurnChanged;
@@ -171,6 +214,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             session.EconomyChanged += HandleEconomyChanged;
             session.CardResolutionChanged += HandleCardResolutionChanged;
             session.PaymentsChanged += HandlePaymentsChanged;
+            session.ParticipantsChanged += HandleParticipantsChanged;
 
             if (rollButton != null)
             {
@@ -191,10 +235,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 payButton.onClick.AddListener(HandlePayClicked);
             }
+            
+            if (leaveButton != null)
+            {
+                leaveButton.onClick.AddListener(HandleLeaveClicked);
+            }
         }
 
         private void UnbindSession()
         {
+            isSessionBound = false;
+
             if (session != null)
             {
                 session.PhaseChanged -= HandlePhaseChanged;
@@ -203,6 +254,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 session.EconomyChanged -= HandleEconomyChanged;
                 session.CardResolutionChanged -= HandleCardResolutionChanged;
                 session.PaymentsChanged -= HandlePaymentsChanged;
+                session.ParticipantsChanged -= HandleParticipantsChanged;
             }
 
             if (rollButton != null)
@@ -223,6 +275,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             if (payButton != null)
             {
                 payButton.onClick.RemoveListener(HandlePayClicked);
+            }
+
+            if (leaveButton != null)
+            {
+                leaveButton.onClick.RemoveListener(HandleLeaveClicked);
             }
 
             actionCardHud?.BindSession(null);
@@ -263,6 +320,20 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 session.RequestPayPendingPayment();
             }
+        }
+        
+        private void HandleLeaveClicked()
+        {
+            if (session != null)
+            {
+                session.RequestLeaveGame();
+            }
+        }
+
+        private void HandleParticipantsChanged()
+        {
+            RefreshDashboard();
+            UpdateControls();
         }
 
         private void HandlePaymentsChanged()
@@ -314,6 +385,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
             UpdateDiceText(session.LastDiceRoll);
             RefreshDashboard();
             UpdateControls();
+
+            if (roomCodeText != null)
+            {
+                string code = session.GetRoomCode();
+                roomCodeText.text = string.IsNullOrEmpty(code) ? string.Empty : $"Room: {code}";
+            }
         }
 
         private void RefreshDashboard()
@@ -392,7 +469,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 bool isActivePlayer = !string.IsNullOrEmpty(session.ActivePlayerName) &&
                                       session.ActivePlayerName == displayName;
 
-                playerEntries[entryIndex].Apply(displayName, state.Balance, isActivePlayer);
+                ParticipantSessionStatus status = session.GetParticipantStatus(state.PawnSlot);
+                playerEntries[entryIndex].Apply(displayName, state.Balance, isActivePlayer, status);
                 playerEntries[entryIndex].SetVisible(true);
                 entryIndex++;
             }
@@ -416,7 +494,9 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             string playerName = string.IsNullOrWhiteSpace(activePlayerName) ? "Waiting" : activePlayerName;
-            turnText.text = $"Turn {turnIndex + 1} — {playerName}";
+            string roomCode = session != null ? session.GetRoomCode() : string.Empty;
+            string roomSuffix = string.IsNullOrWhiteSpace(roomCode) ? string.Empty : $"  ·  Room: {roomCode}";
+            turnText.text = $"Turn {turnIndex + 1} — {playerName}{roomSuffix}";
         }
 
         private void UpdatePhaseText()
