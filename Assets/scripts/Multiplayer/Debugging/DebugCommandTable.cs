@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MonopolyGame.Board;
 using MonopolyGame.Cards;
 using MonopolyGame.Debugging;
 using MonopolyGame.Multiplayer.Gameplay;
@@ -230,6 +231,30 @@ namespace MonopolyGame.Multiplayer.Debugging
                 "Property",
                 DebugCommandExecutionMode.Server,
                 args => OwnAll(session, args)));
+
+            console.Add(Command(
+                "build",
+                "Build houses with the active player's money (real rules apply).",
+                "build <space> [count]",
+                "Property",
+                DebugCommandExecutionMode.Server,
+                args => Build(session, args)));
+
+            console.Add(Command(
+                "sell",
+                "Sell houses back at half price (real rules apply).",
+                "sell <space> [count]",
+                "Property",
+                DebugCommandExecutionMode.Server,
+                args => Sell(session, args)));
+
+            console.Add(Command(
+                "sethouses",
+                "Set a property's buildings directly (0-4 houses, 5 = hotel).",
+                "sethouses <space> <0-5>",
+                "Property",
+                DebugCommandExecutionMode.Server,
+                args => SetHouses(session, args)));
         }
 
         private static void AddTurnCommands(MultiplayerGameSessionController session, DebugConsole console)
@@ -494,6 +519,44 @@ namespace MonopolyGame.Multiplayer.Debugging
             return session.DebugGrantAllProperties(slot);
         }
 
+        private static DebugCommandResult Build(MultiplayerGameSessionController session, DebugConsoleArgs args)
+        {
+            if (!TryReadSpace(session, args, 0, out int spaceIndex, out string error) ||
+                !TryReadCount(args, out int count, out error))
+            {
+                return DebugCommandResult.Fail(error);
+            }
+
+            return session.DebugBuildHouse(spaceIndex, count);
+        }
+
+        private static DebugCommandResult Sell(MultiplayerGameSessionController session, DebugConsoleArgs args)
+        {
+            if (!TryReadSpace(session, args, 0, out int spaceIndex, out string error) ||
+                !TryReadCount(args, out int count, out error))
+            {
+                return DebugCommandResult.Fail(error);
+            }
+
+            return session.DebugSellHouse(spaceIndex, count);
+        }
+
+        private static DebugCommandResult SetHouses(MultiplayerGameSessionController session, DebugConsoleArgs args)
+        {
+            if (!TryReadSpace(session, args, 0, out int spaceIndex, out string error))
+            {
+                return DebugCommandResult.Fail(error);
+            }
+
+            if (!args.TryGetInt(1, out int level) || level < 0 || level > PropertyBuildingRules.HotelLevel)
+            {
+                return DebugCommandResult.Fail(
+                    $"Expected a building level between 0 and {PropertyBuildingRules.HotelLevel} (5 = hotel).");
+            }
+
+            return session.DebugSetPropertyHouses(spaceIndex, level);
+        }
+
         private static DebugCommandResult SetTurn(MultiplayerGameSessionController session, DebugConsoleArgs args)
         {
             if (!TryReadPlayer(session, args, 0, out int slot, out string error))
@@ -732,6 +795,26 @@ namespace MonopolyGame.Multiplayer.Debugging
             }
 
             pawnSlot = targets[0];
+            return true;
+        }
+
+        private static bool TryReadCount(DebugConsoleArgs args, out int count, out string error)
+        {
+            count = 1;
+
+            if (args.Count < 2)
+            {
+                error = null;
+                return true;
+            }
+
+            if (!args.TryGetInt(1, out count) || count < 1 || count > PropertyBuildingRules.HotelLevel)
+            {
+                error = $"Expected a count between 1 and {PropertyBuildingRules.HotelLevel}.";
+                return false;
+            }
+
+            error = null;
             return true;
         }
 

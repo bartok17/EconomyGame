@@ -24,6 +24,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
         [SerializeField] private int startSpaceIndex = 0;
         [SerializeField] private int jailSpaceIndex = 10;
         [SerializeField] private int passStartReward = 200;
+        [SerializeField] private int housesPerLap = PropertyBuildingRules.DefaultHousesPerLap;
+        [SerializeField] private int[] houseRentMultipliers = { 1, 2, 3, 4, 5, 7 };
         [SerializeField] private float pawnMoveDuration = 0.45f;
         [SerializeField] private float resolveDelay = 0.35f;
         [SerializeField] private bool autoAdvanceTurns;
@@ -33,6 +35,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private readonly BoardRuleResolver boardRuleResolver = new BoardRuleResolver();
         private IPlayerEconomyService _economyService;
         private TurnResolutionService _turnResolution;
+        private PropertyBuildingService _propertyBuildingService;
+        private int[] sanitizedRentMultipliers = PropertyBuildingRules.SanitizeRentMultipliers(null);
         private ActionCardSessionService _actionCardService;
         private EventCardSessionService _eventCardService;
         private CardGameActions _cardGameActions;
@@ -140,6 +144,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             propertyOwnershipNet = new NetworkList<PropertyOwnershipState>();
             participantStatesNet = new NetworkList<ParticipantNetState>();
             _economyService = new PlayerEconomyService(playerEconomyNet, propertyOwnershipNet);
+            sanitizedRentMultipliers = PropertyBuildingRules.SanitizeRentMultipliers(houseRentMultipliers);
             _turnResolution = new TurnResolutionService(
                 _economyService,
                 pendingPurchaseSpaceIndexNet,
@@ -148,6 +153,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 passStartReward,
                 jailSpaceIndex,
                 pawnMoveDuration,
+                sanitizedRentMultipliers,
                 () => EconomyChanged?.Invoke(),
                 QueuePendingPayment);
             _actionCardService = new ActionCardSessionService(actionCardPileStateNet, HandleActionCardHandChanged);
@@ -215,6 +221,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             this.boardManager = boardManager;
             this.pawnSpawner = pawnSpawner;
             pawnRegistry = new GameSessionPawnRegistry(pawnSpawner);
+            _propertyBuildingService = new PropertyBuildingService(
+                _economyService,
+                boardManager,
+                HousesPerLapLimit,
+                sanitizedRentMultipliers);
         }
 
         public void RequestRoll()
@@ -592,6 +603,115 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return $"Buy ({space.price})";
         }
 
+        public int HousesPerLapLimit => housesPerLap;
+
+        public bool IsLocalPlayersTurn
+        {
+            get
+            {
+                if (!IsInitialized || NetworkManager.Singleton == null)
+                {
+                    return false;
+                }
+
+                return ActiveClientId == NetworkManager.Singleton.LocalClientId;
+            }
+        }
+
+        public bool CanManageBuildings
+        {
+            get
+            {
+                if (!IsLocalPlayersTurn || IsResolvingCardAction || HasPendingPayment)
+                {
+                    return false;
+                }
+
+                return CurrentPhase == TurnPhase.AwaitingRoll || CurrentPhase == TurnPhase.WaitingForEndTurn;
+            }
+        }
+
+        public int GetPropertyOwnerSlot(int spaceIndex)
+        {
+            return _economyService != null ? _economyService.GetPropertyOwnerPawnSlot(spaceIndex) : -1;
+        }
+
+        public int GetPropertyHouses(int spaceIndex)
+        {
+            return _economyService != null ? _economyService.GetPropertyHouses(spaceIndex) : 0;
+        }
+
+        public int GetHousesBuiltThisLap(int pawnSlot)
+        {
+            return _economyService != null ? _economyService.GetHousesBuiltThisLap(pawnSlot) : 0;
+        }
+
+        public int GetPropertyRent(int spaceIndex)
+        {
+            if (boardManager == null)
+            {
+                return 0;
+            }
+
+            return BuildingService.GetRent(spaceIndex);
+        }
+
+        public PropertyBuildCheck GetBuildStatus(int spaceIndex)
+        {
+            if (!IsInitialized || boardManager == null)
+            {
+                return PropertyBuildCheck.Denied("The game has not started yet.");
+            }
+
+            int pawnSlot = GetLocalPawnSlot();
+
+            if (pawnSlot < 0)
+            {
+                return PropertyBuildCheck.Denied("You are not seated in this game.");
+            }
+
+            return BuildingService.EvaluateBuild(spaceIndex, pawnSlot);
+        }
+
+        public PropertyBuildCheck GetSellStatus(int spaceIndex)
+        {
+            if (!IsInitialized || boardManager == null)
+            {
+                return PropertyBuildCheck.Denied("The game has not started yet.");
+            }
+
+            int pawnSlot = GetLocalPawnSlot();
+
+            if (pawnSlot < 0)
+            {
+                return PropertyBuildCheck.Denied("You are not seated in this game.");
+            }
+
+            return BuildingService.EvaluateSell(spaceIndex, pawnSlot);
+        }
+
+        public void RequestBuildHouse(int spaceIndex)
+        {
+            if (IsServer)
+            {
+                HandleBuildHouseOnServer(NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0, spaceIndex);
+                return;
+            }
+
+            RequestBuildHouseServerRpc(spaceIndex);
+        }
+
+        public void RequestSellHouse(int spaceIndex)
+        {
+            if (IsServer)
+            {
+                HandleSellHouseOnServer(NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0, spaceIndex);
+                return;
+            }
+
+            RequestSellHouseServerRpc(spaceIndex);
+        }
+
         public string GetLastEconomyMessage()
         {
             if (!string.IsNullOrWhiteSpace(localStatusOverrideMessage))
@@ -625,7 +745,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             if (space.type == BoardSpaceType.Property)
             {
-                return $"Price {space.price} · Rent {space.baseRent}";
+                return $"Price {space.price} · Rent {GetPropertyRent(space.index)}{DescribeBuildings(GetPropertyHouses(space.index))}";
             }
 
             if (space.type == BoardSpaceType.Tax)
@@ -675,6 +795,16 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return boardManager.GetSpace(spaceIndex);
         }
 
+        private static string DescribeBuildings(int level)
+        {
+            if (PropertyBuildingRules.IsHotel(level))
+            {
+                return " · hotel";
+            }
+
+            return level > 0 ? $" · {level} houses" : string.Empty;
+        }
+
         public string GetCurrentPropertyLabel()
         {
             int spaceIndex = lastResolvedSpaceIndexNet.Value;
@@ -692,7 +822,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             if (space.type == BoardSpaceType.Property)
             {
-                return $"{space.displayName} - Price: {space.price}, Rent: {space.baseRent}";
+                return $"{space.displayName} - Price: {space.price}, Rent: {GetPropertyRent(space.index)}{DescribeBuildings(GetPropertyHouses(space.index))}";
             }
             
             if (space.type == BoardSpaceType.Tax)
@@ -779,6 +909,18 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private void RequestBuyCurrentPropertyServerRpc(ServerRpcParams serverRpcParams = default)
         {
             HandleBuyPropertyOnServer(serverRpcParams.Receive.SenderClientId);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void RequestBuildHouseServerRpc(int spaceIndex, ServerRpcParams serverRpcParams = default)
+        {
+            HandleBuildHouseOnServer(serverRpcParams.Receive.SenderClientId, spaceIndex);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void RequestSellHouseServerRpc(int spaceIndex, ServerRpcParams serverRpcParams = default)
+        {
+            HandleSellHouseOnServer(serverRpcParams.Receive.SenderClientId, spaceIndex);
         }
 
         [ServerRpc(RequireOwnership = false)]
@@ -1578,6 +1720,45 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             _turnResolution.TryBuyProperty(spaceIndex, pawn, boardManager);
         }
+
+        private void HandleBuildHouseOnServer(ulong senderClientId, int spaceIndex)
+        {
+            if (!CanManageBuildingsOnServer(senderClientId)) return;
+
+            PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
+            if (pawn == null) return;
+
+            BuildingService.TryBuild(spaceIndex, pawn, out string message);
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                _turnResolution.SetEconomyMessage(message);
+            }
+        }
+
+        private void HandleSellHouseOnServer(ulong senderClientId, int spaceIndex)
+        {
+            if (!CanManageBuildingsOnServer(senderClientId)) return;
+
+            PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
+            if (pawn == null) return;
+
+            BuildingService.TrySell(spaceIndex, pawn, out string message);
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                _turnResolution.SetEconomyMessage(message);
+            }
+        }
+
+        private bool CanManageBuildingsOnServer(ulong senderClientId)
+        {
+            if (!EnsureReadyForTurn()) return false;
+            if (isResolvingCard || HasPendingPayment) return false;
+            if (CurrentPhase != TurnPhase.AwaitingRoll && CurrentPhase != TurnPhase.WaitingForEndTurn) return false;
+
+            return turnStateMachine.IsAuthorizedTurnRequest(senderClientId);
+        }
         
         private int GetPawnSlotForClient(ulong clientId)
         {
@@ -1642,9 +1823,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 PropertyOwnershipState owner = propertyOwnershipNet[i];
                 boardManager.SetSpaceOwner(owner.SpaceIndex, owner.OwnerPlayerId.ToString(), owner.OwnerPawnSlot);
+                boardManager.SetSpaceBuildings(owner.SpaceIndex, owner.HousesBuilt);
             }
         }
         
+        private PropertyBuildingService BuildingService =>
+            _propertyBuildingService ??= new PropertyBuildingService(
+                _economyService,
+                boardManager,
+                HousesPerLapLimit,
+                sanitizedRentMultipliers);
+
         private GameSessionPawnRegistry Registry
         {
             get

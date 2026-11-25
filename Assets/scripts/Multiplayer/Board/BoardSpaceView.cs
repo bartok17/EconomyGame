@@ -16,6 +16,7 @@ namespace MonopolyGame.Board
         public int index;
         public string displayName;
         public BoardSpaceType type;
+        public int colorGroup;
         
         [Header("Financial Data")]
         public int price; 
@@ -43,6 +44,7 @@ namespace MonopolyGame.Board
                 index = definition.Index;
                 displayName = definition.DisplayName;
                 type = definition.Type;
+                colorGroup = definition.ColorGroup;
                 price = definition.Price;
                 baseRent = definition.BaseRent;
                 houseCost = definition.HouseCost;
@@ -88,6 +90,21 @@ namespace MonopolyGame.Board
 
             Color ownerColor = template != null ? template.GetOwnerColor(ownerSlot) : Color.white;
             tileView.SetOwner(ownerColor);
+        }
+
+        public void ApplyBuildingVisual()
+        {
+            if (tileView == null)
+            {
+                tileView = GetComponent<BoardTileView>();
+            }
+
+            if (tileView == null)
+            {
+                return;
+            }
+
+            tileView.SetBuildings(housesBuilt);
         }
 
         public void OnPlayerLanded(BoardLandingResult landingResult)

@@ -47,7 +47,17 @@ namespace MonopolyGame.Multiplayer.Debugging
                     "Player 0 owns everything and the others are nearly broke.",
                     "money 0 12000",
                     "money 1 120",
-                    "ownall 0")
+                    "ownall 0"),
+
+                new DebugScenario(
+                    "housing",
+                    "Player 0 owns a full color set: four houses on one tile and a hotel on another.",
+                    "money 0 5000",
+                    "own 1 0",
+                    "own 3 0",
+                    "sethouses 1 4",
+                    "sethouses 3 5",
+                    "turn 0")
             };
         }
     }

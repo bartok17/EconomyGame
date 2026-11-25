@@ -14,6 +14,7 @@ namespace MonopolyGame.Board
                     string.Empty,
                     0,
                     0, 
+                    0,
                     string.Empty);
             }
 
@@ -29,10 +30,17 @@ namespace MonopolyGame.Board
                     string.Empty,
                     0,
                     0,
+                    0,
                     string.Empty);
             }
 
-            string message = $"Player {playerId} landed on {space.DisplayName}. (Owner: {space.OwnerId}, Rent: {space.BaseRent})";
+            string development = PropertyBuildingRules.IsHotel(space.HousesBuilt)
+                ? ", Hotel"
+                : space.HousesBuilt > 0
+                    ? $", {space.HousesBuilt} houses"
+                    : string.Empty;
+
+            string message = $"Player {playerId} landed on {space.DisplayName}. (Owner: {space.OwnerId}, Rent: {space.BaseRent}{development})";
 
             return new BoardLandingResult(
                 space.Index,
@@ -42,6 +50,7 @@ namespace MonopolyGame.Board
                 space.OwnerId,
                 space.Price,
                 space.BaseRent,
+                space.HousesBuilt,
                 message);
         }
     }

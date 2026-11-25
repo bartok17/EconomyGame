@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MonopolyGame.Board;
 using Unity.Collections;
 using Unity.Netcode;
 
@@ -106,6 +107,50 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public bool IsPropertyOwned(int spaceIndex)
         {
             return GetPropertyOwnerPawnSlot(spaceIndex) >= 0;
+        }
+
+        public int GetPropertyHouses(int spaceIndex)
+        {
+            for (int i = 0; i < _propertyOwnershipNet.Count; i++)
+            {
+                if (_propertyOwnershipNet[i].SpaceIndex == spaceIndex)
+                {
+                    return _propertyOwnershipNet[i].HousesBuilt;
+                }
+            }
+
+            return 0;
+        }
+
+        public void SetPropertyHouses(int spaceIndex, int housesBuilt)
+        {
+            int level = PropertyBuildingRules.ClampLevel(housesBuilt);
+
+            for (int i = 0; i < _propertyOwnershipNet.Count; i++)
+            {
+                if (_propertyOwnershipNet[i].SpaceIndex == spaceIndex)
+                {
+                    _propertyOwnershipNet[i] = _propertyOwnershipNet[i].WithHouses(level);
+                    return;
+                }
+            }
+        }
+
+        public int GetHousesBuiltThisLap(int pawnSlot)
+        {
+            return GetPlayerState(pawnSlot).HousesBuiltThisLap;
+        }
+
+        public void SetHousesBuiltThisLap(int pawnSlot, int housesBuilt)
+        {
+            for (int i = 0; i < _playerEconomyNet.Count; i++)
+            {
+                if (_playerEconomyNet[i].PawnSlot == pawnSlot)
+                {
+                    _playerEconomyNet[i] = _playerEconomyNet[i].WithHousesBuiltThisLap(housesBuilt < 0 ? 0 : housesBuilt);
+                    return;
+                }
+            }
         }
 
         public IReadOnlyList<PlayerEconomyState> GetAllEconomyStates()

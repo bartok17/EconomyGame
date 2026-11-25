@@ -28,6 +28,8 @@ namespace MonopolyGame.Multiplayer.Camera
 
         public event Action<int> PawnClicked;
 
+        public event Action<BoardSpaceView> SpaceClicked;
+
         public bool FocusOnAction
         {
             get => focusOnAction;
@@ -196,6 +198,8 @@ namespace MonopolyGame.Multiplayer.Camera
 
         private void HandleSpaceClicked(BoardSpaceView space)
         {
+            SpaceClicked?.Invoke(space);
+
             if (space != null)
             {
                 FocusSpace(space);
