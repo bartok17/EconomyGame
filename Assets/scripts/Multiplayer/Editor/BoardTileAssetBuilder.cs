@@ -31,6 +31,7 @@ namespace MonopolyGame.Multiplayer.Editor
             public Material Icon;
             public Material Owner;
             public Material House;
+            public Material Hotel;
         }
 
         [MenuItem("Monopoly Game/Board/Setup Tile System")]
@@ -78,14 +79,22 @@ namespace MonopolyGame.Multiplayer.Editor
 
         private static TileMaterials CreateMaterials()
         {
-            return new TileMaterials
+            var materials = new TileMaterials
             {
                 Base = CreateOrLoadMaterial(MaterialsFolder + "/TileBase.mat"),
                 Accent = CreateOrLoadMaterial(MaterialsFolder + "/TileAccent.mat"),
                 Icon = CreateOrLoadMaterial(MaterialsFolder + "/TileIcon.mat"),
                 Owner = CreateOrLoadMaterial(MaterialsFolder + "/TileOwner.mat"),
-                House = CreateOrLoadMaterial(MaterialsFolder + "/TileHouse.mat")
+                House = CreateOrLoadMaterial(MaterialsFolder + "/TileHouse.mat"),
+                Hotel = CreateOrLoadMaterial(MaterialsFolder + "/TileHotel.mat")
             };
+
+            var hotelTint = new Color(1f, 0.85f, 0.35f);
+            materials.Hotel.SetColor("_BaseColor", hotelTint);
+            materials.Hotel.SetColor("_Color", hotelTint);
+            EditorUtility.SetDirty(materials.Hotel);
+
+            return materials;
         }
 
         private static Material CreateOrLoadMaterial(string path)
@@ -166,11 +175,20 @@ namespace MonopolyGame.Multiplayer.Editor
                     $"House_{i + 1}",
                     PrimitiveType.Cube,
                     housesRoot,
-                    new Vector3(-0.3f + i * 0.2f, 0.09f, 0.55f),
+                    new Vector3(-0.3f + i * 0.2f, 0.09f, 0.72f),
                     new Vector3(0.12f, 0.12f, 0.12f),
                     materials.House);
                 house.SetActive(false);
             }
+
+            GameObject hotel = CreatePrimitiveChild(
+                "Hotel",
+                PrimitiveType.Cube,
+                housesRoot,
+                new Vector3(0f, 0.15f, 0.72f),
+                new Vector3(0.26f, 0.24f, 0.18f),
+                materials.Hotel);
+            hotel.SetActive(false);
 
             TMP_FontAsset font = ResolveFont();
             TextMeshPro nameLabel = CreateLabel("NameLabel", root.transform, new Vector3(0f, 0.08f, -0.35f), 0.35f, font);
@@ -187,6 +205,7 @@ namespace MonopolyGame.Multiplayer.Editor
             serializedTileView.FindProperty("ownerMarkerRoot").objectReferenceValue = ownerMarker;
             serializedTileView.FindProperty("ownerMarkerRenderer").objectReferenceValue = ownerMarker.GetComponent<MeshRenderer>();
             serializedTileView.FindProperty("housesRoot").objectReferenceValue = housesRoot;
+            serializedTileView.FindProperty("hotelVisual").objectReferenceValue = hotel;
             serializedTileView.ApplyModifiedPropertiesWithoutUndo();
 
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);

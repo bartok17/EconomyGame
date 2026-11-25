@@ -10,6 +10,7 @@ namespace MonopolyGame.Board
             string ownerId,
             int price,
             int baseRent,
+            int housesBuilt,
             string message)
         {
             SpaceIndex = spaceIndex;
@@ -19,6 +20,7 @@ namespace MonopolyGame.Board
             OwnerId = ownerId ?? string.Empty;
             Price = price;
             BaseRent = baseRent;
+            HousesBuilt = housesBuilt;
             Message = message ?? string.Empty;
         }
 
@@ -29,6 +31,9 @@ namespace MonopolyGame.Board
         public string OwnerId { get; }
         public int Price { get; }
         public int BaseRent { get; }
+
+        public int HousesBuilt { get; }
+
         public string Message { get; }
     }
 }

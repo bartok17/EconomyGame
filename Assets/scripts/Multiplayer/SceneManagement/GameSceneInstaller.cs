@@ -19,6 +19,8 @@ namespace MonopolyGame.Multiplayer.SceneManagement
         [SerializeField] private BoardCameraController boardCamera;
         [SerializeField] private BoardFocusCoordinator focusCoordinator;
 
+        private BoardTileDetailsPresenter tileDetailsPresenter;
+
         public static GameSceneInstaller Instance => instance;
 
         public BoardCameraController BoardCamera => boardCamera;
@@ -91,6 +93,18 @@ namespace MonopolyGame.Multiplayer.SceneManagement
             {
                 focusCoordinator.Bind(boardCamera, sessionController, boardManager);
             }
+
+            if (tileDetailsPresenter == null)
+            {
+                tileDetailsPresenter = GetComponent<BoardTileDetailsPresenter>();
+            }
+
+            if (tileDetailsPresenter == null)
+            {
+                tileDetailsPresenter = gameObject.AddComponent<BoardTileDetailsPresenter>();
+            }
+
+            tileDetailsPresenter.Bind(sessionController, focusCoordinator);
         }
 
         private void AutoWireSceneReferences()

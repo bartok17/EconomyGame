@@ -27,6 +27,8 @@ namespace MonopolyGame.Board
         [SerializeField] private GameObject ownerMarkerRoot;
         [SerializeField] private Renderer ownerMarkerRenderer;
         [SerializeField] private Transform housesRoot;
+        [SerializeField] private GameObject hotelVisual;
+        [SerializeField] private Color hotelTint = new Color(1f, 0.85f, 0.35f);
         [SerializeField] private GameObject highlightRoot;
 
         private MaterialPropertyBlock propertyBlock;
@@ -58,7 +60,7 @@ namespace MonopolyGame.Board
             ApplyLabels();
             ApplyIcon();
             SetOwner(null);
-            SetHouses(0);
+            SetBuildings(0);
             SetHighlight(false);
         }
 
@@ -75,16 +77,91 @@ namespace MonopolyGame.Board
             }
         }
 
-        public void SetHouses(int count)
+        public void SetBuildings(int level)
         {
             if (housesRoot == null)
             {
                 return;
             }
 
+            int clamped = PropertyBuildingRules.ClampLevel(level);
+            bool showHotel = PropertyBuildingRules.IsHotel(clamped);
+            int housesToShow = showHotel ? 0 : clamped;
+
+            if (showHotel)
+            {
+                EnsureHotelVisual();
+            }
+
+            int houseIndex = 0;
+
             for (int i = 0; i < housesRoot.childCount; i++)
             {
-                housesRoot.GetChild(i).gameObject.SetActive(i < count);
+                GameObject child = housesRoot.GetChild(i).gameObject;
+
+                if (hotelVisual != null && child == hotelVisual)
+                {
+                    child.SetActive(showHotel);
+                    continue;
+                }
+
+                child.SetActive(houseIndex < housesToShow);
+                houseIndex++;
+            }
+        }
+
+        private void EnsureHotelVisual()
+        {
+            if (hotelVisual != null || housesRoot == null)
+            {
+                return;
+            }
+
+            Transform templateHouse = housesRoot.childCount > 0 ? housesRoot.GetChild(0) : null;
+
+            if (templateHouse != null)
+            {
+                hotelVisual = Instantiate(templateHouse.gameObject, housesRoot);
+                hotelVisual.name = "Hotel";
+            }
+            else
+            {
+                hotelVisual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                hotelVisual.name = "Hotel";
+                hotelVisual.transform.SetParent(housesRoot, false);
+
+                Collider primitiveCollider = hotelVisual.GetComponent<Collider>();
+
+                if (primitiveCollider != null)
+                {
+                    if (Application.isPlaying)
+                    {
+                        Destroy(primitiveCollider);
+                    }
+                    else
+                    {
+                        DestroyImmediate(primitiveCollider);
+                    }
+                }
+
+                Renderer primitiveRenderer = hotelVisual.GetComponent<Renderer>();
+
+                if (primitiveRenderer != null && template != null)
+                {
+                    primitiveRenderer.sharedMaterial = template.OwnerMarkerMaterial;
+                }
+            }
+
+            hotelVisual.transform.localPosition = new Vector3(0f, 0.15f, 0.72f);
+            hotelVisual.transform.localRotation = Quaternion.identity;
+            hotelVisual.transform.localScale = new Vector3(0.26f, 0.24f, 0.18f);
+            hotelVisual.hideFlags = gameObject.hideFlags;
+
+            Renderer hotelRenderer = hotelVisual.GetComponent<Renderer>();
+
+            if (hotelRenderer != null)
+            {
+                SetRendererColor(hotelRenderer, hotelTint);
             }
         }
 

@@ -11,17 +11,25 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public FixedString64Bytes DisplayName;
         public int Balance;
 
-        public PlayerEconomyState(int pawnSlot, string playerId, string displayName, int balance)
+        public int HousesBuiltThisLap;
+
+        public PlayerEconomyState(int pawnSlot, string playerId, string displayName, int balance, int housesBuiltThisLap = 0)
         {
             PawnSlot = pawnSlot;
             PlayerId = new FixedString64Bytes(playerId ?? string.Empty);
             DisplayName = new FixedString64Bytes(displayName ?? string.Empty);
             Balance = balance;
+            HousesBuiltThisLap = housesBuiltThisLap;
         }
 
         public PlayerEconomyState WithBalance(int balance)
         {
-            return new PlayerEconomyState(PawnSlot, PlayerId.ToString(), DisplayName.ToString(), balance);
+            return new PlayerEconomyState(PawnSlot, PlayerId.ToString(), DisplayName.ToString(), balance, HousesBuiltThisLap);
+        }
+
+        public PlayerEconomyState WithHousesBuiltThisLap(int housesBuiltThisLap)
+        {
+            return new PlayerEconomyState(PawnSlot, PlayerId.ToString(), DisplayName.ToString(), Balance, housesBuiltThisLap);
         }
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
@@ -30,6 +38,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             serializer.SerializeValue(ref PlayerId);
             serializer.SerializeValue(ref DisplayName);
             serializer.SerializeValue(ref Balance);
+            serializer.SerializeValue(ref HousesBuiltThisLap);
         }
 
         public bool Equals(PlayerEconomyState other)
@@ -37,7 +46,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return PawnSlot == other.PawnSlot &&
                    PlayerId.Equals(other.PlayerId) &&
                    DisplayName.Equals(other.DisplayName) &&
-                   Balance == other.Balance;
+                   Balance == other.Balance &&
+                   HousesBuiltThisLap == other.HousesBuiltThisLap;
         }
     }
 }
