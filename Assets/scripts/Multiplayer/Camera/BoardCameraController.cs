@@ -19,7 +19,6 @@ namespace MonopolyGame.Multiplayer.Camera
     [RequireComponent(typeof(UnityEngine.Camera))]
     public sealed class BoardCameraController : MonoBehaviour
     {
-        // ── Inspector configuration ────────────────────────────────────────────
 
         [Header("Orbit")]
         [Tooltip("Point the camera orbits around (world space).")]
@@ -66,8 +65,6 @@ namespace MonopolyGame.Multiplayer.Camera
         [SerializeField] private float focusDistance = 7f;
         [SerializeField] private float focusHeightOffset = 0.15f;
 
-        // ── Runtime state ──────────────────────────────────────────────────────
-
         private float currentAzimuth;
         private float currentElevation;
         private float currentDistance;
@@ -90,11 +87,8 @@ namespace MonopolyGame.Multiplayer.Camera
         private BoardSpaceView focusedSpace;
         private UnityEngine.Camera cachedCamera;
 
-        // Input tracking
         private Vector2 lastMousePosition;
         private bool isOrbiting;
-
-        // ── Public properties ──────────────────────────────────────────────────
 
         /// <summary>The base mode (focus overrides do not change this).</summary>
         public CameraMode CurrentMode => baseMode;
@@ -126,16 +120,11 @@ namespace MonopolyGame.Multiplayer.Camera
         /// </summary>
         public event Action<int> PawnClicked;
 
-        /// <summary>
-        /// The world-space point the camera orbits around.
-        /// </summary>
         public Vector3 Pivot
         {
             get => targetPivot;
             set => SetPivot(value);
         }
-
-        // ── Unity lifecycle ────────────────────────────────────────────────────
 
         private void Awake()
         {
@@ -153,8 +142,6 @@ namespace MonopolyGame.Multiplayer.Camera
             UpdateTransition();
             ApplyCameraTransform();
         }
-
-        // ── Public API — mode switching ────────────────────────────────────────
 
         /// <summary>
         /// Switch to free-orbit mode, keeping the current camera position.
@@ -227,7 +214,6 @@ namespace MonopolyGame.Multiplayer.Camera
 
         private void ApplyTradeTargets(int playerA, int playerB)
         {
-            // Average azimuth between the two players' sides
             float azimuthA = GetPlayerAzimuth(playerA);
             float azimuthB = GetPlayerAzimuth(playerB);
 
@@ -320,8 +306,6 @@ namespace MonopolyGame.Multiplayer.Camera
             targetPivot = pivot;
         }
 
-        // ── Private helpers ────────────────────────────────────────────────────
-
         private void ApplyDefaultOrbitState()
         {
             // Default: 45° elevation, looking from south (azimuth 0°), medium distance
@@ -361,7 +345,6 @@ namespace MonopolyGame.Multiplayer.Camera
 
             HandleClickToFocus();
 
-            // ── Scroll-wheel zoom ──────────────────────────────────────────
             if (canUserZoom)
             {
                 float scroll = GetScrollDelta();
@@ -378,7 +361,6 @@ namespace MonopolyGame.Multiplayer.Camera
                 return;
             }
 
-            // ── Right-click drag orbit ─────────────────────────────────────
             bool orbitHeld = GetOrbitButtonHeld();
 
             if (orbitHeld && !isOrbiting)
@@ -488,8 +470,6 @@ namespace MonopolyGame.Multiplayer.Camera
             }
         }
 
-        // ── Input abstraction (new Input System with legacy fallback) ─────────
-
         private static bool GetOrbitButtonHeld()
         {
 #if ENABLE_INPUT_SYSTEM
@@ -585,7 +565,6 @@ namespace MonopolyGame.Multiplayer.Camera
 
         private static float AverageAngles(float a, float b)
         {
-            // Convert to vectors on the unit circle and average
             float aRad = a * Mathf.Deg2Rad;
             float bRad = b * Mathf.Deg2Rad;
 
@@ -594,8 +573,6 @@ namespace MonopolyGame.Multiplayer.Camera
 
             return Mathf.Atan2(avgY, avgX) * Mathf.Rad2Deg;
         }
-
-        // ── Context-menu shortcuts for editor testing ──────────────────────────
 
 #if UNITY_EDITOR
         [ContextMenu("Mode / Free Orbit")]
@@ -645,9 +622,6 @@ namespace MonopolyGame.Multiplayer.Camera
 #endif
     }
 
-    /// <summary>
-    /// Preset spherical coordinates for a locked camera view.
-    /// </summary>
     [Serializable]
     public struct PlayerViewPreset
     {

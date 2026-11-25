@@ -102,7 +102,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        /// <summary>Lets the composition root hand over the board click router.</summary>
         public void BindFocusCoordinator(BoardFocusCoordinator coordinator)
         {
             boardFocusCoordinator = coordinator;
@@ -136,11 +135,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             playerEntries.AddRange(playerRailRoot.GetComponentsInChildren<PlayerHudEntry>(includeInactive: true));
         }
 
-        /// <summary>
-        /// Payments to other players are confirmed by the payer, so the action
-        /// bar needs a Pay button. It is cloned from the Buy button to inherit
-        /// the themed styling and layout without duplicating UI assets.
-        /// </summary>
+        // Other players confirm their own payments, so the bar needs a Pay button.
+        // Cloning Buy inherits its themed styling and layout without new UI assets.
         private void EnsurePayButton()
         {
             if (payButton != null || buyButton == null)

@@ -31,7 +31,6 @@ namespace MonopolyGame.Cards
         public int TotalCardCount => drawPile.Count + discardPile.Count;
         public TCard TopDiscard => discardPile.Count > 0 ? discardPile[discardPile.Count - 1] : null;
 
-        /// <summary>True when the most recent draw had to reshuffle the discard pile.</summary>
         public bool LastDrawReshuffled { get; private set; }
 
         public TCard Draw()

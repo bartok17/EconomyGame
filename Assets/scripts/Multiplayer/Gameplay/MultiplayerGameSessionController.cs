@@ -58,8 +58,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private Coroutine bootstrapCoroutine;
         private Coroutine turnCoroutine;
 
-        // ── NetworkVariables ────────────────────────────────────────────────────────
-
         private readonly NetworkVariable<int> currentTurnIndexNet = new NetworkVariable<int>(
             0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
@@ -123,8 +121,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public event Action CardResolutionChanged;
         public event Action PaymentsChanged;
 
-        // ── Public state ────────────────────────────────────────────────────────────
-
         public TurnPhase CurrentPhase { get; private set; } = TurnPhase.WaitingForSetup;
         public int CurrentTurnIndex { get; private set; }
         public int LastDiceRoll { get; private set; }
@@ -138,8 +134,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         public event Action<int> DiceRolled;
         public event Action<PlayerPawn, int> PawnMoved;
 
-        // ── NGO lifecycle ───────────────────────────────────────────────────────────
-        
         private void Awake()
         {
             playerEconomyNet = new NetworkList<PlayerEconomyState>();
@@ -215,8 +209,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             localActionCardHand.Clear();
         }
 
-        // ── Dependency wiring ───────────────────────────────────────────────────────
-
         public void BindDependencies(MultiplayerFlowCoordinator coordinator, BoardManager boardManager, PlayerPawnSpawner pawnSpawner)
         {
             this.coordinator = coordinator;
@@ -224,8 +216,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             this.pawnSpawner = pawnSpawner;
             pawnRegistry = new GameSessionPawnRegistry(pawnSpawner);
         }
-
-        // ── Public API ──────────────────────────────────────────────────────────────
 
         public void RequestRoll()
         {
@@ -399,8 +389,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return players;
         }
 
-        // ── Action card activation ──────────────────────────────────────────────────
-
         /// <summary>True while a card is resolving; the turn is paused meanwhile.</summary>
         public bool IsResolvingCardAction => cardResolutionNet.Value;
 
@@ -430,8 +418,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 CurrentPhase == TurnPhase.WaitingForEndTurn);
         }
 
-        // ── Pending payments ────────────────────────────────────────────────────────
-
         public PendingPaymentState PendingPayment => pendingPaymentNet.Value;
 
         public bool HasPendingPayment => pendingPaymentNet.Value.HasPayment;
@@ -460,7 +446,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             return $"Pay {payment.Amount}";
         }
 
-        /// <summary>Confirms the pending payment for the local player.</summary>
         public void RequestPayPendingPayment()
         {
             if (!CanPayPendingPayment)
@@ -479,7 +464,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             PayPendingPaymentServerRpc();
         }
 
-        /// <summary>Snapshot of every player, used by the activation UI.</summary>
         public IReadOnlyList<CardPlayerState> GetCardPlayers()
         {
             return BuildCardPlayerStates();
@@ -772,8 +756,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
         
         
 
-        // ── RPCs ────────────────────────────────────────────────────────────────────
-
         [ServerRpc(RequireOwnership = false)]
         private void RequestRollServerRpc(ServerRpcParams serverRpcParams = default)
         {
@@ -839,10 +821,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             HandlePayPendingPaymentServer(serverRpcParams.Receive.SenderClientId);
         }
 
-        /// <summary>
-        /// Server-authoritative card play. Rejects everything the client should
-        /// not be able to do: wrong turn, wrong phase, resolution in flight.
-        /// </summary>
+        // Server-authoritative card play: rejects everything the client must not be
+        // able to do — wrong turn, wrong phase, resolution in flight.
         private void HandlePlayActionCardServer(int actingPawnSlot, int instanceId, ActionCardParameters parameters)
         {
             if (!IsServer || !IsInitialized || isResolvingCard)
@@ -924,7 +904,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             cardResolutionCoroutine = null;
         }
 
-        /// <summary>Blocks roll, end turn and further card plays until the resolution ends.</summary>
         private void BeginCardResolution()
         {
             isResolvingCard = true;
@@ -949,10 +928,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             pendingCardMoves.Add(new CardMoveRequest(pawnSlot, spaces));
         }
 
-        /// <summary>
-        /// Runs the moves a card asked for, one at a time, resolving each
-        /// landing exactly like a dice move without touching the turn phase.
-        /// </summary>
+        // Each landing resolves exactly like a dice move, without touching the turn phase.
         private IEnumerator ResolveCardMovesRoutine()
         {
             try
@@ -1018,8 +994,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             localActionCardHand.AddRange(entries);
             ActionCardsChanged?.Invoke();
         }
-
-        // ── Bootstrap ───────────────────────────────────────────────────────────────
 
         private IEnumerator BootstrapWhenReady()
         {
@@ -1090,8 +1064,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
         }
 
-        // ── Turn execution (server only) ─────────────────────────────────────────────
-
         private void HandleRollOnServer(ulong senderClientId)
         {
             if (!EnsureReadyForTurn()) return;
@@ -1151,12 +1123,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             turnCoroutine = null;
         }
 
-        /// <summary>
-        /// Resolves everything that happens when a pawn finishes a move: the
-        /// landing effects, jail, card spaces and the purchase prompt. Shared
-        /// by dice moves (which change the turn phase) and card-driven moves
-        /// (which leave the turn where it was).
-        /// </summary>
+        // Shared by dice moves (which change the turn phase) and card-driven moves
+        // (which leave the turn where it was).
         private IEnumerator ResolveLandingEffectsRoutine(
             PlayerPawnNetworkSync activePawn,
             int targetSpaceIndex,
@@ -1245,8 +1213,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             SetServerState(turnStateMachine.State);
         }
 
-        // ── Network state sync ──────────────────────────────────────────────────────
-
         private void SetServerState(TurnState state)
         {
             if (state == null) return;
@@ -1313,8 +1279,6 @@ namespace MonopolyGame.Multiplayer.Gameplay
             TurnChanged?.Invoke(CurrentTurnIndex, name);
             PhaseChanged?.Invoke(CurrentPhase);
         }
-
-        // ── Helpers ─────────────────────────────────────────────────────────────────
 
         private bool EnsureReadyForTurn()
         {
@@ -1514,10 +1478,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             PaymentsChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Queues a payment another player owes. Payments stay pending until the
-        /// payer confirms, so reactions (future cards) can happen first.
-        /// </summary>
+        // Payments stay pending until the payer confirms, so reactions (future cards)
+        // can happen first.
         private void QueuePendingPayment(int payerPawnSlot, int recipientPawnSlot, int amount, string reason)
         {
             if (!IsServer || amount <= 0 || payerPawnSlot < 0)

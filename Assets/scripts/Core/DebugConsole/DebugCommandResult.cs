@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace MonopolyGame.Debugging
 {
-    /// <summary>Output of one console command: printed lines, a failure, or a pending forward.</summary>
     public sealed class DebugCommandResult
     {
         private static readonly string[] NoLines = Array.Empty<string>();
