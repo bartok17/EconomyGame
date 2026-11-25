@@ -27,6 +27,7 @@ namespace MonopolyGame.Pawns
         public int PawnSlot => pawnSlot;
         public int CurrentSpaceIndex => currentSpaceIndex;
         public bool IsMoving { get; private set; }
+        public bool IsInitialized => !string.IsNullOrEmpty(playerId);
 
         public void Initialize(
             string playerId,
@@ -179,9 +180,14 @@ namespace MonopolyGame.Pawns
                 displayName);
 
             NetworkObject networkObject = pawnObject.GetComponent<NetworkObject>();
-            if (networkObject != null && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+            if (networkObject != null)
             {
-                networkObject.Spawn();
+                networkObject.DontDestroyWithOwner = true;
+
+                if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                {
+                    networkObject.Spawn();
+                }
             }
 
             return pawnSync;
@@ -196,7 +202,7 @@ namespace MonopolyGame.Pawns
 
             Color color = visualConfig != null ? visualConfig.GetPawnColor(pawnSlot) : Color.white;
             Renderer[] renderers = pawnObject.GetComponentsInChildren<Renderer>(true);
-            Material material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            Material material = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
             material.color = color;
 
             for (int i = 0; i < renderers.Length; i++)

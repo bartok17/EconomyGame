@@ -467,8 +467,16 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 return DebugCommandResult.Fail($"Player slot {pawnSlot} is not in the game.");
             }
 
+            if (IsParticipantEliminated(pawnSlot))
+            {
+                return DebugCommandResult.Fail($"Player slot {pawnSlot} has been eliminated.");
+            }
+
             ResetTransientTurnState();
-            turnStateMachine.SetParticipants(Registry.BuildParticipants());
+            if (turnStateMachine.ParticipantCount == 0)
+            {
+                turnStateMachine.SetParticipants(Registry.BuildParticipants());
+            }
             turnStateMachine.StartGame(pawnSlot);
             SetServerState(turnStateMachine.State);
             return DebugCommandResult.Ok($"Turn forced to {DebugPlayerName(pawnSlot)}.");
@@ -559,10 +567,13 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             ResetTransientTurnState();
-            turnStateMachine.SetParticipants(Registry.BuildParticipants());
+            if (turnStateMachine.ParticipantCount == 0)
+            {
+                turnStateMachine.SetParticipants(Registry.BuildParticipants());
+            }
             turnStateMachine.StartGame(0);
             SetServerState(turnStateMachine.State);
-            return DebugCommandResult.Ok($"Turn reset to {DebugPlayerName(0)}.");
+            return DebugCommandResult.Ok($"Turn reset to {DebugPlayerName(turnStateMachine.State.TurnIndex)}.");
         }
 
         public DebugCommandResult DebugResetBoard()

@@ -13,9 +13,13 @@ namespace MonopolyGame.Multiplayer
 {
     public sealed class MultiplayerFlowCoordinator : MonoBehaviour
     {
+        public static MultiplayerFlowCoordinator Instance { get; private set; }
+        
         private const string RelayConnectionType = "dtls";
         private const int DefaultMaxPlayers = 4;
         private const float RelayJoinCodeTimeoutSeconds = 30f;
+        
+        private const string LastActiveLobbyCodePrefKey = "LastActiveLobbyCode";
 
         private readonly MultiplayerStatusStateMachine _statusStateMachine = new MultiplayerStatusStateMachine();
 
@@ -27,6 +31,7 @@ namespace MonopolyGame.Multiplayer
 
         private CancellationTokenSource _waitRelayCts;
         private NetworkManager _networkManager;
+        private Action<MultiplayerStatus> _statusChangedForwarder;
 
         private string _currentLobbyHostPlayerId;
         private bool _networkStartRequested;
@@ -34,13 +39,31 @@ namespace MonopolyGame.Multiplayer
         public MultiplayerStatus Status => _statusStateMachine.Status;
         public MultiplayerError LastError => _statusStateMachine.LastError;
 
-        public string LocalPlayerId => _authClient.PlayerId;
-        public string LocalDisplayName => _authClient.DisplayName;
+        public string LocalPlayerId => _authClient != null ? _authClient.PlayerId : string.Empty;
+        public string LocalDisplayName => _authClient != null ? _authClient.DisplayName : string.Empty;
         
         public bool IsLocalPlayerHost =>
             !string.IsNullOrWhiteSpace(_currentLobbyHostPlayerId) && _currentLobbyHostPlayerId == LocalPlayerId;
         
         public LobbySnapshot CurrentLobbySnapshot { get; private set; }
+        
+        public string LastActiveLobbyCode
+        {
+            get => PlayerPrefs.GetString(LastActiveLobbyCodePrefKey, string.Empty);
+            private set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    PlayerPrefs.DeleteKey(LastActiveLobbyCodePrefKey);
+                }
+                else
+                {
+                    PlayerPrefs.SetString(LastActiveLobbyCodePrefKey, value);
+                }
+
+                PlayerPrefs.Save();
+            }
+        }
 
         public IReadOnlyList<RememberedAccount> RememberedAccounts =>
             _automaticLogin != null ? _automaticLogin.Accounts : Array.Empty<RememberedAccount>();
@@ -58,12 +81,26 @@ namespace MonopolyGame.Multiplayer
 
         private void Awake()
         {
-            _statusStateMachine.StatusChanged += status => StatusChanged?.Invoke(status);
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+
+            _statusChangedForwarder = status => StatusChanged?.Invoke(status);
+            _statusStateMachine.StatusChanged += _statusChangedForwarder;
         }
 
         private void OnDestroy()
         {
-            _statusStateMachine.StatusChanged -= status => StatusChanged?.Invoke(status);
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
+            if (_statusChangedForwarder != null)
+            {
+                _statusStateMachine.StatusChanged -= _statusChangedForwarder;
+            }
         }
 
         public void InjectDependencies(
@@ -86,6 +123,19 @@ namespace MonopolyGame.Multiplayer
         public async Task InitializeAsync()
         {
             _statusStateMachine.ClearLastError();
+            
+            if (UnityServices.State == ServicesInitializationState.Initialized)
+            {
+                _networkStartRequested = false;
+                _lobbyClient?.StopLoops();
+                _statusStateMachine.TransitionTo(_authClient != null && _authClient.IsSignedIn
+                    ? MultiplayerStatus.SignedIn
+                    : MultiplayerStatus.SignedOut);
+                HookLobbyEvents();
+                _automaticLogin?.Load();
+                RememberedAccountsChanged?.Invoke(_automaticLogin != null ? _automaticLogin.Accounts : Array.Empty<RememberedAccount>());
+                return;
+            }
 
             if (Status != MultiplayerStatus.Idle)
             {
@@ -284,16 +334,24 @@ namespace MonopolyGame.Multiplayer
                 RaiseError("lobby_query_failed", "Lobby query failed.", ex);
             }
         }
+        
+        public void ClearLastActiveLobbyCode()
+        {
+            LastActiveLobbyCode = string.Empty;
+        }
 
         public async Task CreateLobbyAsHostAsync(string lobbyName, int maxPlayers = DefaultMaxPlayers, bool isPrivate = false)
         {
             _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
-
             try
             {
                 var lobby = await _lobbyClient.CreateLobbyAsync(lobbyName, maxPlayers, isPrivate, _authClient.DisplayName);
                 _currentLobbyHostPlayerId = lobby.HostId;
                 CurrentLobbySnapshot = LobbySnapshotMapper.ToSnapshot(lobby);
+                if (!string.IsNullOrWhiteSpace(CurrentLobbySnapshot.LobbyCode))
+                {
+                    LastActiveLobbyCode = CurrentLobbySnapshot.LobbyCode;
+                }
                 _lobbyClient.StartHeartbeatLoop();
                 _lobbyClient.StartPollingLoop();
                 _statusStateMachine.TransitionTo(MultiplayerStatus.LobbyJoined);
@@ -308,15 +366,22 @@ namespace MonopolyGame.Multiplayer
         public async Task JoinLobbyByCodeAsync(string lobbyCode)
         {
             _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
-
             try
             {
                 var lobby = await _lobbyClient.JoinLobbyByCodeAsync(lobbyCode, _authClient.DisplayName);
                 _currentLobbyHostPlayerId = lobby.HostId;
                 CurrentLobbySnapshot = LobbySnapshotMapper.ToSnapshot(lobby);
+                if (!string.IsNullOrWhiteSpace(CurrentLobbySnapshot.LobbyCode))
+                {
+                    LastActiveLobbyCode = CurrentLobbySnapshot.LobbyCode;
+                }
                 _lobbyClient.StartPollingLoop();
                 _statusStateMachine.TransitionTo(MultiplayerStatus.LobbyJoined);
                 LobbyJoined?.Invoke(CurrentLobbySnapshot);
+                if (!IsLocalPlayerHost && LobbySnapshotMapper.IsGameStarted(CurrentLobbySnapshot) && !_networkStartRequested)
+                {
+                    _ = StartClientFromCurrentLobbyAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -327,15 +392,22 @@ namespace MonopolyGame.Multiplayer
         public async Task JoinLobbyByIdAsync(string lobbyId)
         {
             _statusStateMachine.BeginWorkflowStep(MultiplayerStatus.LobbyJoining);
-
             try
             {
                 var lobby = await _lobbyClient.JoinLobbyByIdAsync(lobbyId, _authClient.DisplayName);
                 _currentLobbyHostPlayerId = lobby.HostId;
                 CurrentLobbySnapshot = LobbySnapshotMapper.ToSnapshot(lobby);
+                if (!string.IsNullOrWhiteSpace(CurrentLobbySnapshot.LobbyCode))
+                {
+                    LastActiveLobbyCode = CurrentLobbySnapshot.LobbyCode;
+                }
                 _lobbyClient.StartPollingLoop();
                 _statusStateMachine.TransitionTo(MultiplayerStatus.LobbyJoined);
                 LobbyJoined?.Invoke(CurrentLobbySnapshot);
+                if (!IsLocalPlayerHost && LobbySnapshotMapper.IsGameStarted(CurrentLobbySnapshot) && !_networkStartRequested)
+                {
+                    _ = StartClientFromCurrentLobbyAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -346,16 +418,28 @@ namespace MonopolyGame.Multiplayer
         public async Task LeaveLobbyAsync()
         {
             _statusStateMachine.ClearLastError();
-
+            _networkStartRequested = false;
+            ClearLastActiveLobbyCode();
             try
             {
                 _waitRelayCts?.Cancel();
-                _lobbyClient.StopLoops();
-                await _lobbyClient.LeaveLobbyAsync(_authClient.PlayerId);
+                _lobbyClient?.StopLoops();
+                if (_lobbyClient != null && _authClient != null && !string.IsNullOrWhiteSpace(_authClient.PlayerId))
+                {
+                    await _lobbyClient.LeaveLobbyAsync(_authClient.PlayerId);
+                }
             }
             catch (Exception ex)
             {
                 RaiseError("lobby_leave_failed", "Lobby leave failed.", ex);
+            }
+            finally
+            {
+                CurrentLobbySnapshot = null;
+                _currentLobbyHostPlayerId = null;
+                _statusStateMachine.TransitionTo(_authClient != null && _authClient.IsSignedIn
+                    ? MultiplayerStatus.SignedIn
+                    : MultiplayerStatus.SignedOut);
             }
         }
 
@@ -442,6 +526,8 @@ namespace MonopolyGame.Multiplayer
                 var joinCode = await WaitForRelayJoinCodeAsync(TimeSpan.FromSeconds(RelayJoinCodeTimeoutSeconds));
                 Debug.Log($"[MultiplayerFlow] Relay join code received. length={joinCode?.Length ?? 0}");
 
+                _statusStateMachine.TransitionTo(MultiplayerStatus.RelayJoining);
+                
                 var summary = await _relayTransportService.JoinAndConfigureClientAsync(joinCode, RelayConnectionType);
                 Debug.Log($"[MultiplayerFlow] Relay allocation joined. region={summary.Region}");
 
@@ -499,6 +585,10 @@ namespace MonopolyGame.Multiplayer
         {
             _currentLobbyHostPlayerId = lobby.HostId;
             CurrentLobbySnapshot = LobbySnapshotMapper.ToSnapshot(lobby);
+            if (!string.IsNullOrWhiteSpace(CurrentLobbySnapshot.LobbyCode))
+            {
+                LastActiveLobbyCode = CurrentLobbySnapshot.LobbyCode;
+            }
             Debug.Log($"[MultiplayerFlow] Lobby updated: name={CurrentLobbySnapshot.Name}, players={CurrentLobbySnapshot.PlayerCount}/{CurrentLobbySnapshot.MaxPlayers}, relayCode={(string.IsNullOrWhiteSpace(CurrentLobbySnapshot.RelayJoinCode) ? "missing" : "present")}");
             LobbyJoined?.Invoke(CurrentLobbySnapshot);
 

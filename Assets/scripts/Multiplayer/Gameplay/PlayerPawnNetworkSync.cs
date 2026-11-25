@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
     public sealed class PlayerPawnNetworkSync : NetworkBehaviour
     {
         private static readonly List<PlayerPawnNetworkSync> spawnedPawnSyncs = new List<PlayerPawnNetworkSync>();
+        
+        public static event Action<PlayerPawnNetworkSync> OwnershipChanged;
 
         [SerializeField] private PlayerPawn pawn;
         [SerializeField] private BoardManager boardManager;
@@ -46,11 +49,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
             false,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
+        
+        private readonly NetworkVariable<bool> isEliminatedNet = new NetworkVariable<bool>(
+            false,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
 
         public string PlayerId => pawn != null && !string.IsNullOrWhiteSpace(pawn.PlayerId) ? pawn.PlayerId : playerIdNet.Value.ToString();
         public string DisplayName => pawn != null && !string.IsNullOrWhiteSpace(pawn.DisplayName) ? pawn.DisplayName : displayNameNet.Value.ToString();
         public int PawnSlot => pawn != null && pawn.PawnSlot >= 0 ? pawn.PawnSlot : pawnSlotNet.Value;
         public int CurrentSpaceIndex => pawn != null ? pawn.CurrentSpaceIndex : syncedSpaceIndex.Value;
+        public bool IsEliminated => isEliminatedNet.Value;
         public PlayerPawn Pawn => pawn;
 
         public void Initialize(PlayerPawn pawn, BoardManager boardManager, int pawnSlot, string playerId, string displayName)
@@ -71,11 +80,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public override void OnNetworkSpawn()
         {
+            if (NetworkObject != null)
+            {
+                NetworkObject.DontDestroyWithOwner = true;
+            }
+            
             syncedSpaceIndex.OnValueChanged += HandleSyncedSpaceIndexChanged;
             isMovingNet.OnValueChanged += HandleIsMovingChanged;
             pawnSlotNet.OnValueChanged += HandlePawnSlotChanged;
             playerIdNet.OnValueChanged += HandlePlayerIdChanged;
             displayNameNet.OnValueChanged += HandleDisplayNameChanged;
+            isEliminatedNet.OnValueChanged += HandleEliminatedChanged;
 
             RegisterSpawnedSync(this);
 
@@ -91,10 +106,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         private void Start()
         {
-            if (pawn == null || boardManager == null)
-            {
-                TryApplyPawnState();
-            }
+            TryApplyPawnState();
+        }
+        
+        public override void OnGainedOwnership()
+        {
+            base.OnGainedOwnership();
+            TryApplyPawnState();
+            OwnershipChanged?.Invoke(this);
         }
 
         public override void OnNetworkDespawn()
@@ -104,7 +123,18 @@ namespace MonopolyGame.Multiplayer.Gameplay
             pawnSlotNet.OnValueChanged -= HandlePawnSlotChanged;
             playerIdNet.OnValueChanged -= HandlePlayerIdChanged;
             displayNameNet.OnValueChanged -= HandleDisplayNameChanged;
+            isEliminatedNet.OnValueChanged -= HandleEliminatedChanged;
             UnregisterSpawnedSync(this);
+        }
+        
+        public void SetEliminated(bool eliminated)
+        {
+            if (IsServer)
+            {
+                isEliminatedNet.Value = eliminated;
+            }
+
+            ApplyEliminatedVisual(eliminated);
         }
 
         public void PlayAuthoritativeMove(int targetSpaceIndex, float duration)
@@ -195,6 +225,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             TryApplyPawnState();
         }
+        
+        private void HandleEliminatedChanged(bool previousValue, bool newValue)
+        {
+            ApplyEliminatedVisual(newValue);
+        }
 
         private void TryApplyPawnState()
         {
@@ -218,23 +253,16 @@ namespace MonopolyGame.Multiplayer.Gameplay
             string resolvedPlayerId = IsServer ? pendingPlayerId : playerIdNet.Value.ToString();
             string resolvedDisplayName = IsServer ? pendingDisplayName : displayNameNet.Value.ToString();
 
-            if (resolvedPawnSlot < 0)
-            {
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(resolvedPlayerId))
-            {
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(resolvedDisplayName))
+            if (resolvedPawnSlot < 0 ||
+                string.IsNullOrWhiteSpace(resolvedPlayerId) ||
+                string.IsNullOrWhiteSpace(resolvedDisplayName))
             {
                 return;
             }
 
             pawn.Initialize(resolvedPlayerId, resolvedDisplayName, resolvedPawnSlot, syncedSpaceIndex.Value, boardManager);
             ApplyVisualStyleFromConfig(resolvedPawnSlot);
+            ApplyEliminatedVisual(isEliminatedNet.Value);
 
             Debug.Log($"[PlayerPawnNetworkSync] {gameObject.name}: pawn initialized. slot={resolvedPawnSlot}, player={resolvedDisplayName}, space={syncedSpaceIndex.Value}, isServer={IsServer}");
         }
@@ -245,18 +273,42 @@ namespace MonopolyGame.Multiplayer.Gameplay
             float radius = pawnVisualConfig != null ? pawnVisualConfig.PawnRadius : 0.28f;
             gameObject.transform.localScale = new Vector3(radius, height / 2f, radius);
 
-            Color color = pawnVisualConfig != null ? pawnVisualConfig.GetPawnColor(pawnSlot) : Color.white;
+            Color color = pawnVisualConfig != null ? pawnVisualConfig.GetPawnColor(pawnSlot) : GetFallbackColor(pawnSlot);
             Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>(true);
-            Material material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            material.color = color;
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Material material = shader != null ? new Material(shader) { color = color } : null;
 
             foreach (Renderer r in renderers)
             {
-                if (r != null)
+                if (r != null && material != null)
                 {
                     r.sharedMaterial = material;
                 }
             }
+        }
+        
+        private void ApplyEliminatedVisual(bool eliminated)
+        {
+            Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i] != null)
+                {
+                    renderers[i].enabled = !eliminated;
+                }
+            }
+        }
+
+        private static Color GetFallbackColor(int slot)
+        {
+            return slot switch
+            {
+                0 => new Color(0.85f, 0.2f, 0.2f),
+                1 => new Color(0.2f, 0.5f, 0.9f),
+                2 => new Color(0.2f, 0.8f, 0.3f),
+                3 => new Color(0.95f, 0.75f, 0.1f),
+                _ => Color.white
+            };
         }
 
         private void ResolveLocalReferences()
@@ -272,7 +324,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
                 if (boardManager == null)
                 {
-                    boardManager = Object.FindAnyObjectByType<BoardManager>();
+                    boardManager = UnityEngine.Object.FindAnyObjectByType<BoardManager>();
                 }
             }
         }

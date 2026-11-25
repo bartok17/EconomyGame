@@ -44,6 +44,10 @@ namespace MonopolyGame.Multiplayer
                     return "Player";
                 }).ToList();
 
+            var playerAuthIds = lobby.Players == null
+                ? new List<string>()
+                : lobby.Players.Select(player => player.Id ?? string.Empty).ToList();
+            
             return new LobbySnapshot(
                 lobby.Id,
                 lobby.LobbyCode,
@@ -53,7 +57,8 @@ namespace MonopolyGame.Multiplayer
                 lobby.IsPrivate,
                 relayJoinCode,
                 playerNames,
-                ToData(lobby.Data));
+                ToData(lobby.Data),
+                playerAuthIds);
         }
 
         public static bool IsGameStarted(LobbySnapshot snapshot)

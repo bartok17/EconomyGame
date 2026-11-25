@@ -33,6 +33,11 @@ namespace MonopolyGame.Multiplayer.SceneManagement
 
         private void OnEnable()
         {
+            if (coordinator == null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance;
+            }
+
             if (coordinator != null)
             {
                 coordinator.ReadyToEnterGame += OnReadyToEnterGame;
@@ -146,15 +151,23 @@ namespace MonopolyGame.Multiplayer.SceneManagement
 
         public void ReturnToLobby()
         {
+            ReturnToMenu();
+        }
+        public void ReturnToMenu()
+        {
             StopAllCoroutines();
             isLoadingGame = false;
-
-            if (coordinator != null)
+            MultiplayerFlowCoordinator activeCoordinator = coordinator ?? MultiplayerFlowCoordinator.Instance;
+            if (activeCoordinator != null)
             {
-                _ = coordinator.LeaveLobbyAsync();
+                _ = activeCoordinator.LeaveLobbyAsync();
             }
-
-            SceneManager.LoadScene("AuthLobbyHub", LoadSceneMode.Single);
+            if (NetworkManager.Singleton != null &&
+                (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsServer))
+            {
+                NetworkManager.Singleton.Shutdown();
+            }
+            SceneManager.LoadScene("Menu", LoadSceneMode.Single);
         }
 
         public static MultiplayerSceneManager Instance => _instance;
