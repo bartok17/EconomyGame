@@ -17,6 +17,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private readonly int _passStartReward;
         private readonly int _jailSpaceIndex;
         private readonly float _pawnMoveDuration;
+        private readonly int[] _rentMultipliers;
         private readonly Action _onEconomyChanged;
         private readonly Action<int, int, int, string> _onPaymentDue;
 
@@ -28,6 +29,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             int passStartReward,
             int jailSpaceIndex,
             float pawnMoveDuration,
+            int[] rentMultipliers,
             Action onEconomyChanged,
             Action<int, int, int, string> onPaymentDue)
         {
@@ -38,6 +40,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             _passStartReward = passStartReward;
             _jailSpaceIndex = jailSpaceIndex;
             _pawnMoveDuration = pawnMoveDuration;
+            _rentMultipliers = PropertyBuildingRules.SanitizeRentMultipliers(rentMultipliers);
             _onEconomyChanged = onEconomyChanged;
             _onPaymentDue = onPaymentDue;
         }
@@ -65,11 +68,14 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public void ResolvePassStartReward(PlayerPawnNetworkSync pawn, bool passedStart)
         {
+            // The house allowance refills only together with the Start reward, so
+            // teleports, jail moves and other untracked placements never refill it.
             if (pawn == null || !passedStart || _passStartReward <= 0)
             {
                 return;
             }
 
+            _economy.SetHousesBuiltThisLap(pawn.PawnSlot, 0);
             _economy.AddBalance(pawn.PawnSlot, _passStartReward);
 
             PlayerEconomyState state = _economy.GetPlayerState(pawn.PawnSlot);
@@ -144,17 +150,23 @@ namespace MonopolyGame.Multiplayer.Gameplay
             PlayerEconomyState payer = _economy.GetPlayerState(pawn.PawnSlot);
             PlayerEconomyState owner = _economy.GetPlayerState(ownerSlot);
 
-            int rentToPay = Mathf.Min(result.BaseRent, payer.Balance);
+            int rent = PropertyBuildingRules.CalculateRent(result.BaseRent, result.HousesBuilt, _rentMultipliers);
+            int rentToPay = Mathf.Min(rent, payer.Balance);
             if (rentToPay <= 0)
             {
                 return;
             }
 
-            string reason = $"Rent for {result.DisplayName}";
+            string development = PropertyBuildingRules.IsHotel(result.HousesBuilt)
+                ? ", hotel"
+                : result.HousesBuilt > 0
+                    ? $", {result.HousesBuilt} houses"
+                    : string.Empty;
+            string reason = $"Rent for {result.DisplayName}{development}";
             _onPaymentDue?.Invoke(pawn.PawnSlot, ownerSlot, rentToPay, reason);
 
             SetEconomyMessage($"{payer.DisplayName} owes {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
-            Debug.Log($"[Economy] {payer.DisplayName} owes {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}.");
+            Debug.Log($"[Economy] {payer.DisplayName} owes {rentToPay} rent to {owner.DisplayName} for {result.DisplayName}{development}.");
         }
 
         public void ResolveSpecialSpaceMessage(BoardLandingResult result)

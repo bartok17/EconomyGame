@@ -17,6 +17,10 @@ namespace MonopolyGame.Multiplayer.Gameplay
         int GetPropertyOwnerPawnSlot(int spaceIndex);
         string GetPropertyOwnerName(int spaceIndex);
         bool IsPropertyOwned(int spaceIndex);
+        int GetPropertyHouses(int spaceIndex);
+        void SetPropertyHouses(int spaceIndex, int housesBuilt);
+        int GetHousesBuiltThisLap(int pawnSlot);
+        void SetHousesBuiltThisLap(int pawnSlot, int housesBuilt);
 
         IReadOnlyList<PlayerEconomyState> GetAllEconomyStates();
         IReadOnlyList<PropertyOwnershipState> GetAllPropertyOwnerships();

@@ -405,6 +405,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             boardManager?.SetSpaceOwner(spaceIndex, string.Empty, -1);
+            boardManager?.SetSpaceBuildings(spaceIndex, 0);
 
             return removed
                 ? DebugCommandResult.Ok($"{DescribeSpace(spaceIndex)} is back with the bank.")
@@ -439,6 +440,110 @@ namespace MonopolyGame.Multiplayer.Gameplay
             }
 
             return DebugCommandResult.Ok($"{ownerName} now owns all {granted} properties.");
+        }
+
+        public DebugCommandResult DebugSetPropertyHouses(int spaceIndex, int level)
+        {
+            if (!TryPrepareDebug(out string error))
+            {
+                return DebugCommandResult.Fail(error);
+            }
+
+            if (!IsPropertySpace(spaceIndex))
+            {
+                return DebugCommandResult.Fail($"Space {spaceIndex} is not a property.");
+            }
+
+            if (!_economyService.IsPropertyOwned(spaceIndex))
+            {
+                return DebugCommandResult.Fail($"{DescribeSpace(spaceIndex)} has no owner. Use 'own <space> <player>' first.");
+            }
+
+            int clamped = PropertyBuildingRules.ClampLevel(level);
+            _economyService.SetPropertyHouses(spaceIndex, clamped);
+            return DebugCommandResult.Ok($"{DescribeSpace(spaceIndex)} now has {DescribeLevel(clamped)}.");
+        }
+
+        public DebugCommandResult DebugBuildHouse(int spaceIndex, int count)
+        {
+            if (!TryPrepareDebug(out string error))
+            {
+                return DebugCommandResult.Fail(error);
+            }
+
+            if (!IsPropertySpace(spaceIndex))
+            {
+                return DebugCommandResult.Fail($"Space {spaceIndex} is not a property.");
+            }
+
+            PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
+
+            if (pawn == null)
+            {
+                return DebugCommandResult.Fail("The active player has no pawn.");
+            }
+
+            int built = 0;
+            string message = string.Empty;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (!BuildingService.TryBuild(spaceIndex, pawn, out message))
+                {
+                    break;
+                }
+
+                built++;
+            }
+
+            if (built == 0)
+            {
+                return DebugCommandResult.Fail(message);
+            }
+
+            _turnResolution.SetEconomyMessage(message);
+            return DebugCommandResult.Ok($"{message} ({built} build(s))");
+        }
+
+        public DebugCommandResult DebugSellHouse(int spaceIndex, int count)
+        {
+            if (!TryPrepareDebug(out string error))
+            {
+                return DebugCommandResult.Fail(error);
+            }
+
+            if (!IsPropertySpace(spaceIndex))
+            {
+                return DebugCommandResult.Fail($"Space {spaceIndex} is not a property.");
+            }
+
+            PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(CurrentTurnIndex);
+
+            if (pawn == null)
+            {
+                return DebugCommandResult.Fail("The active player has no pawn.");
+            }
+
+            int sold = 0;
+            string message = string.Empty;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (!BuildingService.TrySell(spaceIndex, pawn, out message))
+                {
+                    break;
+                }
+
+                sold++;
+            }
+
+            if (sold == 0)
+            {
+                return DebugCommandResult.Fail(message);
+            }
+
+            _turnResolution.SetEconomyMessage(message);
+            return DebugCommandResult.Ok($"{message} ({sold} sale(s))");
         }
 
         public DebugCommandResult DebugSetActiveTurn(int pawnSlot)
@@ -566,11 +671,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 for (int i = 0; i < boardManager.SpaceCount; i++)
                 {
                     boardManager.SetSpaceOwner(i, string.Empty, -1);
+                    boardManager.SetSpaceBuildings(i, 0);
                 }
             }
 
+            for (int slot = 0; slot < Registry.Count; slot++)
+            {
+                _economyService.SetHousesBuiltThisLap(slot, 0);
+            }
+
             EconomyChanged?.Invoke();
-            return DebugCommandResult.Ok("Every property is back with the bank.");
+            return DebugCommandResult.Ok("Every property is back with the bank, buildings cleared, lap counters reset.");
         }
 
         public DebugCommandResult DebugDescribeState()
@@ -594,7 +705,9 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 PlayerPawnNetworkSync pawn = Registry.FindBySlot(slot);
                 int space = pawn != null ? pawn.CurrentSpaceIndex : -1;
                 string hand = DescribeHandInline(slot);
-                lines.Add($"  #{slot} {DebugPlayerName(slot),-12} {GetPlayerBalance(slot),6}  {DescribeSpace(space),-22} hand: {hand}");
+                int lapLimit = HousesPerLapLimit;
+                string lap = lapLimit > 0 ? $"{_economyService.GetHousesBuiltThisLap(slot)}/{lapLimit}" : "unlimited";
+                lines.Add($"  #{slot} {DebugPlayerName(slot),-12} {GetPlayerBalance(slot),6}  {DescribeSpace(space),-22} lap builds: {lap}  hand: {hand}");
             }
 
             int owned = 0;
@@ -690,7 +803,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 BoardSpaceView space = boardManager.GetSpace(i);
                 int ownerSlot = _economyService.GetPropertyOwnerPawnSlot(i);
                 string owner = ownerSlot >= 0 ? DebugPlayerName(ownerSlot) : "-";
-                lines.Add($"[{i,2}] {space.displayName,-16} price {space.price,4}  owner {owner}");
+                lines.Add($"[{i,2}] {space.displayName,-16} price {space.price,4}  owner {owner,-12} {DescribeLevel(_economyService.GetPropertyHouses(i))}");
             }
 
             if (lines.Count == 0)
@@ -744,6 +857,16 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
             string name = GetBoardSpaceName(spaceIndex);
             return $"{spaceIndex} ({name})";
+        }
+
+        private static string DescribeLevel(int level)
+        {
+            if (PropertyBuildingRules.IsHotel(level))
+            {
+                return "hotel";
+            }
+
+            return level > 0 ? $"{level} houses" : "-";
         }
 
         private string DescribeHandInline(int pawnSlot)

@@ -84,6 +84,35 @@ namespace MonopolyGame.Board
             space.ApplyOwnerVisual(ownerSlot);
         }
 
+        public void SetSpaceBuildings(int index, int housesBuilt)
+        {
+            BoardSpaceView space = GetSpace(index);
+            space.housesBuilt = PropertyBuildingRules.ClampLevel(housesBuilt);
+            space.ApplyBuildingVisual();
+        }
+
+        public IReadOnlyList<BoardSpaceView> GetPropertiesInGroup(int colorGroup)
+        {
+            var group = new List<BoardSpaceView>();
+
+            if (colorGroup <= 0)
+            {
+                return group;
+            }
+
+            for (int i = 0; i < spaces.Count; i++)
+            {
+                BoardSpaceView space = spaces[i];
+
+                if (space != null && space.type == BoardSpaceType.Property && space.colorGroup == colorGroup)
+                {
+                    group.Add(space);
+                }
+            }
+
+            return group;
+        }
+
         public BoardState CaptureBoardState()
         {
             if (spaces.Count == 0)
