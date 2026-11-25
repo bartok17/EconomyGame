@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace MonopolyGame.Board
 {
-    /// <summary>Which side of the board a tile belongs to.</summary>
     public enum TileSide
     {
         Bottom,
@@ -13,7 +12,6 @@ namespace MonopolyGame.Board
         Corner
     }
 
-    /// <summary>Computed world placement for one tile.</summary>
     public readonly struct BoardTilePlacement
     {
         public BoardTilePlacement(Vector3 position, Vector3 size, float yRotation, TileSide side, int cornerIndex)

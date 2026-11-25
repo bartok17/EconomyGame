@@ -26,14 +26,10 @@ namespace MonopolyGame.UI.DesignSystem
         private TextMeshProUGUI _itemText;
         private Toggle        _itemToggle;
 
-        // ── Unity lifecycle ────────────────────────────
-
         private void Awake()    => ApplyStyle();
         private void OnEnable() => ApplyStyle();
         private void OnValidate() => ApplyStyle();
         private void Reset()    => ApplyStyle();
-
-        // ── Public API ─────────────────────────────────
 
         public void ApplyStyle()
         {

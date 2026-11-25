@@ -28,8 +28,6 @@ namespace MonopolyGame.UI.DesignSystem
             ApplyStyle();
         }
 
-        // ── Unity lifecycle ────────────────────────────
-
         private void Awake()
         {
             ApplyStyle();
@@ -49,8 +47,6 @@ namespace MonopolyGame.UI.DesignSystem
         {
             ApplyStyle();
         }
-
-        // ── Public API ─────────────────────────────────
 
         public void SetImageRole(ImageRole role)
         {
