@@ -54,7 +54,22 @@ namespace MonopolyGame.Multiplayer
                 Player = BuildPlayer(displayName)
             };
 
-            CurrentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinOptions);
+            try
+            {
+                CurrentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinOptions);
+            }
+            catch (LobbyServiceException ex) when (ex.Reason == LobbyExceptionReason.LobbyConflict || ex.ErrorCode == 16003)
+            {
+                Debug.Log("[LobbyClient] Player already in lobby in UGS. Recovering lobby membership by code.");
+                CurrentLobby = await TryRecoverLobbyFromConflictAsync(
+                    lobby => string.Equals(lobby.LobbyCode, lobbyCode, StringComparison.OrdinalIgnoreCase));
+
+                if (CurrentLobby == null)
+                {
+                    throw;
+                }
+            }
+            
             Debug.Log($"[LobbyClient] Joined lobby: id={CurrentLobby.Id}, code={CurrentLobby.LobbyCode}, name={CurrentLobby.Name}, players={CurrentLobby.Players?.Count ?? 0}/{CurrentLobby.MaxPlayers}");
             LobbyUpdated?.Invoke(CurrentLobby);
             return CurrentLobby;
@@ -68,7 +83,21 @@ namespace MonopolyGame.Multiplayer
                 Player = BuildPlayer(displayName)
             };
 
-            CurrentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinOptions);
+            try
+            {
+                CurrentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, joinOptions);
+            }
+            catch (LobbyServiceException ex) when (ex.Reason == LobbyExceptionReason.LobbyConflict || ex.ErrorCode == 16003)
+            {
+                Debug.Log("[LobbyClient] Player already in lobby in UGS. Recovering lobby membership by id.");
+                CurrentLobby = await TryRecoverLobbyFromConflictAsync(lobby => lobby.Id == lobbyId);
+
+                if (CurrentLobby == null)
+                {
+                    throw;
+                }
+            }
+            
             Debug.Log($"[LobbyClient] Joined lobby: id={CurrentLobby.Id}, code={CurrentLobby.LobbyCode}, name={CurrentLobby.Name}, players={CurrentLobby.Players?.Count ?? 0}/{CurrentLobby.MaxPlayers}");
             LobbyUpdated?.Invoke(CurrentLobby);
             return CurrentLobby;
@@ -76,14 +105,33 @@ namespace MonopolyGame.Multiplayer
 
         public async Task LeaveLobbyAsync(string playerId)
         {
+            StopLoops();
+            
             if (CurrentLobby == null)
             {
                 return;
             }
 
+            string lobbyId = CurrentLobby.Id;
+            bool isHost = string.Equals(CurrentLobby.HostId, playerId, StringComparison.Ordinal);
+            
             try
             {
-                await LobbyService.Instance.RemovePlayerAsync(CurrentLobby.Id, playerId);
+                if (isHost)
+                {
+                    await LobbyService.Instance.DeleteLobbyAsync(lobbyId);
+                }
+                else
+                {
+                    await LobbyService.Instance.RemovePlayerAsync(lobbyId, playerId);
+                }
+            }
+            catch (LobbyServiceException ex) when (
+                ex.Reason == LobbyExceptionReason.LobbyNotFound ||
+                ex.Reason == LobbyExceptionReason.PlayerNotFound ||
+                ex.Reason == LobbyExceptionReason.EntityNotFound)
+            {
+                Debug.Log($"[LobbyClient] Lobby or player already gone while leaving ({ex.Reason}).");
             }
             finally
             {
@@ -216,6 +264,66 @@ namespace MonopolyGame.Multiplayer
                 {
                     break;
                 }
+            }
+        }
+        
+        private async Task<Lobby> TryRecoverLobbyFromConflictAsync(Func<Lobby, bool> predicate)
+        {
+            try
+            {
+                List<string> joinedIds = await LobbyService.Instance.GetJoinedLobbiesAsync();
+                if (joinedIds != null)
+                {
+                    for (int i = 0; i < joinedIds.Count; i++)
+                    {
+                        try
+                        {
+                            Lobby candidate = await LobbyService.Instance.GetLobbyAsync(joinedIds[i]);
+                            if (candidate != null && predicate(candidate))
+                            {
+                                return await ReconnectOrUseLobbyAsync(candidate);
+                            }
+                        }
+                        catch (Exception innerEx)
+                        {
+                            Debug.LogWarning($"[LobbyClient] Failed checking joined lobby '{joinedIds[i]}': {innerEx.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LobbyClient] GetJoinedLobbiesAsync failed: {ex.Message}");
+            }
+
+            IReadOnlyList<Lobby> publicLobbies = await QueryLobbiesAsync();
+            for (int i = 0; i < publicLobbies.Count; i++)
+            {
+                if (predicate(publicLobbies[i]))
+                {
+                    Lobby fetched = await LobbyService.Instance.GetLobbyAsync(publicLobbies[i].Id);
+                    return await ReconnectOrUseLobbyAsync(fetched);
+                }
+            }
+
+            return null;
+        }
+
+        private static async Task<Lobby> ReconnectOrUseLobbyAsync(Lobby candidate)
+        {
+            if (candidate == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return await LobbyService.Instance.ReconnectToLobbyAsync(candidate.Id);
+            }
+            catch (LobbyServiceException ex)
+            {
+                Debug.Log($"[LobbyClient] ReconnectToLobbyAsync fallback to fetched lobby ({ex.Reason}).");
+                return candidate;
             }
         }
 

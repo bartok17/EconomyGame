@@ -80,6 +80,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         
         private NetworkList<PlayerEconomyState> playerEconomyNet;
         private NetworkList<PropertyOwnershipState> propertyOwnershipNet;
+        private NetworkList<ParticipantNetState> participantStatesNet;
 
         private readonly NetworkVariable<int> pendingPurchaseSpaceIndexNet = new NetworkVariable<int>(
             -1,
@@ -143,6 +144,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             playerEconomyNet = new NetworkList<PlayerEconomyState>();
             propertyOwnershipNet = new NetworkList<PropertyOwnershipState>();
+            participantStatesNet = new NetworkList<ParticipantNetState>();
             _economyService = new PlayerEconomyService(playerEconomyNet, propertyOwnershipNet);
             _turnResolution = new TurnResolutionService(
                 _economyService,
@@ -180,6 +182,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             eventCardPileStateNet.OnValueChanged += HandleEventCardPileStateChanged;
             cardResolutionNet.OnValueChanged += HandleCardResolutionChanged;
             pendingPaymentNet.OnValueChanged += HandlePendingPaymentChanged;
+            
+            InitializeReconnectCallbacks();
 
             SyncLocalStateFromNetwork();
 
@@ -206,7 +210,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             eventCardPileStateNet.OnValueChanged -= HandleEventCardPileStateChanged;
             cardResolutionNet.OnValueChanged -= HandleCardResolutionChanged;
             pendingPaymentNet.OnValueChanged -= HandlePendingPaymentChanged;
-
+            
+            CleanupReconnectCallbacks();
             localActionCardHand.Clear();
         }
 
@@ -259,14 +264,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
         
         public int GetLocalPlayerBalance()
         {
-            ulong localClientId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
-            int pawnSlot = GetPawnSlotForClient(localClientId);
-
-            if (pawnSlot < 0 && localClientId <= int.MaxValue)
-            {
-                pawnSlot = (int)localClientId;
-            }
-            
+            int pawnSlot = GetLocalPawnSlot();
             if (pawnSlot < 0 || _economyService == null)
             {
                 return 0;
@@ -277,7 +275,22 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public int GetLocalPawnSlot()
         {
-            ulong localClientId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
+            ulong localClientId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : ulong.MaxValue;
+
+            if (TryGetSlotFromParticipantStatesNet(localClientId, out int netSlot))
+            {
+                return netSlot;
+            }
+
+            IReadOnlyList<PlayerPawnNetworkSync> spawnedPawns = PlayerPawnNetworkSync.GetSpawnedPawnSyncs();
+            for (int i = 0; i < spawnedPawns.Count; i++)
+            {
+                if (spawnedPawns[i] != null && spawnedPawns[i].IsOwner && spawnedPawns[i].PawnSlot >= 0)
+                {
+                    return spawnedPawns[i].PawnSlot;
+                }
+            }
+
             return GetPawnSlotForClient(localClientId);
         }
 
@@ -369,6 +382,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
             for (int i = 0; i < states.Count; i++)
             {
                 PlayerEconomyState state = states[i];
+
+                if (IsParticipantEliminated(state.PawnSlot))
+                {
+                    continue;
+                }
+
                 players.Add(new CardPlayerState(
                     state.PawnSlot,
                     state.PawnSlot,
@@ -591,13 +610,19 @@ namespace MonopolyGame.Multiplayer.Gameplay
 
         public string GetLastEconomyMessage()
         {
+            if (!string.IsNullOrWhiteSpace(localStatusOverrideMessage))
+            {
+                return localStatusOverrideMessage;
+            }
+
             string message = lastEconomyMessageNet.Value.ToString();
             return string.IsNullOrWhiteSpace(message) ? "No economy action yet." : message;
         }
 
         public bool HasEconomyMessage()
         {
-            return !string.IsNullOrWhiteSpace(lastEconomyMessageNet.Value.ToString());
+            return !string.IsNullOrWhiteSpace(localStatusOverrideMessage) ||
+                   !string.IsNullOrWhiteSpace(lastEconomyMessageNet.Value.ToString());
         }
 
         public string GetCurrentPropertyName()
@@ -1000,6 +1025,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
         {
             while (coordinator == null || boardManager == null || pawnSpawner == null)
             {
+                if (coordinator == null)
+                {
+                    coordinator = MultiplayerFlowCoordinator.Instance ?? FindAnyObjectByType<MultiplayerFlowCoordinator>();
+                }
+                
                 yield return null;
             }
 
@@ -1029,7 +1059,8 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 Registry.Populate(pawnSpawner.SpawnPawns(snapshot.PlayerDisplayNames, startSpaceIndex));
                 Registry.AssignOwnerships();
-                turnStateMachine.SetParticipants(Registry.BuildParticipants());
+                turnStateMachine.SetParticipants(Registry.BuildParticipants(snapshot));
+                InitializeParticipantStatesNet();
                 InitializeEconomyState();
                 _actionCardService.Initialize(Registry.Count);
                 _eventCardService.Initialize();
@@ -1042,6 +1073,7 @@ namespace MonopolyGame.Multiplayer.Gameplay
             else
             {
                 Registry.Refresh();
+                ApplyPropertyOwnersToBoard();
                 CurrentTurnIndex = currentTurnIndexNet.Value;
                 CurrentPhase     = (TurnPhase)currentPhaseNet.Value;
                 LastDiceRoll     = lastDiceRollNet.Value;
@@ -1104,6 +1136,12 @@ namespace MonopolyGame.Multiplayer.Gameplay
         private IEnumerator ResolveAfterMoveRoutine(PlayerPawnNetworkSync activePawn, int targetSpaceIndex, bool passedStart)
         {
             yield return ResolveLandingEffectsRoutine(activePawn, targetSpaceIndex, passedStart, changeTurnPhase: true);
+            
+            if (activePawn == null || IsParticipantEliminated(activePawn.PawnSlot))
+            {
+                turnCoroutine = null;
+                yield break;
+            }
 
             turnStateMachine.BeginWaitingForEndTurn();
             SetServerState(turnStateMachine.State);
@@ -1191,7 +1229,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
                 EndCardResolution();
             }
 
-            turnStateMachine.SetParticipants(Registry.BuildParticipants());
+            if (turnStateMachine.ParticipantCount == 0)
+            {
+                turnStateMachine.SetParticipants(Registry.BuildParticipants());
+            }
+            
             turnStateMachine.AdvanceTurn();
             
             PlayerPawnNetworkSync activePawn = Registry.GetAtTurnIndex(turnStateMachine.State.TurnIndex);
@@ -1382,18 +1424,20 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 return;
             }
-
             for (int i = 0; i < Registry.Count; i++)
             {
                 PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(i);
-
-                if (pawn == null || pawn.NetworkObject == null)
+                if (pawn == null)
                 {
                     continue;
                 }
-
+                TurnParticipant participant = turnStateMachine.GetParticipant(pawn.PawnSlot);
+                if (participant == null || participant.IsEliminated || !participant.IsConnected)
+                {
+                    continue;
+                }
                 IReadOnlyList<ActionCardHandEntry> entries = _actionCardService.GetHandEntries(pawn.PawnSlot);
-                SendActionCardHandToClient(pawn.PawnSlot, entries, pawn.NetworkObject.OwnerClientId);
+                SendActionCardHandToClient(pawn.PawnSlot, entries, participant.ClientId);
                 ApplyLocalActionCardHandIfOwned(pawn.PawnSlot, entries);
             }
         }
@@ -1404,14 +1448,11 @@ namespace MonopolyGame.Multiplayer.Gameplay
             {
                 return;
             }
-
-            PlayerPawnNetworkSync pawn = Registry.GetAtTurnIndex(pawnSlot);
-
-            if (pawn != null && pawn.NetworkObject != null)
+            TurnParticipant participant = turnStateMachine.GetParticipant(pawnSlot);
+            if (participant != null && !participant.IsEliminated && participant.IsConnected)
             {
-                SendActionCardHandToClient(pawnSlot, entries, pawn.NetworkObject.OwnerClientId);
+                SendActionCardHandToClient(pawnSlot, entries, participant.ClientId);
             }
-
             ApplyLocalActionCardHandIfOwned(pawnSlot, entries);
         }
 
@@ -1578,6 +1619,17 @@ namespace MonopolyGame.Multiplayer.Gameplay
         
         private int GetPawnSlotForClient(ulong clientId)
         {
+            if (IsServer && turnStateMachine.ParticipantCount > 0)
+            {
+                TurnParticipant connected = turnStateMachine.FindConnectedParticipantByClientId(clientId);
+                return connected != null ? connected.TurnIndex : -1;
+            }
+
+            if (TryGetSlotFromParticipantStatesNet(clientId, out int netSlot))
+            {
+                return netSlot;
+            }
+
             IReadOnlyList<TurnParticipant> participants = Registry.BuildParticipants();
 
             for (int i = 0; i < participants.Count; i++)

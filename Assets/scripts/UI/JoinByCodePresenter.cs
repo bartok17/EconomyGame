@@ -34,6 +34,15 @@ namespace MonopolyGame.Multiplayer.UI
 
             if (codeInputField != null)
             {
+                string savedCode = MultiplayerFlowCoordinator.Instance != null
+                    ? MultiplayerFlowCoordinator.Instance.LastActiveLobbyCode
+                    : PlayerPrefs.GetString("LastActiveLobbyCode", string.Empty);
+
+                if (!string.IsNullOrWhiteSpace(savedCode))
+                {
+                    codeInputField.text = savedCode;
+                }
+
                 codeInputField.ActivateInputField();
             }
 

@@ -88,6 +88,7 @@ namespace MonopolyGame.Multiplayer
         public bool IsPrivate { get; }
         public string RelayJoinCode { get; }
         public IReadOnlyList<string> PlayerDisplayNames { get; }
+        public IReadOnlyList<string> PlayerAuthIds { get; }
         public IReadOnlyDictionary<string, string> Data { get; }
 
         public LobbySnapshot(
@@ -99,7 +100,8 @@ namespace MonopolyGame.Multiplayer
             bool isPrivate,
             string relayJoinCode,
             IReadOnlyList<string> playerDisplayNames,
-            IReadOnlyDictionary<string, string> data)
+            IReadOnlyDictionary<string, string> data,
+            IReadOnlyList<string> playerAuthIds = null)
         {
             LobbyId = lobbyId;
             LobbyCode = lobbyCode;
@@ -109,6 +111,7 @@ namespace MonopolyGame.Multiplayer
             IsPrivate = isPrivate;
             RelayJoinCode = relayJoinCode;
             PlayerDisplayNames = playerDisplayNames;
+            PlayerAuthIds = playerAuthIds ?? Array.Empty<string>();
             Data = data;
         }
     }

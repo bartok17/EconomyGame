@@ -22,6 +22,11 @@ namespace MonopolyGame.Multiplayer.UI
 
         private void OnEnable()
         {
+            if (MultiplayerFlowCoordinator.Instance != null)
+            {
+                coordinator = MultiplayerFlowCoordinator.Instance;
+            }
+            
             if (coordinator != null)
             {
                 coordinator.LobbyListUpdated += OnLobbyListUpdated;
